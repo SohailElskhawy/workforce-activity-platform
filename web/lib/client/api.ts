@@ -2,9 +2,9 @@ export class ClientRequestError extends Error {}
 
 type ErrorPayload = { error?: { message?: string } };
 
-export async function postJson<T>(url: string, body: unknown) {
+export async function sendJson<T>(url: string, method: "PATCH" | "POST", body: unknown) {
   const response = await fetch(url, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -15,4 +15,8 @@ export async function postJson<T>(url: string, body: unknown) {
   }
 
   return payload.data;
+}
+
+export function postJson<T>(url: string, body: unknown) {
+  return sendJson<T>(url, "POST", body);
 }

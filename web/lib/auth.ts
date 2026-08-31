@@ -187,6 +187,38 @@ export async function requireManagerContext(): Promise<AuthContext> {
   return activeContext;
 }
 
+/** API routes use this fresh employee/company lookup rather than client input. */
+export async function requireEmployeeContext(): Promise<AuthContext> {
+  const session = await getAuthSession();
+
+  if (!session?.user) {
+    throw new ApiError("UNAUTHORIZED", "Authentication is required.", 401);
+  }
+
+  const context = toAuthContext(session);
+  assertRole(context, ["EMPLOYEE"]);
+
+  if (!context.employeeId) {
+    throw new ApiError("UNAUTHORIZED", "Employee access is required.", 401);
+  }
+
+  const employee = await prisma.employee.findFirst({
+    where: {
+      id: context.employeeId,
+      companyId: context.companyId,
+      status: EmployeeStatus.ACTIVE,
+      user: { is: { id: context.userId } },
+    },
+    select: { companyId: true, id: true },
+  });
+
+  if (!employee) {
+    throw new ApiError("UNAUTHORIZED", "Your account is no longer active.", 401);
+  }
+
+  return { ...context, companyId: employee.companyId, employeeId: employee.id };
+}
+
 async function getActiveManagerContext(session: Session): Promise<AuthContext | null> {
   const context = toAuthContext(session);
   const user = await prisma.user.findFirst({
