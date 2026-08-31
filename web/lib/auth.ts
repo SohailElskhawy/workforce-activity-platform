@@ -7,6 +7,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 
 import { EMPLOYEE_HOME_ROUTE, LOGIN_ROUTE, MANAGER_HOME_ROUTE } from "@/lib/auth-routes";
+import type { AuthContext } from "@/lib/auth-context";
+import { assertRole, tenantWhere } from "@/lib/auth-context";
+import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/src/generated/prisma/enums";
 import { loginSchema } from "@/lib/validation/auth";
@@ -140,16 +143,28 @@ export async function requireEmployee(): Promise<Session> {
   return session;
 }
 
-type TenantIdentity = Pick<Session["user"], "companyId">;
-
-/**
- * Adds the authenticated tenant to a company-owned Prisma query. The tenant
- * value is written last so it cannot be overridden by caller input.
- */
-export function withTenant<T extends object>(user: TenantIdentity, where: T) {
-  return { ...where, companyId: user.companyId };
+export function toAuthContext(session: Session): AuthContext {
+  return {
+    userId: session.user.id,
+    companyId: session.user.companyId,
+    role: session.user.role,
+    employeeId: session.user.employeeId,
+  };
 }
 
-export function tenantResourceWhere(user: TenantIdentity, id: string) {
-  return withTenant(user, { id });
+/** API routes use JSON errors; page layouts use the redirecting helpers above. */
+export async function requireManagerContext(): Promise<AuthContext> {
+  const session = await getAuthSession();
+
+  if (!session?.user) {
+    throw new ApiError("UNAUTHORIZED", "Authentication is required.", 401);
+  }
+
+  const context = toAuthContext(session);
+  assertRole(context, ["MANAGER"]);
+  return context;
+}
+
+export function tenantResourceWhere(session: Session, id: string) {
+  return tenantWhere(session.user.companyId, { id });
 }
