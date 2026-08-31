@@ -1,0 +1,340 @@
+generator client {
+    provider = "prisma-client"
+    output   = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+enum UserRole {
+    SUPER_ADMIN
+    MANAGER
+    EMPLOYEE
+}
+
+enum EmployeeStatus {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+}
+
+enum ProjectStatus {
+    PLANNED
+    ACTIVE
+    ON_HOLD
+    COMPLETED
+    ARCHIVED
+}
+
+enum TaskStatus {
+    TODO
+    IN_PROGRESS
+    BLOCKED
+    REVIEW
+    COMPLETED
+    CANCELLED
+}
+
+enum TaskPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+}
+
+enum ActivityType {
+    APPLICATION
+    IDLE
+    COMPUTER_LOCK
+    COMPUTER_UNLOCK
+    SYSTEM_START
+    SYSTEM_STOP
+}
+
+model Company {
+    id        String   @id @default(uuid())
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    users        User[]
+    employees    Employee[]
+    departments  Department[]
+    projects     Project[]
+    tasks        Task[]
+    assignments  TaskAssignment[]
+    timeEntries  TimeEntry[]
+    devices      Device[]
+    activities   Activity[]
+    fileMappings FileMapping[]
+    auditLogs    AuditLog[]
+}
+
+model User {
+    id           String   @id @default(uuid())
+    companyId    String
+    employeeId   String?  @unique
+    email        String   @unique
+    passwordHash String
+    role         UserRole
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+    createdProjects     Project[]        @relation("ProjectCreator")
+    createdTasks        Task[]           @relation("TaskCreator")
+    createdAssignments  TaskAssignment[] @relation("AssignmentCreator")
+    createdFileMappings FileMapping[]    @relation("FileMappingCreator")
+    auditLogs           AuditLog[]       @relation("AuditActor")
+
+    @@index([companyId])
+}
+
+model Department {
+    id        String   @id @default(uuid())
+    companyId String
+    name      String
+    managerId String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    manager   Employee?  @relation("DepartmentManager", fields: [managerId], references: [id], onDelete: SetNull)
+    employees Employee[] @relation("DepartmentEmployees")
+
+    @@unique([companyId, name])
+    @@index([companyId])
+}
+
+model Employee {
+    id           String         @id @default(uuid())
+    companyId    String
+    firstName    String
+    lastName     String
+    email        String
+    phone        String?
+    departmentId String?
+    position     String?
+    managerId    String?
+    status       EmployeeStatus @default(ACTIVE)
+    hireDate     DateTime?
+    createdAt    DateTime       @default(now())
+    updatedAt    DateTime       @updatedAt
+
+    company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    department Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id], onDelete: SetNull)
+
+    manager Employee?  @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
+    reports Employee[] @relation("EmployeeManager")
+
+    managedDepartments Department[] @relation("DepartmentManager")
+
+    user        User?
+    assignments TaskAssignment[]
+    timeEntries TimeEntry[]
+    devices     Device[]
+    activities  Activity[]
+
+    @@unique([companyId, email])
+    @@index([companyId])
+    @@index([departmentId])
+    @@index([managerId])
+}
+
+model Project {
+    id             String        @id @default(uuid())
+    companyId      String
+    name           String
+    code           String
+    description    String?
+    clientName     String?
+    status         ProjectStatus @default(PLANNED)
+    startDate      DateTime?
+    endDate        DateTime?
+    estimatedHours Int?
+    createdById    String
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+
+    company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    createdBy User    @relation("ProjectCreator", fields: [createdById], references: [id])
+
+    tasks        Task[]
+    timeEntries  TimeEntry[]
+    activities   Activity[]
+    fileMappings FileMapping[]
+
+    @@unique([companyId, code])
+    @@index([companyId])
+    @@index([status])
+}
+
+model Task {
+    id               String       @id @default(uuid())
+    companyId        String
+    projectId        String
+    parentTaskId     String?
+    title            String
+    description      String?
+    createdById      String
+    status           TaskStatus   @default(TODO)
+    priority         TaskPriority @default(MEDIUM)
+    estimatedMinutes Int?
+    dueDate          DateTime?
+    completedAt      DateTime?
+    createdAt        DateTime     @default(now())
+    updatedAt        DateTime     @updatedAt
+
+    company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    createdBy User    @relation("TaskCreator", fields: [createdById], references: [id])
+
+    parent   Task?  @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
+    children Task[] @relation("TaskHierarchy")
+
+    assignments  TaskAssignment[]
+    timeEntries  TimeEntry[]
+    activities   Activity[]
+    fileMappings FileMapping[]
+
+    @@index([companyId])
+    @@index([projectId])
+    @@index([status])
+    @@index([dueDate])
+}
+
+model TaskAssignment {
+    id           String   @id @default(uuid())
+    companyId    String
+    taskId       String
+    employeeId   String
+    assignedById String
+    assignedAt   DateTime @default(now())
+
+    company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+    employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    assignedBy User     @relation("AssignmentCreator", fields: [assignedById], references: [id])
+
+    @@unique([taskId, employeeId])
+    @@index([companyId])
+    @@index([employeeId])
+}
+
+model TimeEntry {
+    id              String   @id @default(uuid())
+    companyId       String
+    employeeId      String
+    projectId       String
+    taskId          String?
+    startAt         DateTime
+    endAt           DateTime
+    durationMinutes Int
+    notes           String?
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    task     Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+    @@index([companyId])
+    @@index([employeeId, startAt])
+    @@index([projectId])
+    @@index([taskId])
+}
+
+model Device {
+    id             String    @id @default(uuid())
+    companyId      String
+    employeeId     String
+    deviceId       String    @unique
+    name           String
+    agentTokenHash String
+    agentVersion   String?
+    lastSeenAt     DateTime?
+    isActive       Boolean   @default(true)
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+
+    company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    employee   Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    activities Activity[]
+
+    @@index([companyId])
+    @@index([employeeId])
+}
+
+model Activity {
+    id              String       @id @default(uuid())
+    eventId         String
+    companyId       String
+    employeeId      String
+    deviceId        String
+    projectId       String?
+    taskId          String?
+    startAt         DateTime
+    endAt           DateTime
+    durationSeconds Int
+    applicationName String?
+    processName     String?
+    windowTitle     String?
+    fileName        String?
+    type            ActivityType
+    createdAt       DateTime     @default(now())
+
+    company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    device   Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+    project  Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+    task     Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+    @@unique([deviceId, eventId])
+    @@index([companyId])
+    @@index([employeeId, startAt])
+    @@index([projectId])
+    @@index([taskId])
+    @@index([applicationName])
+}
+
+model FileMapping {
+    id                 String   @id @default(uuid())
+    companyId          String
+    normalizedFileName String
+    originalFileName   String
+    projectId          String
+    taskId             String?
+    createdById        String
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
+
+    company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    task      Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+    createdBy User    @relation("FileMappingCreator", fields: [createdById], references: [id])
+
+    @@unique([companyId, normalizedFileName])
+    @@index([projectId])
+}
+
+model AuditLog {
+    id          String   @id @default(uuid())
+    companyId   String
+    actorUserId String?
+    action      String
+    entityType  String
+    entityId    String
+    metadata    Json?
+    createdAt   DateTime @default(now())
+
+    company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    actor   User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+    @@index([companyId])
+    @@index([actorUserId])
+    @@index([createdAt])
+}
