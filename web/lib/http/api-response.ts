@@ -1,13 +1,15 @@
 import { ApiError, isApiError } from "@/lib/http/errors";
 
 export function ok<T>(data: T, init?: ResponseInit) {
-  return Response.json({ data }, init);
+  const headers = new Headers(init?.headers);
+  headers.set("Cache-Control", "private, no-store");
+  return Response.json({ data }, { ...init, headers });
 }
 
 export function fail(error: ApiError) {
   return Response.json(
     { error: { code: error.code, message: error.message } },
-    { status: error.status },
+    { status: error.status, headers: { "Cache-Control": "private, no-store" } },
   );
 }
 

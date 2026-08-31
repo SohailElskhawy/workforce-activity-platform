@@ -29,6 +29,14 @@ export const createProjectSchema = z.object({
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
   estimatedHours: z.coerce.number().int().positive().max(100_000).optional(),
+}).superRefine(({ endDate, startDate }, context) => {
+  if (startDate && endDate && endDate < startDate) {
+    context.addIssue({
+      code: "custom",
+      message: "End date must be on or after the start date.",
+      path: ["endDate"],
+    });
+  }
 });
 
 export type CreateProjectInput = z.output<typeof createProjectSchema>;

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireManagerContext } from "@/lib/auth";
 import { handleRouteError, ok } from "@/lib/http/api-response";
 import { ApiError } from "@/lib/http/errors";
-import { parseRequestBody } from "@/lib/http/request";
+import { assertSameOrigin, parseRequestBody } from "@/lib/http/request";
 import { assignEmployeeToTask } from "@/lib/services/tasks";
 import { assignEmployeeSchema } from "@/lib/validation/tasks";
 
@@ -11,6 +11,7 @@ const taskIdSchema = z.uuid("Task ID is invalid.");
 
 export async function POST(request: Request, context: RouteContext<"/api/tasks/[id]/assignments">) {
   try {
+    assertSameOrigin(request);
     const { id } = await context.params;
     const taskId = taskIdSchema.safeParse(id);
     if (!taskId.success) {

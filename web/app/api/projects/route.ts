@@ -1,6 +1,6 @@
 import { requireManagerContext } from "@/lib/auth";
 import { handleRouteError, ok } from "@/lib/http/api-response";
-import { parseRequestBody } from "@/lib/http/request";
+import { assertSameOrigin, parseRequestBody } from "@/lib/http/request";
 import { createProject, listProjects } from "@/lib/services/projects";
 import { createProjectSchema } from "@/lib/validation/projects";
 
@@ -15,6 +15,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
     const context = await requireManagerContext();
     const input = await parseRequestBody(request, createProjectSchema);
     return ok(await createProject(context, input), { status: 201 });

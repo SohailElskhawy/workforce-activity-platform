@@ -10,7 +10,7 @@ export async function postJson<T>(url: string, body: unknown) {
   });
 
   const payload = (await response.json().catch(() => null)) as { data?: T } & ErrorPayload | null;
-  if (!response.ok || !payload?.data) {
+  if (!response.ok || !payload || !("data" in payload)) {
     throw new ClientRequestError(payload?.error?.message ?? "Unable to save your changes.");
   }
 

@@ -11,12 +11,20 @@ import type { AuthContext } from "@/lib/auth-context";
 import { assertRole, tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
+import { consumeLoginAttempt, resetLoginAttempts } from "@/lib/security/login-rate-limit";
 import type { UserRole } from "@/src/generated/prisma/enums";
+import { EmployeeStatus } from "@/src/generated/prisma/enums";
 import { loginSchema } from "@/lib/validation/auth";
 
 const DEMO_ROLES: ReadonlySet<UserRole> = new Set(["MANAGER", "EMPLOYEE"]);
 
-async function authenticateCredentials(credentials: unknown) {
+const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
+if (!authSecret && process.env.NODE_ENV === "production") {
+  throw new Error("AUTH_SECRET must be set in production.");
+}
+
+async function authenticateCredentials(credentials: unknown, request: { headers?: Record<string, unknown> }) {
   const parsedCredentials = loginSchema.safeParse(credentials);
 
   if (!parsedCredentials.success) {
@@ -24,6 +32,10 @@ async function authenticateCredentials(credentials: unknown) {
   }
 
   const { email, password } = parsedCredentials.data;
+
+  if (!consumeLoginAttempt(email, request.headers)) {
+    return null;
+  }
 
   try {
     const user = await prisma.user.findUnique({
@@ -35,7 +47,7 @@ async function authenticateCredentials(credentials: unknown) {
         email: true,
         passwordHash: true,
         role: true,
-        employee: { select: { companyId: true } },
+        employee: { select: { companyId: true, status: true } },
       },
     });
 
@@ -48,12 +60,13 @@ async function authenticateCredentials(credentials: unknown) {
       return null;
     }
 
-    if (
-      user.role === "EMPLOYEE" &&
-      (!user.employeeId || user.employee?.companyId !== user.companyId)
-    ) {
+    if (user.employee && user.employee.status !== EmployeeStatus.ACTIVE) {
       return null;
     }
+
+    if (user.role === "EMPLOYEE" && (!user.employeeId || user.employee?.companyId !== user.companyId)) return null;
+
+    resetLoginAttempts(email, request.headers);
 
     return {
       id: user.id,
@@ -70,8 +83,8 @@ async function authenticateCredentials(credentials: unknown) {
 }
 
 export const authOptions = {
-  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-  session: { strategy: "jwt" },
+  secret: authSecret,
+  session: { strategy: "jwt", maxAge: 60 * 60 * 8, updateAge: 60 * 60 },
   pages: { signIn: "/login" },
   providers: [
     CredentialsProvider({
@@ -120,6 +133,8 @@ export async function requireManager(): Promise<Session> {
   if (session.user.role !== "MANAGER") {
     redirect(session.user.role === "EMPLOYEE" ? EMPLOYEE_HOME_ROUTE : LOGIN_ROUTE);
   }
+
+  if (!(await getActiveManagerContext(session))) redirect(LOGIN_ROUTE);
   return session;
 }
 
@@ -134,6 +149,7 @@ export async function requireEmployee(): Promise<Session> {
     where: {
       id: session.user.employeeId,
       companyId: session.user.companyId,
+      status: EmployeeStatus.ACTIVE,
       user: { is: { id: session.user.id } },
     },
     select: { id: true },
@@ -162,7 +178,42 @@ export async function requireManagerContext(): Promise<AuthContext> {
 
   const context = toAuthContext(session);
   assertRole(context, ["MANAGER"]);
-  return context;
+
+  const activeContext = await getActiveManagerContext(session);
+  if (!activeContext) {
+    throw new ApiError("UNAUTHORIZED", "Your account is no longer active.", 401);
+  }
+
+  return activeContext;
+}
+
+async function getActiveManagerContext(session: Session): Promise<AuthContext | null> {
+  const context = toAuthContext(session);
+  const user = await prisma.user.findFirst({
+    where: {
+      id: context.userId,
+      companyId: context.companyId,
+      role: "MANAGER",
+      OR: [
+        { employeeId: null },
+        {
+          employee: {
+            is: { companyId: context.companyId, status: EmployeeStatus.ACTIVE },
+          },
+        },
+      ],
+    },
+    select: { companyId: true, employeeId: true, id: true, role: true },
+  });
+
+  if (!user) return null;
+
+  return {
+    userId: user.id,
+    companyId: user.companyId,
+    role: user.role,
+    employeeId: user.employeeId,
+  };
 }
 
 export function tenantResourceWhere(session: Session, id: string) {
