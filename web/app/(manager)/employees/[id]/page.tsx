@@ -5,15 +5,13 @@ import { PageHeading } from "@/components/manager/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireManager, toAuthContext } from "@/lib/auth";
-import { formatDurationFromMinutes, formatDurationFromSeconds } from "@/lib/formatters";
+import { formatActivityDifference, formatDurationFromMinutes, formatDurationFromSeconds } from "@/lib/formatters";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
 
 export default async function EmployeeDetailPage({ params }: PageProps<"/employees/[id]">) {
   const { id } = await params;
   const summary = await getEmployeeDaySummary(toAuthContext(await requireManager()), id);
-  const difference = summary.differenceMinutes === 0
-    ? "Manual and activity time match"
-    : `${formatDurationFromMinutes(Math.abs(summary.differenceMinutes))} ${summary.differenceMinutes > 0 ? "more manual time" : "more activity time"}`;
+  const difference = formatActivityDifference(summary.differenceMinutes);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">

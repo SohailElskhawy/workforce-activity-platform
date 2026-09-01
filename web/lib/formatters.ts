@@ -18,3 +18,12 @@ export function formatDurationFromMinutes(minutes: number | null | undefined) {
   if (!minutes) return "—";
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
+
+export function formatActivityDifference(differenceMinutes: number) {
+  if (differenceMinutes === 0) return "Manual and activity time match";
+
+  const amount = `${Math.abs(differenceMinutes)}m`;
+  return differenceMinutes > 0
+    ? `${amount} more manual time than activity time`
+    : `${amount} more activity time than manual time`;
+}

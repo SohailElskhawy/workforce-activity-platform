@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDurationFromSeconds } from "@/lib/formatters";
+import { toTimelineLabel } from "@/lib/services/activity-presentation";
 
 type TimelineActivity = {
   id: string;
@@ -36,7 +37,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                 <time className="w-14 shrink-0 text-sm text-muted-foreground">{formatTime(activity.startAt)}</time>
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{activity.type === "IDLE" ? "Idle" : activity.applicationName ?? activity.type}</span>
+                    <span className="font-medium">{toTimelineLabel(activity)}</span>
                     <Badge variant={activity.type === "IDLE" ? "secondary" : "outline"}>{formatDurationFromSeconds(activity.durationSeconds)}</Badge>
                     {activity.fileName && !activity.project ? <Badge variant="outline">Unmapped</Badge> : null}
                   </div>

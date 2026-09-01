@@ -116,10 +116,10 @@ export async function getProjectActivitySummary(context: AuthContext, projectId:
   const project = await prisma.project.findFirst({ where: tenantWhere(context.companyId, { id: projectId }), select: { id: true, name: true, code: true, estimatedHours: true } });
   if (!project) throw new ApiError("NOT_FOUND", "Project not found.", 404);
   const [activity, manual] = await Promise.all([
-    prisma.activity.aggregate({ where: tenantWhere(context.companyId, { projectId, type: "APPLICATION" }), _sum: { durationSeconds: true } }),
+    prisma.activity.aggregate({ where: tenantWhere(context.companyId, { projectId, type: "APPLICATION" as const }), _sum: { durationSeconds: true } }),
     prisma.timeEntry.aggregate({ where: tenantWhere(context.companyId, { projectId }), _sum: { durationMinutes: true } }),
   ]);
-  const activeSeconds = activity._sum.durationSeconds ?? 0;
+  const activeSeconds = activity._sum?.durationSeconds ?? 0;
   const manualMinutes = manual._sum.durationMinutes ?? 0;
   return { ...project, activeSeconds, manualMinutes, differenceMinutes: manualActivityDifference(manualMinutes, activeSeconds) };
 }
@@ -129,10 +129,10 @@ export async function getTaskActivitySummary(context: AuthContext, taskId: strin
   const task = await prisma.task.findFirst({ where: tenantWhere(context.companyId, { id: taskId }), select: { id: true, title: true, estimatedMinutes: true, project: { select: { id: true, code: true, name: true } } } });
   if (!task) throw new ApiError("NOT_FOUND", "Task not found.", 404);
   const [activity, manual] = await Promise.all([
-    prisma.activity.aggregate({ where: tenantWhere(context.companyId, { taskId, type: "APPLICATION" }), _sum: { durationSeconds: true } }),
+    prisma.activity.aggregate({ where: tenantWhere(context.companyId, { taskId, type: "APPLICATION" as const }), _sum: { durationSeconds: true } }),
     prisma.timeEntry.aggregate({ where: tenantWhere(context.companyId, { taskId }), _sum: { durationMinutes: true } }),
   ]);
-  const activeSeconds = activity._sum.durationSeconds ?? 0;
+  const activeSeconds = activity._sum?.durationSeconds ?? 0;
   const manualMinutes = manual._sum.durationMinutes ?? 0;
   return { ...task, activeSeconds, manualMinutes, differenceMinutes: manualActivityDifference(manualMinutes, activeSeconds) };
 }
