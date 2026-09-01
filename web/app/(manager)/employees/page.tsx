@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { PageHeading } from "@/components/manager/page-heading";
 import { StatusBadge } from "@/components/manager/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +21,7 @@ export default async function EmployeesPage() {
               <TableBody>
                 {employees.map((employee) => (
                   <TableRow key={employee.id}>
-                    <TableCell><div className="font-medium">{employee.firstName} {employee.lastName}</div><div className="text-xs text-muted-foreground">{employee.email}</div></TableCell>
+                    <TableCell><Link className="font-medium hover:underline" href={`/employees/${employee.id}`}>{employee.firstName} {employee.lastName}</Link><div className="text-xs text-muted-foreground">{employee.email}</div></TableCell>
                     <TableCell>{employee.department?.name ?? "Unassigned"}</TableCell>
                     <TableCell>{employee.position ?? "—"}</TableCell>
                     <TableCell>{employee._count.assignments}</TableCell>
