@@ -1,5 +1,6 @@
 import { ActivityTimeline } from "@/components/activity/activity-timeline";
 import { ApplicationBreakdown } from "@/components/activity/application-breakdown";
+import { ActivityPoller } from "@/components/activity/activity-poller";
 import { PageHeading } from "@/components/manager/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ export default async function EmployeeDetailPage({ params }: PageProps<"/employe
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
+      <ActivityPoller />
       <PageHeading description={`${summary.employee.department ?? "Unassigned department"} · ${summary.employee.position ?? "Employee"}`} title={summary.employee.name} action={<Badge variant={summary.employee.isOnline ? "default" : "secondary"}>{summary.employee.isOnline ? "Agent online" : "Agent offline"}</Badge>} />
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Today's active" value={formatDurationFromSeconds(summary.activeSeconds)} />
