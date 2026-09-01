@@ -1,0 +1,17 @@
+[project]
+name = "worklens-agent"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "httpx>=0.27,<1",
+  "python-dotenv>=1,<2",
+  "psutil>=6,<8",
+]
+
+[project.optional-dependencies]
+windows = ["pywin32>=306"]
+test = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
