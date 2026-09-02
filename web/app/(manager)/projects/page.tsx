@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CreateProjectDialog } from "@/components/manager/create-project-dialog";
+import { EmptyState } from "@/components/states/empty-state";
 import { PageHeading } from "@/components/manager/page-heading";
 import { StatusBadge } from "@/components/manager/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +19,7 @@ export default async function ProjectsPage() {
       <Card><CardContent className="pt-0">
         {projects.length ? <Table><TableHeader><TableRow><TableHead>Project</TableHead><TableHead>Client</TableHead><TableHead>Status</TableHead><TableHead>Tasks</TableHead><TableHead>End date</TableHead></TableRow></TableHeader><TableBody>
           {projects.map((project) => <TableRow key={project.id}><TableCell><Link className="font-medium hover:underline" href={`/projects/${project.id}`}>{project.code} — {project.name}</Link></TableCell><TableCell>{project.clientName ?? "—"}</TableCell><TableCell><StatusBadge value={project.status} /></TableCell><TableCell>{project._count.tasks}</TableCell><TableCell>{formatDate(project.endDate)}</TableCell></TableRow>)}
-        </TableBody></Table> : <p className="py-10 text-center text-sm text-muted-foreground">No projects yet. Create your first project to start assigning work.</p>}
+        </TableBody></Table> : <EmptyState description="Create your first project to start assigning work." title="No projects yet." />}
       </CardContent></Card>
     </main>
   );

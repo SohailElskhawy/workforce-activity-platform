@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PageHeading } from "@/components/manager/page-heading";
+import { EmptyState } from "@/components/states/empty-state";
 import { StatusBadge } from "@/components/manager/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,7 +31,7 @@ export default async function EmployeesPage() {
                 ))}
               </TableBody>
             </Table>
-          ) : <p className="py-10 text-center text-sm text-muted-foreground">No employees found.</p>}
+          ) : <EmptyState description="Employees in your company will appear here." title="No employees found." />}
         </CardContent>
       </Card>
     </main>

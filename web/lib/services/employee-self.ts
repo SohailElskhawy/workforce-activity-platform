@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AuthContext } from "@/lib/auth-context";
+import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
@@ -86,15 +87,13 @@ export async function updateOwnAssignedTaskStatus(
       select: { id: true, status: true, completedAt: true },
     });
 
-    await transaction.auditLog.create({
-      data: {
-        companyId: context.companyId,
-        actorUserId: context.userId,
-        action: "TASK_STATUS_UPDATED_BY_EMPLOYEE",
-        entityType: "Task",
-        entityId: task.id,
-        metadata: { status: task.status },
-      },
+    await writeAudit(transaction, {
+      companyId: context.companyId,
+      actorUserId: context.userId,
+      action: "TASK_STATUS_UPDATED_BY_EMPLOYEE",
+      entityType: "Task",
+      entityId: task.id,
+      metadata: { status: task.status },
     });
 
     return task;

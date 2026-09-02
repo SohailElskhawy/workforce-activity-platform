@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ApiError } from "@/lib/http/errors";
+
 const optionalText = (maxLength: number) =>
   z.preprocess(
     (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -30,6 +32,19 @@ export const createTaskSchema = z.object({
 export const assignEmployeeSchema = z.object({
   employeeId: z.uuid("Select a valid employee."),
 });
+
+export function assertDueDateNotPast(dueDate: Date | undefined) {
+  if (!dueDate) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const normalizedDueDate = new Date(dueDate);
+  normalizedDueDate.setHours(0, 0, 0, 0);
+
+  if (normalizedDueDate < today) {
+    throw new ApiError("VALIDATION_ERROR", "Due date cannot be in the past.", 400);
+  }
+}
 
 export type CreateTaskInput = z.output<typeof createTaskSchema>;
 export type AssignEmployeeInput = z.output<typeof assignEmployeeSchema>;

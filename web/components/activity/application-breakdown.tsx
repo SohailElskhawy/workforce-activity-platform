@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/states/empty-state";
 import { formatDurationFromSeconds } from "@/lib/formatters";
 
 type ApplicationBreakdownProps = {
@@ -22,7 +23,7 @@ export function ApplicationBreakdown({ applications }: ApplicationBreakdownProps
               </div>
             ))}
           </div>
-        ) : <p className="text-sm text-muted-foreground">No application activity for this day.</p>}
+        ) : <EmptyState description="Captured application activity will appear here." title="No application activity for this day." />}
       </CardContent>
     </Card>
   );

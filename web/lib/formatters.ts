@@ -8,18 +8,20 @@ export function formatDate(date: Date | null | undefined) {
   }).format(date);
 }
 
-export function formatDurationFromSeconds(seconds: number) {
+export function formatDurationFromSeconds(seconds: number | null | undefined) {
+  if (seconds == null || !Number.isFinite(seconds)) return "—";
   const hours = Math.floor(seconds / 3_600);
   const minutes = Math.floor((seconds % 3_600) / 60);
   return `${hours}h ${minutes}m`;
 }
 
 export function formatDurationFromMinutes(minutes: number | null | undefined) {
-  if (!minutes) return "—";
+  if (minutes == null || !Number.isFinite(minutes)) return "—";
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
 export function formatActivityDifference(differenceMinutes: number) {
+  if (!Number.isFinite(differenceMinutes)) return "—";
   if (differenceMinutes === 0) return "Manual and activity time match";
 
   const amount = `${Math.abs(differenceMinutes)}m`;

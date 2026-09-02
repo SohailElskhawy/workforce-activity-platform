@@ -16,6 +16,6 @@ export const createTimeEntrySchema = z.object({
   startAt: z.coerce.date(),
   endAt: z.coerce.date(),
   notes: optionalNotes,
-});
+}).strict();
 
 export type CreateTimeEntryInput = z.output<typeof createTimeEntrySchema>;

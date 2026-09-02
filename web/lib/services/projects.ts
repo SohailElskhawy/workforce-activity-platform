@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AuthContext } from "@/lib/auth-context";
+import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
@@ -71,14 +72,12 @@ export async function createProject(context: AuthContext, input: CreateProjectIn
         select: { id: true, name: true, code: true, status: true },
       });
 
-      await transaction.auditLog.create({
-        data: {
-          companyId: context.companyId,
-          actorUserId: context.userId,
-          action: "PROJECT_CREATED",
-          entityType: "Project",
-          entityId: project.id,
-        },
+      await writeAudit(transaction, {
+        companyId: context.companyId,
+        actorUserId: context.userId,
+        action: "PROJECT_CREATED",
+        entityType: "Project",
+        entityId: project.id,
       });
 
       return project;

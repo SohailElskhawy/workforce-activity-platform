@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AuthContext } from "@/lib/auth-context";
+import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
@@ -87,15 +88,13 @@ export async function createOwnTimeEntry(context: AuthContext, input: CreateTime
       select: { id: true, durationMinutes: true, endAt: true, startAt: true },
     });
 
-    await transaction.auditLog.create({
-      data: {
-        companyId: context.companyId,
-        actorUserId: context.userId,
-        action: "TIME_ENTRY_CREATED_BY_EMPLOYEE",
-        entityType: "TimeEntry",
-        entityId: entry.id,
-        metadata: { projectId: project.id, taskId: input.taskId ?? null },
-      },
+    await writeAudit(transaction, {
+      companyId: context.companyId,
+      actorUserId: context.userId,
+      action: "TIME_ENTRY_CREATED_BY_EMPLOYEE",
+      entityType: "TimeEntry",
+      entityId: entry.id,
+      metadata: { projectId: project.id, taskId: input.taskId ?? null },
     });
 
     return entry;

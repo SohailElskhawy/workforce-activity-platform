@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DataError } from "@/components/states/data-error";
+import { EmptyState } from "@/components/states/empty-state";
 import { formatActivityDifference, formatDurationFromMinutes, formatDurationFromSeconds } from "@/lib/formatters";
 import { projectTrackedPercentage } from "@/lib/services/activity-presentation";
 
@@ -16,6 +18,7 @@ function today() { return new Date().toISOString().slice(0, 10); }
 function useReport(url: string | null) {
   const [result, setResult] = useState<{ data: ReportPayload; url: string } | null>(null);
   const [failure, setFailure] = useState<{ message: string; url: string } | null>(null);
+  const [reloadCount, setReloadCount] = useState(0);
   useEffect(() => {
     if (!url) return;
     let cancelled = false;
@@ -27,13 +30,20 @@ function useReport(url: string | null) {
       })
       .catch((caughtError) => { if (!cancelled) setFailure({ message: caughtError instanceof Error ? caughtError.message : "Unable to load this report.", url }); });
     return () => { cancelled = true; };
-  }, [url]);
-  return { data: result?.url === url ? result.data : null, error: failure?.url === url ? failure.message : null };
+  }, [reloadCount, url]);
+  return {
+    data: result?.url === url ? result.data : null,
+    error: failure?.url === url ? failure.message : null,
+    retry: () => {
+      setFailure(null);
+      setReloadCount((count) => count + 1);
+    },
+  };
 }
 
-function ReportMessage({ error, hasSelection }: { error: string | null; hasSelection: boolean }) {
-  if (!hasSelection) return <p className="pt-4 text-sm text-muted-foreground">Choose a record to view its summary.</p>;
-  return error ? <p className="pt-4 text-sm text-destructive">{error}</p> : <p className="pt-4 text-sm text-muted-foreground">Loading report…</p>;
+function ReportMessage({ error, hasSelection, onRetry }: { error: string | null; hasSelection: boolean; onRetry: () => void }) {
+  if (!hasSelection) return <EmptyState description="Choose an employee, project, or task to view its report." title="Select a record to view its summary." />;
+  return error ? <DataError message={error} onRetry={onRetry} /> : <p className="pt-4 text-sm text-muted-foreground">Loading report…</p>;
 }
 
 export function ReportTabs({ employees, projects, tasks }: { employees: EmployeeOption[]; projects: ProjectOption[]; tasks: TaskOption[] }) {
@@ -47,10 +57,10 @@ export function ReportTabs({ employees, projects, tasks }: { employees: Employee
 
   return <Tabs defaultValue="employee">
     <TabsList><TabsTrigger value="employee">Employee Summary</TabsTrigger><TabsTrigger value="project">Project Summary</TabsTrigger><TabsTrigger value="task">Task Summary</TabsTrigger><TabsTrigger value="difference">Manual vs Activity</TabsTrigger></TabsList>
-    <TabsContent value="employee"><EmployeePicker day={day} employeeId={employeeId} employees={employees} onDayChange={setDay} onEmployeeChange={setEmployeeId} />{employeeReport.data ? <EmployeeMetrics summary={employeeReport.data} /> : <ReportMessage error={employeeReport.error} hasSelection={Boolean(employeeId)} />}</TabsContent>
-    <TabsContent value="project"><label className="grid gap-1 pt-4 text-sm">Project<select className="h-8 rounded-lg border border-input bg-transparent px-2.5" onChange={(event) => setProjectId(event.target.value)} value={projectId}><option value="">Select a project</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.code} — {project.name}</option>)}</select></label>{projectReport.data ? <ProjectMetrics summary={projectReport.data} /> : <ReportMessage error={projectReport.error} hasSelection={Boolean(projectId)} />}</TabsContent>
-    <TabsContent value="task"><label className="grid gap-1 pt-4 text-sm">Task<select className="h-8 rounded-lg border border-input bg-transparent px-2.5" onChange={(event) => setTaskId(event.target.value)} value={taskId}><option value="">Select a task</option>{tasks.map((task) => <option key={task.id} value={task.id}>{task.project.code} — {task.title}</option>)}</select></label>{taskReport.data ? <TaskMetrics summary={taskReport.data} /> : <ReportMessage error={taskReport.error} hasSelection={Boolean(taskId)} />}</TabsContent>
-    <TabsContent value="difference"><EmployeePicker day={day} employeeId={employeeId} employees={employees} onDayChange={setDay} onEmployeeChange={setEmployeeId} />{employeeReport.data ? <DifferenceMetrics summary={employeeReport.data} /> : <ReportMessage error={employeeReport.error} hasSelection={Boolean(employeeId)} />}</TabsContent>
+    <TabsContent value="employee"><EmployeePicker day={day} employeeId={employeeId} employees={employees} onDayChange={setDay} onEmployeeChange={setEmployeeId} />{employeeReport.data ? <EmployeeMetrics summary={employeeReport.data} /> : <ReportMessage error={employeeReport.error} hasSelection={Boolean(employeeId)} onRetry={employeeReport.retry} />}</TabsContent>
+    <TabsContent value="project"><label className="grid gap-1 pt-4 text-sm">Project<select className="h-8 rounded-lg border border-input bg-transparent px-2.5" onChange={(event) => setProjectId(event.target.value)} value={projectId}><option value="">Select a project</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.code} — {project.name}</option>)}</select></label>{projectReport.data ? <ProjectMetrics summary={projectReport.data} /> : <ReportMessage error={projectReport.error} hasSelection={Boolean(projectId)} onRetry={projectReport.retry} />}</TabsContent>
+    <TabsContent value="task"><label className="grid gap-1 pt-4 text-sm">Task<select className="h-8 rounded-lg border border-input bg-transparent px-2.5" onChange={(event) => setTaskId(event.target.value)} value={taskId}><option value="">Select a task</option>{tasks.map((task) => <option key={task.id} value={task.id}>{task.project.code} — {task.title}</option>)}</select></label>{taskReport.data ? <TaskMetrics summary={taskReport.data} /> : <ReportMessage error={taskReport.error} hasSelection={Boolean(taskId)} onRetry={taskReport.retry} />}</TabsContent>
+    <TabsContent value="difference"><EmployeePicker day={day} employeeId={employeeId} employees={employees} onDayChange={setDay} onEmployeeChange={setEmployeeId} />{employeeReport.data ? <DifferenceMetrics summary={employeeReport.data} /> : <ReportMessage error={employeeReport.error} hasSelection={Boolean(employeeId)} onRetry={employeeReport.retry} />}</TabsContent>
   </Tabs>;
 }
 

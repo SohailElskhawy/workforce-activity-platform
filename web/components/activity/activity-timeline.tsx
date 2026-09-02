@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/states/empty-state";
 import { formatDurationFromSeconds } from "@/lib/formatters";
 import { toTimelineLabel } from "@/lib/services/activity-presentation";
 
@@ -47,7 +48,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
               </div>
             ))}
           </div>
-        ) : <p className="text-sm text-muted-foreground">No activity has been captured for this day.</p>}
+        ) : <EmptyState description="New captured activity will appear here." title="No activity has been captured for this day." />}
       </CardContent>
     </Card>
   );

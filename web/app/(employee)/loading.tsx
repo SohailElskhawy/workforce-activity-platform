@@ -1,5 +1,5 @@
 import { PageSkeleton } from "@/components/states/page-skeleton";
 
-export default function ManagerLoading() {
+export default function EmployeeLoading() {
   return <PageSkeleton />;
 }

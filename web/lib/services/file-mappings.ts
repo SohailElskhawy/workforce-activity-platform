@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AuthContext } from "@/lib/auth-context";
+import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { normalizeFileName } from "@/lib/agent/file-name";
 import { ApiError } from "@/lib/http/errors";
@@ -22,7 +23,13 @@ export async function upsertFileMapping(context: AuthContext, input: FileMapping
       update: { originalFileName: input.fileName, projectId: project.id, taskId: input.taskId ?? null },
       select: { id: true, originalFileName: true, projectId: true, taskId: true },
     });
-    await transaction.auditLog.create({ data: { companyId: context.companyId, actorUserId: context.userId, action: "FILE_MAPPING_UPSERTED", entityType: "FileMapping", entityId: mapping.id } });
+    await writeAudit(transaction, {
+      companyId: context.companyId,
+      actorUserId: context.userId,
+      action: "FILE_MAPPING_UPSERTED",
+      entityType: "FileMapping",
+      entityId: mapping.id,
+    });
     return mapping;
   });
 }

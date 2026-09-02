@@ -1,24 +1,12 @@
 import "server-only";
 
 import type { AuthContext } from "@/lib/auth-context";
+import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
 import { isPrismaErrorWithCode } from "@/lib/services/shared";
-import type { AssignEmployeeInput, CreateTaskInput } from "@/lib/validation/tasks";
-
-function assertDueDateNotPast(dueDate: Date | undefined) {
-  if (!dueDate) return;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const normalizedDueDate = new Date(dueDate);
-  normalizedDueDate.setHours(0, 0, 0, 0);
-
-  if (normalizedDueDate < today) {
-    throw new ApiError("VALIDATION_ERROR", "Due date cannot be in the past.", 400);
-  }
-}
+import { assertDueDateNotPast, type AssignEmployeeInput, type CreateTaskInput } from "@/lib/validation/tasks";
 
 export async function listTasks(context: AuthContext) {
   return prisma.task.findMany({
@@ -94,15 +82,13 @@ export async function createTask(context: AuthContext, input: CreateTaskInput) {
       select: { id: true, title: true, projectId: true, status: true, priority: true },
     });
 
-    await transaction.auditLog.create({
-      data: {
-        companyId: context.companyId,
-        actorUserId: context.userId,
-        action: "TASK_CREATED",
-        entityType: "Task",
-        entityId: task.id,
-        metadata: { projectId: task.projectId },
-      },
+    await writeAudit(transaction, {
+      companyId: context.companyId,
+      actorUserId: context.userId,
+      action: "TASK_CREATED",
+      entityType: "Task",
+      entityId: task.id,
+      metadata: { projectId: task.projectId },
     });
 
     return task;
@@ -142,15 +128,13 @@ export async function assignEmployeeToTask(
         select: { id: true, taskId: true, employeeId: true, assignedAt: true },
       });
 
-      await transaction.auditLog.create({
-        data: {
-          companyId: context.companyId,
-          actorUserId: context.userId,
-          action: "TASK_ASSIGNED",
-          entityType: "TaskAssignment",
-          entityId: assignment.id,
-          metadata: { taskId: task.id, employeeId: employee.id },
-        },
+      await writeAudit(transaction, {
+        companyId: context.companyId,
+        actorUserId: context.userId,
+        action: "TASK_ASSIGNED",
+        entityType: "TaskAssignment",
+        entityId: assignment.id,
+        metadata: { taskId: task.id, employeeId: employee.id },
       });
 
       return assignment;
