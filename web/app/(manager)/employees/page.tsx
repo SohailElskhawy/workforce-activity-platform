@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PageHeading } from "@/components/manager/page-heading";
+import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { EmptyState } from "@/components/states/empty-state";
 import { StatusBadge } from "@/components/manager/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +36,9 @@ export default async function EmployeesPage() {
                   <TableHead>Position</TableHead>
                   <TableHead>Assignments</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Agent device</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -58,6 +62,12 @@ export default async function EmployeesPage() {
                     <TableCell>{employee._count.assignments}</TableCell>
                     <TableCell>
                       <StatusBadge value={employee.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <RegisterAgentDeviceDialog
+                        employeeId={employee.id}
+                        employeeName={`${employee.firstName} ${employee.lastName}`}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
