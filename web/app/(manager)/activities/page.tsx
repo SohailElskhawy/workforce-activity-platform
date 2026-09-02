@@ -57,7 +57,22 @@ export default async function ActivitiesPage() {
                       {employee.department?.name ?? "Unassigned"}
                     </CardDescription>
                   </div>
-                  <Badge variant="outline">{employee.status}</Badge>
+                  <div className="text-right">
+                    <Badge
+                      variant={
+                        employee.agentStatus === "ONLINE"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {employee.agentStatus.replaceAll("_", " ")}
+                    </Badge>
+                    {employee.agentDeviceName ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {employee.agentDeviceName}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
