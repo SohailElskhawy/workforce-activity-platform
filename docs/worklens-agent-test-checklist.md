@@ -24,6 +24,7 @@ Use a manager-issued demo device and the hosted HTTPS application. Record the te
 | 18 | Uninstall through Windows Apps/Installed Programs. | App and Startup shortcut are gone; `%LOCALAPPDATA%\WorkLens` is deleted. | Fresh Windows required |
 | 19 | Repeat clean install on a machine with no Python installation. | Installer and agent work with no Python/pip/venv. | Fresh Windows required |
 | 20 | Give an ordinary employee only the installer and manager credentials. | Completion requires no terminal command or `.env`. | Fresh Windows required |
+| 21 | As a manager, select **Add employee**, create a unique work email and temporary password, then sign in as that employee. | New employee appears as `NOT ENROLLED`; linked employee login succeeds; manager can register that employee's device. | Fresh hosted-app check required |
 
 ## Executed preflight
 

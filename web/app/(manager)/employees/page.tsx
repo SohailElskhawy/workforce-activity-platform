@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ActivityPoller } from "@/components/activity/activity-poller";
+import { CreateEmployeeDialog } from "@/components/manager/create-employee-dialog";
 import { PageHeading } from "@/components/manager/page-heading";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { EmptyState } from "@/components/states/empty-state";
@@ -16,15 +17,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireManager, toAuthContext } from "@/lib/auth";
-import { listEmployees } from "@/lib/services/employees";
+import { listDepartments, listEmployees } from "@/lib/services/employees";
 
 export default async function EmployeesPage() {
-  const employees = await listEmployees(toAuthContext(await requireManager()));
+  const context = toAuthContext(await requireManager());
+  const [departments, employees] = await Promise.all([
+    listDepartments(context),
+    listEmployees(context),
+  ]);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeading
+        action={<CreateEmployeeDialog departments={departments} />}
         description="People available for project work in your company."
         title="Employees"
       />
