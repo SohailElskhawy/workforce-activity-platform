@@ -30,7 +30,7 @@ Use a manager-issued demo device and the hosted HTTPS application. Record the te
 - Hosted `POST /api/agent/heartbeat` with the supplied demo device accepted the existing authentication contract with HTTP 200 on 2026-09-02.
 - Hosted `POST /api/agent/activities/batch` accepted a UUID-formatted activity payload with HTTP 200 and `accepted: 1` on 2026-09-02.
 - A deliberately non-UUID event ID returned HTTP 400 `Invalid UUID`, confirming server-side event validation rather than a packaging issue.
-- Runtime-path, JSON-configuration, enrollment-persistence, and installed-main selection tests ran with the available standard-library runner: 10 tests passed. The host does not provide pytest/pip/venv and cannot execute the Windows installer.
+- The complete 27-test agent suite ran through the available standard-library runner with temporary compatibility shims for unavailable `python-dotenv` and `httpx`; runtime-path, JSON-configuration, enrollment-persistence, HTTPS enrollment validation, installed-main selection, queue, client, simulator, segmenter, and DWG tests passed. The host does not provide pytest/pip/venv and cannot execute the Windows installer.
 
 ## Known demo limitations
 
