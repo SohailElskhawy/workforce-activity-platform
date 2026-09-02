@@ -1,9 +1,11 @@
 import Link from "next/link";
 
+import { ActivityPoller } from "@/components/activity/activity-poller";
 import { PageHeading } from "@/components/manager/page-heading";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { EmptyState } from "@/components/states/empty-state";
 import { StatusBadge } from "@/components/manager/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -21,6 +23,7 @@ export default async function EmployeesPage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
+      <ActivityPoller />
       <PageHeading
         description="People available for project work in your company."
         title="Employees"
@@ -36,6 +39,7 @@ export default async function EmployeesPage() {
                   <TableHead>Position</TableHead>
                   <TableHead>Assignments</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Agent</TableHead>
                   <TableHead>
                     <span className="sr-only">Agent device</span>
                   </TableHead>
@@ -62,6 +66,22 @@ export default async function EmployeesPage() {
                     <TableCell>{employee._count.assignments}</TableCell>
                     <TableCell>
                       <StatusBadge value={employee.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          employee.agentStatus === "ONLINE"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {employee.agentStatus.replaceAll("_", " ")}
+                      </Badge>
+                      {employee.agentDeviceName ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {employee.agentDeviceName}
+                        </p>
+                      ) : null}
                     </TableCell>
                     <TableCell className="text-right">
                       <RegisterAgentDeviceDialog
