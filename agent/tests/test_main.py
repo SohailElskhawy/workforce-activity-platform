@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from io import StringIO
+import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from worklens_agent.main import process_observations
+from worklens_agent.main import main, process_observations
 from worklens_agent.models import Observation
 from worklens_agent.queue import ActivityQueue
 from worklens_agent.segmenter import SegmentBuilder
@@ -27,6 +30,15 @@ class MainLoopTests(unittest.TestCase):
             (start_at + timedelta(seconds=5)).isoformat(),
             (start_at + timedelta(seconds=10)).isoformat(),
         ])
+
+    def test_real_mode_reports_the_windows_requirement_before_loading_agent_credentials(self) -> None:
+        stderr = StringIO()
+        with patch.object(sys, "platform", "linux"), patch("sys.stderr", stderr):
+            with self.assertRaises(SystemExit) as exit_error:
+                main(["--mode", "real"])
+
+        self.assertEqual(exit_error.exception.code, 2)
+        self.assertIn("Real collector requires Windows. Use --mode simulate on this machine.", stderr.getvalue())
 
 
 if __name__ == "__main__":

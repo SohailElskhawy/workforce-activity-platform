@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
 import logging
 from pathlib import Path
+import sys
 import time
 
 from worklens_agent.client import AgentClient
@@ -61,13 +62,48 @@ def run_simulator(config: AgentConfig) -> None:
         queue.close()
 
 
+def run_real(config: AgentConfig) -> None:
+    from worklens_agent.windows_collector import WindowsCollector
+
+    queue = ActivityQueue(Path("data") / "activity.db")
+    client = AgentClient(config, queue)
+    builder = SegmentBuilder()
+    collector = WindowsCollector(config)
+    last_upload = time.monotonic()
+    last_heartbeat = last_upload
+    try:
+        client.send_heartbeat()
+        while True:
+            observation = collector.observe()
+            for segment in builder.observe(observation):
+                queue.enqueue(segment)
+            now = time.monotonic()
+            if now - last_upload >= 15:
+                client.upload_pending()
+                last_upload = now
+            if now - last_heartbeat >= 30:
+                client.send_heartbeat()
+                last_heartbeat = now
+            time.sleep(2)
+    finally:
+        for segment in builder.finish(datetime.now(timezone.utc)):
+            queue.enqueue(segment)
+        client.upload_pending()
+        client.close()
+        queue.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="WorkLens activity agent")
     parser.add_argument("--mode", choices=["simulate", "real"], required=True)
     args = parser.parse_args(argv)
-    if args.mode == "real":
+    if args.mode == "real" and sys.platform != "win32":
         parser.error("Real collector requires Windows. Use --mode simulate on this machine.")
-    run_simulator(AgentConfig.from_environment())
+    config = AgentConfig.from_environment()
+    if args.mode == "real":
+        run_real(config)
+    else:
+        run_simulator(config)
     return 0
 
 
