@@ -25,11 +25,10 @@ Run from a Windows developer shell:
 cd agent
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[windows,test]"
 .\scripts\build-windows.ps1 -DefaultApiUrl "https://workforce-activity-platform-lyart.vercel.app"
 ```
 
-The non-secret `-DefaultApiUrl` is embedded only as the enrollment dialog’s initial value. Device ID and token are never embedded. The executable is produced at:
+The build script installs the Windows runtime dependency set, verifies that `pywin32` can import `win32gui` and `win32process`, then invokes PyInstaller. The non-secret `-DefaultApiUrl` is embedded only as the enrollment dialog’s initial value. Device ID and token are never embedded. The executable is produced at:
 
 ```text
 agent\dist\WorkLensAgent\WorkLensAgent.exe

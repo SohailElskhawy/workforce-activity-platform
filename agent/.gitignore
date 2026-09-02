@@ -1,5 +1,6 @@
 /build/
 /dist/
+/installer/output/
 /data/
 *.spec
 .env
