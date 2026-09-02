@@ -1,8 +1,10 @@
+/build/
+/dist/
+/data/
+*.spec
 .env
-.venv/
-*.egg-info/
-.pytest_cache/
 __pycache__/
-data/
-worklens_agent/__pycache__/
-tests/__pycache__/
+.pytest_cache/
+.venv/
+.venv-win/
+*.egg-info/

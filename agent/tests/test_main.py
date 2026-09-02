@@ -6,6 +6,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import worklens_agent.main as main_module
+from worklens_agent.config import AgentConfig
 from worklens_agent.main import main, process_observations
 from worklens_agent.models import Observation
 from worklens_agent.queue import ActivityQueue
@@ -13,6 +15,49 @@ from worklens_agent.segmenter import SegmentBuilder
 
 
 class MainLoopTests(unittest.TestCase):
+    def test_packaged_runtime_directory_starts_real_mode_with_persisted_config(
+        self,
+    ) -> None:
+        config = AgentConfig(
+            api_url="https://host.example",
+            device_id="PC-1",
+            agent_token="issued-token",
+            agent_version="0.1.0",
+            idle_threshold_seconds=300,
+            excluded_processes=frozenset(),
+        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            runtime_dir = Path(tempdir)
+            config.write_runtime_file(runtime_dir / "config.json")
+            with (
+                patch.object(sys, "platform", "win32"),
+                patch.object(main_module, "is_packaged", return_value=True),
+                patch.object(main_module, "run_real") as run_real,
+            ):
+                self.assertEqual(main(["--runtime-dir", str(runtime_dir)]), 0)
+
+        run_real.assert_called_once_with(config, runtime_dir / "activity.db")
+
+    def test_developer_simulator_mode_still_uses_environment_config(self) -> None:
+        config = AgentConfig(
+            api_url="https://host.example",
+            device_id="PC-1",
+            agent_token="issued-token",
+            agent_version="0.1.0",
+            idle_threshold_seconds=300,
+            excluded_processes=frozenset(),
+        )
+        with (
+            patch.object(
+                main_module.AgentConfig, "from_environment", return_value=config
+            ) as from_environment,
+            patch.object(main_module, "run_simulator") as run_simulator,
+        ):
+            self.assertEqual(main(["--mode", "simulate"]), 0)
+
+        from_environment.assert_called_once()
+        run_simulator.assert_called_once()
+
     def test_process_observations_persists_closed_segments_and_flushes_on_shutdown(
         self,
     ) -> None:

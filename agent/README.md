@@ -20,7 +20,7 @@ For real Windows collection, install the optional dependency group as well:
 python -m pip install -e ".[test,windows]"
 ```
 
-## Environment file
+## Environment file (developer mode only)
 
 Create `agent/.env` locally; do not commit it.
 
@@ -41,9 +41,15 @@ Each agent must use a manager-issued device ID and token:
 
 1. Sign in as a manager.
 2. Call the manager-protected `POST /api/agent/register` endpoint from an authenticated same-origin session with an active employee ID and a device name.
-3. Record the returned `deviceId` and raw `token` in the device’s local `.env` file immediately. The backend retains only a peppered hash of the token.
+3. For developer mode, record the returned `deviceId` and raw `token` in the device’s local `.env` file immediately. For the installed employee agent, enter them in the enrollment window instead. The backend retains only a peppered hash of the token.
 
 The raw token is returned once and cannot be recovered later. To rotate a lost token, register a replacement device and deactivate the old device in the database/admin workflow. There is currently no dedicated web UI for registration.
+
+## Windows employee installer
+
+Employees install `WorkLensAgentSetup.exe`; they do not need Python, pip, PowerShell, a virtual environment, or an `.env` file. The installer opens the enrollment window, adds a Windows-login startup shortcut, and uses real collection mode.
+
+See [employee installation instructions](../docs/worklens-agent-employee-installation.md) and the [developer packaging guide](../docs/worklens-agent-developer-guide.md).
 
 ## Simulator mode
 
@@ -75,7 +81,7 @@ For sensitive tools, list executable names in `WORKLENS_EXCLUDED_PROCESSES`, for
 
 ## Offline queue and delivery
 
-The agent stores pending segments in `agent/data/activity.db`. Network failures or non-success responses leave queued records in place for later retry. A successful upload marks only the acknowledged batch as uploaded. Event IDs are stable, and the backend has a `(deviceId, eventId)` uniqueness rule, so retrying an already delivered activity is safe.
+Developer runs store pending segments in `agent/data/activity.db`. Installed runs store their queue in `%LOCALAPPDATA%\WorkLens\activity.db`, alongside `%LOCALAPPDATA%\WorkLens\config.json` and `%LOCALAPPDATA%\WorkLens\logs\agent.log`. Network failures or non-success responses leave queued records in place for later retry. A successful upload marks only the acknowledged batch as uploaded. Event IDs are stable, and the backend has a `(deviceId, eventId)` uniqueness rule, so retrying an already delivered activity is safe.
 
 ## Testing
 
