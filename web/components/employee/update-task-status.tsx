@@ -13,7 +13,7 @@ export function UpdateTaskStatus({
   status: string;
   taskId: string;
 }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const [value, setValue] = useState(status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -30,11 +30,7 @@ export function UpdateTaskStatus({
         });
       } catch (caughtError) {
         setValue(previousStatus);
-        setError(
-          caughtError instanceof ClientRequestError
-            ? caughtError.message
-            : "Unable to update the task.",
-        );
+        setError(formatError(caughtError));
       }
     });
   }

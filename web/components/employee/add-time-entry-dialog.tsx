@@ -38,7 +38,7 @@ export function AddTimeEntryDialog({
   projects: ProjectOption[];
   tasks: TaskOption[];
 }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -63,11 +63,7 @@ export function AddTimeEntryDialog({
       setOpen(false);
       router.refresh();
     } catch (caughtError) {
-      setRequestError(
-        caughtError instanceof ClientRequestError
-          ? caughtError.message
-          : "Unable to add the time entry.",
-      );
+      setRequestError(formatError(caughtError));
     }
   }
 

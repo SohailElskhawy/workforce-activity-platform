@@ -31,7 +31,7 @@ import {
 type CreateProjectForm = z.input<typeof createProjectSchema>;
 
 export function CreateProjectDialog() {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -53,11 +53,7 @@ export function CreateProjectDialog() {
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setRequestError(
-        error instanceof ClientRequestError
-          ? error.message
-          : "Unable to create the project.",
-      );
+      setRequestError(formatError(error));
     }
   }
 

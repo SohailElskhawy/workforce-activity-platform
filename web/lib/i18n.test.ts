@@ -79,4 +79,38 @@ test("formatters adapt correctly to turkish and english locales", () => {
   );
 });
 
+test("formatErrorMessage localizes backend and validation errors correctly", async () => {
+  const { formatErrorMessage } = await import("@/lib/i18n/errors");
+  const tr = await getServerDictionary("tr");
+  const en = await getServerDictionary("en");
+
+  assert.equal(
+    formatErrorMessage("Time entries cannot be in the future.", tr),
+    "Süre girişleri gelecekteki bir zamana ait olamaz.",
+  );
+  assert.equal(
+    formatErrorMessage("Time entries cannot be in the future.", en),
+    "Time entries cannot be in the future.",
+  );
+
+  assert.equal(
+    formatErrorMessage("End time must be after start time.", tr),
+    "Bitiş zamanı başlangıç zamanından sonra olmalıdır.",
+  );
+  assert.equal(
+    formatErrorMessage("End time must be after start time.", en),
+    "End time must be after start time.",
+  );
+
+  assert.equal(
+    formatErrorMessage("Project not found.", tr),
+    "Proje bulunamadı.",
+  );
+  assert.equal(
+    formatErrorMessage("Project not found.", en),
+    "Project not found.",
+  );
+});
+
+
 

@@ -37,7 +37,7 @@ export function MapFileDialog({
   projects: ProjectOption[];
   tasks: TaskOption[];
 }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -62,11 +62,7 @@ export function MapFileDialog({
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setRequestError(
-        error instanceof ClientRequestError
-          ? error.message
-          : "Unable to save the file mapping.",
-      );
+      setRequestError(formatError(error));
     }
   }
 

@@ -32,7 +32,7 @@ export function RegisterAgentDeviceDialog({
   employeeId: string;
   employeeName: string;
 }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const defaultName = `${employeeName}'s computer`;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(defaultName);
@@ -70,11 +70,7 @@ export function RegisterAgentDeviceDialog({
       }
       setCredentials(device);
     } catch (error) {
-      setRequestError(
-        error instanceof ClientRequestError
-          ? error.message
-          : "Unable to register the agent device.",
-      );
+      setRequestError(formatError(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -108,7 +104,7 @@ export function RegisterAgentDeviceDialog({
           <>
             <DialogHeader className="min-w-0">
               <DialogTitle className="truncate">{t.employees.registerAgentDevice}</DialogTitle>
-              <DialogDescription className="break-words">
+              <DialogDescription className="wrap-break-word">
                 {t.employees.registerAgentDeviceDesc}
               </DialogDescription>
             </DialogHeader>
@@ -134,7 +130,7 @@ export function RegisterAgentDeviceDialog({
           <>
             <DialogHeader className="min-w-0">
               <DialogTitle className="truncate">{t.employees.registerAgentDevice}</DialogTitle>
-              <DialogDescription className="break-words">
+              <DialogDescription className="wrap-break-word">
                 {t.employees.registerAgentDeviceDesc}
               </DialogDescription>
             </DialogHeader>

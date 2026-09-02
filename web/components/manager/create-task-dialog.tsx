@@ -33,7 +33,7 @@ type ProjectOption = { id: string; name: string; code: string };
 type CreateTaskForm = z.input<typeof createTaskSchema>;
 
 export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -60,11 +60,7 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setRequestError(
-        error instanceof ClientRequestError
-          ? error.message
-          : "Unable to create the task.",
-      );
+      setRequestError(formatError(error));
     }
   }
 

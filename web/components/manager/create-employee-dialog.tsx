@@ -34,7 +34,7 @@ export function CreateEmployeeDialog({
 }: {
   departments: DepartmentOption[];
 }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [createdEmail, setCreatedEmail] = useState<string | null>(null);
@@ -74,11 +74,7 @@ export function CreateEmployeeDialog({
       setCreatedEmail(employee.email);
       router.refresh();
     } catch (error) {
-      setRequestError(
-        error instanceof ClientRequestError
-          ? error.message
-          : "Unable to create the employee.",
-      );
+      setRequestError(formatError(error));
     }
   }
 

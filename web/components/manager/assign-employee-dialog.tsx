@@ -38,7 +38,7 @@ export function AssignEmployeeDialog({
   employees: EmployeeOption[];
   taskId: string;
 }) {
-  const { t } = useI18n();
+  const { formatError, t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -60,11 +60,7 @@ export function AssignEmployeeDialog({
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setRequestError(
-        error instanceof ClientRequestError
-          ? error.message
-          : "Unable to assign the employee.",
-      );
+      setRequestError(formatError(error));
     }
   }
 

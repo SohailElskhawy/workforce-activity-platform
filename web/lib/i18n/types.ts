@@ -278,4 +278,46 @@ export interface TranslationDictionary {
     notFound: string;
     notFoundDesc: string;
   };
+  errors: {
+    futureTime: string;
+    endAfterStart: string;
+    durationTooLong: string;
+    overlappingTime: string;
+    startDateBeforeEndDate: string;
+    pastDeadline: string;
+    projectNotFound: string;
+    taskNotFound: string;
+    employeeNotFound: string;
+    departmentNotFound: string;
+    assignedTaskNotFound: string;
+    taskNotFoundInProject: string;
+    emailAlreadyExists: string;
+    departmentAlreadyExists: string;
+    invalidDeviceResponse: string;
+    unableToSave: string;
+    unableToSaveFileMapping: string;
+    unableToCreateEmployee: string;
+    unableToRegisterDevice: string;
+    unableToCreateTask: string;
+    unableToCreateProject: string;
+    unableToAssign: string;
+    unableToAddTime: string;
+    unableToUpdateTask: string;
+    unableToLoadReport: string;
+    invalidEmployeeResponse: string;
+    copyUnavailable: string;
+    invalidCredentials: string;
+    selectValidProject: string;
+    selectValidTask: string;
+    selectValidEmployee: string;
+    taskTitleMin: string;
+    projectNameMin: string;
+    projectCodeMin: string;
+    firstNameRequired: string;
+    lastNameRequired: string;
+    invalidEmail: string;
+    passwordMin: string;
+    generic: string;
+  };
 }
+

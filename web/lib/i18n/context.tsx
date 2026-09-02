@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, type Locale } from "./config";
 import { en } from "./dictionaries/en";
 import { tr } from "./dictionaries/tr";
+import { formatErrorMessage } from "./errors";
 import type { TranslationDictionary } from "./types";
 
 const dictionaries: Record<Locale, TranslationDictionary> = {
@@ -16,6 +17,7 @@ interface I18nContextValue {
   locale: Locale;
   t: TranslationDictionary;
   setLocale: (nextLocale: Locale) => void;
+  formatError: (error: unknown) => string;
   isPending: boolean;
 }
 
@@ -45,10 +47,13 @@ export function I18nProvider({
     });
   };
 
+  const activeT = dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
+
   const value: I18nContextValue = {
     locale,
-    t: dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE],
+    t: activeT,
     setLocale,
+    formatError: (error: unknown) => formatErrorMessage(error, activeT),
     isPending,
   };
 
@@ -62,9 +67,11 @@ export function useI18n(): I18nContextValue {
       locale: "en",
       t: dictionaries.en,
       setLocale: () => {},
+      formatError: (error: unknown) => formatErrorMessage(error, dictionaries.en),
       isPending: false,
     };
   }
   return context;
 }
+
 
