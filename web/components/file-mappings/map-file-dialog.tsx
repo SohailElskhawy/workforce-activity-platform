@@ -80,23 +80,24 @@ export function MapFileDialog({
           </Button>
         }
       />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t.activities.mapFile}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="min-w-0">
+          <DialogTitle className="truncate">{t.activities.mapFile}</DialogTitle>
+          <DialogDescription className="break-words">
             {t.activities.mapFileDesc}
           </DialogDescription>
         </DialogHeader>
         <form
-          className="grid gap-4"
+          className="grid gap-4 min-w-0"
           noValidate
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="mapping-file">DWG filename</Label>
             <Input
               aria-invalid={Boolean(errors.fileName)}
               id="mapping-file"
+              className="w-full min-w-0"
               placeholder="ABC_A_Block.dwg"
               {...register("fileName")}
             />
@@ -106,11 +107,11 @@ export function MapFileDialog({
               </p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="mapping-project">{t.tasks.project}</Label>
             <select
               aria-invalid={Boolean(errors.projectId)}
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
               id="mapping-project"
               {...register("projectId")}
             >
@@ -127,10 +128,10 @@ export function MapFileDialog({
               </p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="mapping-task">{t.tasks.taskTitle}</Label>
             <select
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
               id="mapping-task"
               {...register("taskId", { setValueAs: (value) => value || null })}
             >

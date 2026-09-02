@@ -78,22 +78,22 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
           </Button>
         }
       />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t.tasks.createTaskTitle}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader className="min-w-0">
+          <DialogTitle className="truncate">{t.tasks.createTaskTitle}</DialogTitle>
+          <DialogDescription className="break-words">
             {t.tasks.createTaskDesc}
           </DialogDescription>
         </DialogHeader>
         <form
-          className="grid gap-4"
+          className="grid gap-4 min-w-0"
           noValidate
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="task-project">{t.tasks.project}</Label>
             <select
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
               id="task-project"
               aria-invalid={Boolean(errors.projectId)}
               {...register("projectId")}
@@ -111,10 +111,11 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
               </p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="task-title">{t.tasks.taskTitle}</Label>
             <Input
               id="task-title"
+              className="w-full min-w-0"
               aria-invalid={Boolean(errors.title)}
               {...register("title")}
             />
@@ -122,15 +123,15 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
               <p className="text-xs text-destructive">{errors.title.message}</p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="task-description">{t.projects.description}</Label>
-            <Textarea id="task-description" {...register("description")} />
+            <Textarea id="task-description" className="w-full min-w-0" {...register("description")} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="task-status">{t.projects.status}</Label>
               <select
-                className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
                 id="task-status"
                 {...register("status")}
               >
@@ -143,10 +144,10 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
                 ))}
               </select>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="task-priority">{t.tasks.priority}</Label>
               <select
-                className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
                 id="task-priority"
                 {...register("priority")}
               >
@@ -158,20 +159,22 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="task-estimate">{t.myTime.duration}</Label>
               <Input
                 id="task-estimate"
+                className="w-full min-w-0"
                 min="1"
                 type="number"
                 {...register("estimatedMinutes")}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="task-due-date">{t.tasks.dueDate}</Label>
               <Input
                 id="task-due-date"
+                className="w-full min-w-0"
                 type="date"
                 aria-invalid={Boolean(errors.dueDate)}
                 {...register("dueDate")}

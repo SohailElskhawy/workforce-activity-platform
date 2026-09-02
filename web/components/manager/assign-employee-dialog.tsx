@@ -78,22 +78,22 @@ export function AssignEmployeeDialog({
           </Button>
         }
       />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t.tasks.assignEmployeeTitle}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="min-w-0">
+          <DialogTitle className="truncate">{t.tasks.assignEmployeeTitle}</DialogTitle>
+          <DialogDescription className="break-words">
             {t.tasks.assignEmployeeDesc}
           </DialogDescription>
         </DialogHeader>
         <form
-          className="grid gap-4"
+          className="grid gap-4 min-w-0"
           noValidate
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="assignment-employee">{t.common.employee}</Label>
             <select
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
               id="assignment-employee"
               aria-invalid={Boolean(errors.employeeId)}
               {...register("employeeId")}

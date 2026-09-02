@@ -95,12 +95,12 @@ export function CreateEmployeeDialog({
           </Button>
         }
       />
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         {createdEmail ? (
           <>
-            <DialogHeader>
-              <DialogTitle>{t.employees.createEmployeeTitle}</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="min-w-0">
+              <DialogTitle className="truncate">{t.employees.createEmployeeTitle}</DialogTitle>
+              <DialogDescription className="break-words">
                 {createdEmail}
               </DialogDescription>
             </DialogHeader>
@@ -112,31 +112,31 @@ export function CreateEmployeeDialog({
           </>
         ) : (
           <>
-            <DialogHeader>
-              <DialogTitle>{t.employees.createEmployeeTitle}</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="min-w-0">
+              <DialogTitle className="truncate">{t.employees.createEmployeeTitle}</DialogTitle>
+              <DialogDescription className="break-words">
                 {t.employees.createEmployeeDesc}
               </DialogDescription>
             </DialogHeader>
             <form
-              className="grid gap-4"
+              className="grid gap-4 min-w-0"
               noValidate
               onSubmit={handleSubmit(onSubmit)}
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
                 <Field
                   error={errors.firstName?.message}
                   label={t.employees.firstName}
                   name="employee-first-name"
                 >
-                  <Input id="employee-first-name" {...register("firstName")} />
+                  <Input id="employee-first-name" className="w-full min-w-0" {...register("firstName")} />
                 </Field>
                 <Field
                   error={errors.lastName?.message}
                   label={t.employees.lastName}
                   name="employee-last-name"
                 >
-                  <Input id="employee-last-name" {...register("lastName")} />
+                  <Input id="employee-last-name" className="w-full min-w-0" {...register("lastName")} />
                 </Field>
               </div>
               <Field
@@ -146,18 +146,19 @@ export function CreateEmployeeDialog({
               >
                 <Input
                   id="employee-email"
+                  className="w-full min-w-0"
                   type="email"
                   {...register("email")}
                 />
               </Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
                 <Field
                   error={errors.departmentId?.message}
                   label={t.employees.department}
                   name="employee-department"
                 >
                   <select
-                    className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                    className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
                     id="employee-department"
                     {...register("departmentId", {
                       setValueAs: (value) => value || null,
@@ -176,7 +177,7 @@ export function CreateEmployeeDialog({
                   label={t.employees.role}
                   name="employee-position"
                 >
-                  <Input id="employee-position" {...register("position")} />
+                  <Input id="employee-position" className="w-full min-w-0" {...register("position")} />
                 </Field>
               </div>
               <Field
@@ -186,6 +187,7 @@ export function CreateEmployeeDialog({
               >
                 <Input
                   id="employee-password"
+                  className="w-full min-w-0"
                   type="password"
                   {...register("temporaryPassword")}
                 />

@@ -71,22 +71,23 @@ export function CreateProjectDialog() {
           </Button>
         }
       />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t.projects.createProjectTitle}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader className="min-w-0">
+          <DialogTitle className="truncate">{t.projects.createProjectTitle}</DialogTitle>
+          <DialogDescription className="break-words">
             {t.projects.createProjectDesc}
           </DialogDescription>
         </DialogHeader>
         <form
-          className="grid gap-4"
+          className="grid gap-4 min-w-0"
           noValidate
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="project-name">{t.projects.name}</Label>
             <Input
               id="project-name"
+              className="w-full min-w-0"
               aria-invalid={Boolean(errors.name)}
               {...register("name")}
             />
@@ -94,10 +95,11 @@ export function CreateProjectDialog() {
               <p className="text-xs text-destructive">{errors.name.message}</p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="project-code">{t.projects.code}</Label>
             <Input
               id="project-code"
+              className="w-full min-w-0"
               aria-invalid={Boolean(errors.code)}
               {...register("code")}
             />
@@ -105,19 +107,19 @@ export function CreateProjectDialog() {
               <p className="text-xs text-destructive">{errors.code.message}</p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="client-name">{t.projects.client}</Label>
-            <Input id="client-name" {...register("clientName")} />
+            <Input id="client-name" className="w-full min-w-0" {...register("clientName")} />
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="project-description">{t.projects.description}</Label>
-            <Textarea id="project-description" {...register("description")} />
+            <Textarea id="project-description" className="w-full min-w-0" {...register("description")} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="project-status">{t.projects.status}</Label>
               <select
-                className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
                 id="project-status"
                 {...register("status")}
               >
@@ -130,28 +132,30 @@ export function CreateProjectDialog() {
                 ))}
               </select>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="estimated-hours">{t.projects.estimatedHours}</Label>
               <Input
                 id="estimated-hours"
+                className="w-full min-w-0"
                 min="1"
                 type="number"
                 {...register("estimatedHours")}
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="project-start">{t.projects.startDate}</Label>
               <Input
                 id="project-start"
+                className="w-full min-w-0"
                 type="date"
                 {...register("startDate")}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="project-end">{t.projects.endDate}</Label>
-              <Input id="project-end" type="date" {...register("endDate")} />
+              <Input id="project-end" className="w-full min-w-0" type="date" {...register("endDate")} />
             </div>
           </div>
           {requestError ? (

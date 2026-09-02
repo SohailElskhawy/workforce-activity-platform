@@ -103,12 +103,12 @@ export function RegisterAgentDeviceDialog({
           </Button>
         }
       />
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         {enrollment ? (
           <>
-            <DialogHeader>
-              <DialogTitle>{t.employees.registerAgentDevice}</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="min-w-0">
+              <DialogTitle className="truncate">{t.employees.registerAgentDevice}</DialogTitle>
+              <DialogDescription className="break-words">
                 {t.employees.registerAgentDeviceDesc}
               </DialogDescription>
             </DialogHeader>
@@ -132,17 +132,18 @@ export function RegisterAgentDeviceDialog({
           </>
         ) : (
           <>
-            <DialogHeader>
-              <DialogTitle>{t.employees.registerAgentDevice}</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="min-w-0">
+              <DialogTitle className="truncate">{t.employees.registerAgentDevice}</DialogTitle>
+              <DialogDescription className="break-words">
                 {t.employees.registerAgentDeviceDesc}
               </DialogDescription>
             </DialogHeader>
-            <form className="grid gap-4" noValidate onSubmit={registerDevice}>
-              <div className="grid gap-2">
+            <form className="grid gap-4 min-w-0" noValidate onSubmit={registerDevice}>
+              <div className="grid gap-2 min-w-0">
                 <Label htmlFor="agent-device-name">Device name</Label>
                 <Input
                   id="agent-device-name"
+                  className="w-full min-w-0"
                   maxLength={160}
                   onChange={(event) => setName(event.target.value)}
                   required

@@ -81,23 +81,23 @@ export function AddTimeEntryDialog({
           </Button>
         }
       />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t.myTime.addTimeEntryTitle}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="min-w-0">
+          <DialogTitle className="truncate">{t.myTime.addTimeEntryTitle}</DialogTitle>
+          <DialogDescription className="break-words">
             {t.myTime.addTimeEntryDesc}
           </DialogDescription>
         </DialogHeader>
         <form
-          className="grid gap-4"
+          className="grid gap-4 min-w-0"
           noValidate
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="time-project">{t.tasks.project}</Label>
             <select
               aria-invalid={Boolean(errors.projectId)}
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
               id="time-project"
               {...register("projectId")}
             >
@@ -114,10 +114,10 @@ export function AddTimeEntryDialog({
               </p>
             ) : null}
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="time-task">{t.tasks.taskTitle}</Label>
             <select
-              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm truncate"
               id="time-task"
               {...register("taskId")}
             >
@@ -134,12 +134,13 @@ export function AddTimeEntryDialog({
               </p>
             ) : null}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="time-start">{t.myTime.startTime}</Label>
               <Input
                 aria-invalid={Boolean(errors.startAt)}
                 id="time-start"
+                className="w-full min-w-0"
                 type="datetime-local"
                 {...register("startAt")}
               />
@@ -149,11 +150,12 @@ export function AddTimeEntryDialog({
                 </p>
               ) : null}
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-w-0">
               <Label htmlFor="time-end">{t.myTime.endTime}</Label>
               <Input
                 aria-invalid={Boolean(errors.endAt)}
                 id="time-end"
+                className="w-full min-w-0"
                 type="datetime-local"
                 {...register("endAt")}
               />
@@ -164,9 +166,9 @@ export function AddTimeEntryDialog({
               ) : null}
             </div>
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="time-notes">{t.myTime.notes}</Label>
-            <Textarea id="time-notes" placeholder={t.myTime.notesPlaceholder} {...register("notes")} />
+            <Textarea id="time-notes" className="w-full min-w-0" placeholder={t.myTime.notesPlaceholder} {...register("notes")} />
           </div>
           {requestError ? (
             <p className="text-sm text-destructive">{requestError}</p>
