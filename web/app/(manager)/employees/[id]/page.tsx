@@ -2,6 +2,7 @@ import { ActivityTimeline } from "@/components/activity/activity-timeline";
 import { ApplicationBreakdown } from "@/components/activity/application-breakdown";
 import { ActivityPoller } from "@/components/activity/activity-poller";
 import { PageHeading } from "@/components/manager/page-heading";
+import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -35,9 +36,17 @@ export default async function EmployeeDetailPage({
         description={`${summary.employee.department ?? "Unassigned department"} · ${summary.employee.position ?? "Employee"}`}
         title={summary.employee.name}
         action={
-          <Badge variant={summary.employee.isOnline ? "default" : "secondary"}>
-            {summary.employee.isOnline ? "Agent online" : "Agent offline"}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <RegisterAgentDeviceDialog
+              employeeId={id}
+              employeeName={summary.employee.name}
+            />
+            <Badge
+              variant={summary.employee.isOnline ? "default" : "secondary"}
+            >
+              {summary.employee.isOnline ? "Agent online" : "Agent offline"}
+            </Badge>
+          </div>
         }
       />
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

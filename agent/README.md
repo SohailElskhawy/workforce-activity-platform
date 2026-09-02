@@ -39,11 +39,11 @@ WORKLENS_EXCLUDED_PROCESSES=1password.exe,keepass.exe
 
 Each agent must use a manager-issued device ID and token:
 
-1. Sign in as a manager.
-2. Call the manager-protected `POST /api/agent/register` endpoint from an authenticated same-origin session with an active employee ID and a device name.
+1. Sign in as a manager and open the employee's detail page.
+2. Select **Register agent device**, provide a device name, and save the displayed device ID and one-time token immediately.
 3. For developer mode, record the returned `deviceId` and raw `token` in the device’s local `.env` file immediately. For the installed employee agent, enter them in the enrollment window instead. The backend retains only a peppered hash of the token.
 
-The raw token is returned once and cannot be recovered later. To rotate a lost token, register a replacement device and deactivate the old device in the database/admin workflow. There is currently no dedicated web UI for registration.
+The raw token is returned once and cannot be recovered later. To rotate a lost token, register a replacement device and deactivate the old device in the database/admin workflow.
 
 ## Windows employee installer
 
