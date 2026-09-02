@@ -13,32 +13,58 @@ from worklens_agent.segmenter import SegmentBuilder
 
 
 class MainLoopTests(unittest.TestCase):
-    def test_process_observations_persists_closed_segments_and_flushes_on_shutdown(self) -> None:
+    def test_process_observations_persists_closed_segments_and_flushes_on_shutdown(
+        self,
+    ) -> None:
         start_at = datetime(2026, 9, 1, 9, 0, tzinfo=timezone.utc)
         observations = [
-            Observation(start_at, "APPLICATION", "AutoCAD", "acad.exe", "ABC_A_Block.dwg", "ABC_A_Block.dwg"),
-            Observation(start_at + timedelta(seconds=5), "IDLE", None, None, None, None),
+            Observation(
+                start_at,
+                "APPLICATION",
+                "AutoCAD",
+                "acad.exe",
+                "ABC_A_Block.dwg",
+                "ABC_A_Block.dwg",
+            ),
+            Observation(
+                start_at + timedelta(seconds=5), "IDLE", None, None, None, None
+            ),
         ]
         with tempfile.TemporaryDirectory() as tempdir:
             queue = ActivityQueue(Path(tempdir) / "activity.db")
-            process_observations(observations, SegmentBuilder(), queue, finish_at=start_at + timedelta(seconds=10))
+            process_observations(
+                observations,
+                SegmentBuilder(),
+                queue,
+                finish_at=start_at + timedelta(seconds=10),
+            )
             pending = queue.pending()
             queue.close()
 
-        self.assertEqual([item.payload["type"] for item in pending], ["APPLICATION", "IDLE"])
-        self.assertEqual([item.payload["endAt"] for item in pending], [
-            (start_at + timedelta(seconds=5)).isoformat(),
-            (start_at + timedelta(seconds=10)).isoformat(),
-        ])
+        self.assertEqual(
+            [item.payload["type"] for item in pending], ["APPLICATION", "IDLE"]
+        )
+        self.assertEqual(
+            [item.payload["endAt"] for item in pending],
+            [
+                (start_at + timedelta(seconds=5)).isoformat(),
+                (start_at + timedelta(seconds=10)).isoformat(),
+            ],
+        )
 
-    def test_real_mode_reports_the_windows_requirement_before_loading_agent_credentials(self) -> None:
+    def test_real_mode_reports_the_windows_requirement_before_loading_agent_credentials(
+        self,
+    ) -> None:
         stderr = StringIO()
         with patch.object(sys, "platform", "linux"), patch("sys.stderr", stderr):
             with self.assertRaises(SystemExit) as exit_error:
                 main(["--mode", "real"])
 
         self.assertEqual(exit_error.exception.code, 2)
-        self.assertIn("Real collector requires Windows. Use --mode simulate on this machine.", stderr.getvalue())
+        self.assertIn(
+            "Real collector requires Windows. Use --mode simulate on this machine.",
+            stderr.getvalue(),
+        )
 
 
 if __name__ == "__main__":

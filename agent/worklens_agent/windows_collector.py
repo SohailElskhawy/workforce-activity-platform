@@ -15,7 +15,9 @@ class LASTINPUTINFO(ctypes.Structure):
 class WindowsCollector:
     def __init__(self, config: AgentConfig) -> None:
         if sys.platform != "win32":
-            raise RuntimeError("Real collector requires Windows. Use --mode simulate on this machine.")
+            raise RuntimeError(
+                "Real collector requires Windows. Use --mode simulate on this machine."
+            )
         import psutil
         import win32gui
         import win32process
@@ -37,7 +39,12 @@ class WindowsCollector:
             _, process_id = self._win32process.GetWindowThreadProcessId(window_handle)
             process_name = self._psutil.Process(process_id).name()
             window_title = self._win32gui.GetWindowText(window_handle) or None
-        except (self._psutil.AccessDenied, self._psutil.NoSuchProcess, self._psutil.ZombieProcess, OSError):
+        except (
+            self._psutil.AccessDenied,
+            self._psutil.NoSuchProcess,
+            self._psutil.ZombieProcess,
+            OSError,
+        ):
             return Observation(observed_at, "SKIP", None, None, None, None)
 
         normalized_process = process_name.casefold()
@@ -45,8 +52,17 @@ class WindowsCollector:
             return Observation(observed_at, "SKIP", None, None, None, None)
 
         application_name = PureWindowsPath(process_name).stem
-        file_name = extract_dwg_filename(window_title) if "acad" in normalized_process else None
-        return Observation(observed_at, "APPLICATION", application_name, process_name, window_title, file_name)
+        file_name = (
+            extract_dwg_filename(window_title) if "acad" in normalized_process else None
+        )
+        return Observation(
+            observed_at,
+            "APPLICATION",
+            application_name,
+            process_name,
+            window_title,
+            file_name,
+        )
 
     @staticmethod
     def _idle_seconds() -> float:

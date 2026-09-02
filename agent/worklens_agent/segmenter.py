@@ -17,7 +17,9 @@ class SegmentBuilder:
             return []
 
         if self._same_state(self._current, observation):
-            if (observation.at - self._current.at).total_seconds() < self.max_segment_seconds:
+            if (
+                observation.at - self._current.at
+            ).total_seconds() < self.max_segment_seconds:
                 return []
             closed = self._close_current(observation.at)
             self._current = observation
@@ -32,7 +34,9 @@ class SegmentBuilder:
 
     def _close_current(self, end_at: datetime) -> list[ActivitySegment]:
         if self._current is None or end_at <= self._current.at:
-            self._current = None if self._current and end_at > self._current.at else self._current
+            self._current = (
+                None if self._current and end_at > self._current.at else self._current
+            )
             return []
 
         current = self._current
@@ -42,9 +46,15 @@ class SegmentBuilder:
                 start_at=current.at,
                 end_at=end_at,
                 type=current.kind,
-                application_name=current.application_name if current.kind == "APPLICATION" else None,
-                process_name=current.process_name if current.kind == "APPLICATION" else None,
-                window_title=current.window_title if current.kind == "APPLICATION" else None,
+                application_name=(
+                    current.application_name if current.kind == "APPLICATION" else None
+                ),
+                process_name=(
+                    current.process_name if current.kind == "APPLICATION" else None
+                ),
+                window_title=(
+                    current.window_title if current.kind == "APPLICATION" else None
+                ),
                 file_name=current.file_name if current.kind == "APPLICATION" else None,
             )
         ]

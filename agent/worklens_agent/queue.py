@@ -32,7 +32,11 @@ class ActivityQueue:
     def enqueue(self, segment: ActivitySegment) -> None:
         self._connection.execute(
             "INSERT OR IGNORE INTO pending_activity (event_id, payload_json, created_at) VALUES (?, ?, ?)",
-            (segment.event_id, json.dumps(segment.to_payload()), datetime.now(timezone.utc).isoformat()),
+            (
+                segment.event_id,
+                json.dumps(segment.to_payload()),
+                datetime.now(timezone.utc).isoformat(),
+            ),
         )
         self._connection.commit()
 
@@ -42,7 +46,9 @@ class ActivityQueue:
             "SELECT event_id, payload_json FROM pending_activity WHERE uploaded_at IS NULL ORDER BY created_at ASC, rowid ASC LIMIT ?",
             (capped_limit,),
         ).fetchall()
-        return [QueuedActivity(event_id=row[0], payload=json.loads(row[1])) for row in rows]
+        return [
+            QueuedActivity(event_id=row[0], payload=json.loads(row[1])) for row in rows
+        ]
 
     def mark_uploaded(self, event_ids: list[str]) -> None:
         if not event_ids:

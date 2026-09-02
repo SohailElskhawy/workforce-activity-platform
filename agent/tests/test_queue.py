@@ -8,7 +8,9 @@ from worklens_agent.queue import ActivityQueue
 
 
 def segment(number: int) -> ActivitySegment:
-    start_at = datetime(2026, 9, 1, 9, 0, tzinfo=timezone.utc) + timedelta(seconds=number * 10)
+    start_at = datetime(2026, 9, 1, 9, 0, tzinfo=timezone.utc) + timedelta(
+        seconds=number * 10
+    )
     return ActivitySegment(
         event_id=f"event-{number:03d}",
         start_at=start_at,
@@ -45,7 +47,10 @@ class ActivityQueueTests(unittest.TestCase):
         queue.enqueue(segment(1))
         queue.enqueue(segment(2))
 
-        self.assertEqual([item.event_id for item in queue.pending()], ["event-003", "event-001", "event-002"])
+        self.assertEqual(
+            [item.event_id for item in queue.pending()],
+            ["event-003", "event-001", "event-002"],
+        )
         queue.close()
 
     def test_mark_uploaded_removes_only_acknowledged_rows_from_pending(self) -> None:

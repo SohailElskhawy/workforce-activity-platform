@@ -54,7 +54,11 @@ def run_simulator(config: AgentConfig) -> None:
                 last_heartbeat = now
             time.sleep(2)
     finally:
-        finish_at = last_observation.at + timedelta(seconds=2) if last_observation else datetime.now(timezone.utc)
+        finish_at = (
+            last_observation.at + timedelta(seconds=2)
+            if last_observation
+            else datetime.now(timezone.utc)
+        )
         for segment in builder.finish(finish_at):
             queue.enqueue(segment)
         client.upload_pending()
@@ -98,7 +102,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=["simulate", "real"], required=True)
     args = parser.parse_args(argv)
     if args.mode == "real" and sys.platform != "win32":
-        parser.error("Real collector requires Windows. Use --mode simulate on this machine.")
+        parser.error(
+            "Real collector requires Windows. Use --mode simulate on this machine."
+        )
     config = AgentConfig.from_environment()
     if args.mode == "real":
         run_real(config)

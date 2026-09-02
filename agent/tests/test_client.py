@@ -71,34 +71,62 @@ class AgentClientTests(unittest.TestCase):
 
         self.assertTrue(client.upload_pending())
         self.assertEqual(self.queue.pending(), [])
-        self.assertEqual(http_client.calls[0]["url"], "https://demo.worklens.test/api/agent/activities/batch")
-        self.assertEqual(http_client.calls[0]["headers"], {
-            "Authorization": "Bearer agent-token",
-            "X-Device-ID": "PC-001",
-            "Content-Type": "application/json",
-        })
+        self.assertEqual(
+            http_client.calls[0]["url"],
+            "https://demo.worklens.test/api/agent/activities/batch",
+        )
+        self.assertEqual(
+            http_client.calls[0]["headers"],
+            {
+                "Authorization": "Bearer agent-token",
+                "X-Device-ID": "PC-001",
+                "Content-Type": "application/json",
+            },
+        )
         payload = http_client.calls[0]["json"]["activities"][0]
-        self.assertEqual(set(payload), {"eventId", "startAt", "endAt", "type", "applicationName", "processName", "windowTitle", "fileName"})
+        self.assertEqual(
+            set(payload),
+            {
+                "eventId",
+                "startAt",
+                "endAt",
+                "type",
+                "applicationName",
+                "processName",
+                "windowTitle",
+                "fileName",
+            },
+        )
         self.assertEqual(payload["eventId"], "event-001")
 
     def test_failed_upload_and_network_exception_leave_the_queue_pending(self) -> None:
         self.queue.enqueue(segment())
-        http_client = FakeHttpClient([
-            FakeResponse(500),
-            httpx.ConnectError("offline", request=httpx.Request("POST", "https://demo.worklens.test")),
-        ])
+        http_client = FakeHttpClient(
+            [
+                FakeResponse(500),
+                httpx.ConnectError(
+                    "offline",
+                    request=httpx.Request("POST", "https://demo.worklens.test"),
+                ),
+            ]
+        )
         client = AgentClient(self.config, self.queue, http_client=http_client)
 
         self.assertFalse(client.upload_pending())
         self.assertFalse(client.upload_pending())
-        self.assertEqual([item.event_id for item in self.queue.pending()], ["event-001"])
+        self.assertEqual(
+            [item.event_id for item in self.queue.pending()], ["event-001"]
+        )
 
     def test_heartbeat_posts_the_agent_version_with_device_authentication(self) -> None:
         http_client = FakeHttpClient([FakeResponse(200)])
         client = AgentClient(self.config, self.queue, http_client=http_client)
 
         self.assertTrue(client.send_heartbeat())
-        self.assertEqual(http_client.calls[0]["url"], "https://demo.worklens.test/api/agent/heartbeat")
+        self.assertEqual(
+            http_client.calls[0]["url"],
+            "https://demo.worklens.test/api/agent/heartbeat",
+        )
         heartbeat = http_client.calls[0]["json"]
         self.assertEqual(heartbeat["agentVersion"], "0.1.0")
         self.assertIn("timestamp", heartbeat)

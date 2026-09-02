@@ -20,7 +20,9 @@ class AutoCadFilenameTests(unittest.TestCase):
         self.assertIsNone(extract_dwg_filename("Autodesk AutoCAD 2026"))
 
     def test_does_not_infer_a_dwg_from_another_application(self) -> None:
-        self.assertIsNone(extract_dwg_filename("Chrome - ABC_A_Block.dwg documentation"))
+        self.assertIsNone(
+            extract_dwg_filename("Chrome - ABC_A_Block.dwg documentation")
+        )
 
 
 if __name__ == "__main__":

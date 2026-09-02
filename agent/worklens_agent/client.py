@@ -16,7 +16,12 @@ class HttpClient(Protocol):
 
 
 class AgentClient:
-    def __init__(self, config: AgentConfig, queue: ActivityQueue, http_client: HttpClient | None = None) -> None:
+    def __init__(
+        self,
+        config: AgentConfig,
+        queue: ActivityQueue,
+        http_client: HttpClient | None = None,
+    ) -> None:
         self._config = config
         self._queue = queue
         self._http_client = http_client or httpx.Client(timeout=10.0)
