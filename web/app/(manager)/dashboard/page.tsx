@@ -1,73 +1,66 @@
-import { Activity, AlertTriangle, Clock3, Users } from "lucide-react";
-
+import { ManagerDashboard } from "@/components/manager/manager-dashboard";
+import { requireManager, toAuthContext } from "@/lib/auth";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { formatDurationFromSeconds } from "@/lib/formatters";
-import { requireManager } from "@/lib/auth";
-import { toAuthContext } from "@/lib/auth";
-import { getManagerDashboardMetrics } from "@/lib/services/dashboard";
+  getManagerDashboardMetrics,
+  listRecentCompanyActivity,
+} from "@/lib/services/dashboard";
+import { listProjects } from "@/lib/services/projects";
+import { listTasks } from "@/lib/services/tasks";
 
 export default async function DashboardPage() {
   const session = await requireManager();
-  const metrics = await getManagerDashboardMetrics(toAuthContext(session));
-  const cards = [
-    {
-      label: "Employees",
-      value: metrics.employeeCount,
-      description: "People in your company",
-      icon: Users,
-    },
-    {
-      label: "Today's active time",
-      value: formatDurationFromSeconds(metrics.activeSeconds),
-      description: "Application activity captured today",
-      icon: Activity,
-    },
-    {
-      label: "Today's idle time",
-      value: formatDurationFromSeconds(metrics.idleSeconds),
-      description: "Idle periods captured today",
-      icon: Clock3,
-    },
-    {
-      label: "Overdue tasks",
-      value: metrics.overdueTaskCount,
-      description: "Open tasks past their due date",
-      icon: AlertTriangle,
-    },
-  ];
+  const context = toAuthContext(session);
+  const [metrics, projects, tasks, recentActivities] = await Promise.all([
+    getManagerDashboardMetrics(context),
+    listProjects(context),
+    listTasks(context),
+    listRecentCompanyActivity(context),
+  ]);
 
   return (
-    <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Manager Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          A live view of your company&apos;s current workload.
-        </p>
-      </div>
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(({ description, icon: Icon, label, value }) => (
-          <Card key={label}>
-            <CardHeader className="flex-row items-start justify-between gap-4">
-              <div className="space-y-1">
-                <CardDescription>{label}</CardDescription>
-                <CardTitle className="text-2xl">{value}</CardTitle>
-              </div>
-              <Icon className="size-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="text-xs text-muted-foreground">
-              {description}
-            </CardContent>
-          </Card>
-        ))}
-      </section>
-    </main>
+    <ManagerDashboard
+      metrics={metrics}
+      projects={projects.map((project) => ({
+        id: project.id,
+        code: project.code,
+        name: project.name,
+        clientName: project.clientName,
+        status: project.status,
+        endDate: project.endDate,
+        estimatedHours: project.estimatedHours,
+        taskCount: project._count.tasks,
+      }))}
+      recentActivities={recentActivities.map((activity) => ({
+        id: activity.id,
+        type: activity.type,
+        applicationName: activity.applicationName,
+        fileName: activity.fileName,
+        durationSeconds: activity.durationSeconds,
+        startAt: activity.startAt,
+        employeeId: activity.employee.id,
+        employeeName: `${activity.employee.firstName} ${activity.employee.lastName}`,
+        projectCode: activity.project?.code ?? null,
+        taskTitle: activity.task?.title ?? null,
+      }))}
+      tasks={tasks
+        .filter(
+          ({ status }) => status !== "COMPLETED" && status !== "CANCELLED",
+        )
+        .sort((left, right) => {
+          const priorityRank = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+          return priorityRank[left.priority] - priorityRank[right.priority];
+        })
+        .map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status,
+          priority: task.priority,
+          dueDate: task.dueDate,
+          projectCode: task.project.code,
+          assignees: task.assignments.map(
+            ({ employee }) => `${employee.firstName} ${employee.lastName}`,
+          ),
+        }))}
+    />
   );
 }

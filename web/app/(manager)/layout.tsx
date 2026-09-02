@@ -1,3 +1,4 @@
+import { AppShell } from "@/components/layout/app-shell";
 import { requireManager } from "@/lib/auth";
 
 export default async function ManagerLayout({
@@ -5,6 +6,10 @@ export default async function ManagerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireManager();
-  return children;
+  const session = await requireManager();
+  return (
+    <AppShell email={session.user.email} role="MANAGER">
+      {children}
+    </AppShell>
+  );
 }

@@ -62,7 +62,7 @@ The production database and Vercel account are intentionally not represented in 
 | Role | Email | Password |
 | --- | --- | --- |
 | Manager | `manager@worklens.demo` | `Demo1234!` |
-| Employee | `employee@worklens.demo` | `Demo1234!` |
+| Employee | `employee@worklens.demo` | `z` |
 
 The seed also creates the primary project `ABC AVM Electrical Project` and the `ABC_A_Block.dwg` file mapping. These are safe, deterministic demo records only.
 
