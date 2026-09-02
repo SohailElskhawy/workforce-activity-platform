@@ -6,9 +6,9 @@ import bcrypt from "bcryptjs";
 import type { AuthContext } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import {
-  createEmployee,
+  createEmployeeWithStore,
   type EmployeeCreationStore,
-} from "@/lib/services/employees";
+} from "@/lib/services/employee-creation";
 import type { CreateEmployeeInput } from "@/lib/validation/employees";
 
 const manager: AuthContext = {
@@ -55,7 +55,7 @@ function createStore(departmentCompanyId = "company-1") {
 test("createEmployee creates an active employee and linked hashed employee login", async () => {
   const { getAuditedEmployeeId, rows, store } = createStore();
 
-  const created = await createEmployee(manager, input, store);
+  const created = await createEmployeeWithStore(manager, input, store);
 
   assert.deepEqual(created, { email: "ada@example.test", id: "employee-1" });
   assert.equal(rows.employee?.companyId, "company-1");
@@ -76,7 +76,7 @@ test("createEmployee rejects a department from another company", async () => {
   const { store } = createStore("company-2");
 
   await assert.rejects(
-    () => createEmployee(manager, input, store),
+    () => createEmployeeWithStore(manager, input, store),
     (error) => error instanceof ApiError && error.status === 404,
   );
 });

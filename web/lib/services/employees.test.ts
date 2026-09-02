@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getAgentConnectionStatus } from "@/lib/services/employees";
+import { getAgentConnectionStatus } from "@/lib/services/employee-presentation";
 
 const now = new Date("2026-09-02T18:30:00.000Z");
 

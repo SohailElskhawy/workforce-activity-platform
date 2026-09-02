@@ -1,50 +1,14 @@
 import "server-only";
 
-import bcrypt from "bcryptjs";
-
 import type { AuthContext } from "@/lib/auth-context";
 import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
+import { createEmployeeWithStore } from "@/lib/services/employee-creation";
+import { getAgentConnectionStatus } from "@/lib/services/employee-presentation";
 import { isPrismaErrorWithCode } from "@/lib/services/shared";
 import type { CreateEmployeeInput } from "@/lib/validation/employees";
-
-export type AgentConnectionStatus = "NOT_ENROLLED" | "OFFLINE" | "ONLINE";
-
-type NewEmployee = {
-  companyId: string;
-  departmentId: string | null;
-  email: string;
-  firstName: string;
-  lastName: string;
-  position: string | undefined;
-  status: "ACTIVE";
-};
-
-type NewEmployeeLogin = {
-  companyId: string;
-  email: string;
-  passwordHash: string;
-  role: "EMPLOYEE";
-};
-
-export type EmployeeCreationStore = {
-  findDepartmentById(id: string): Promise<{ companyId: string } | null>;
-  createEmployeeWithLogin(data: {
-    employee: NewEmployee;
-    user: NewEmployeeLogin;
-  }): Promise<{ id: string; email: string }>;
-  writeAudit(employee: { id: string; email: string }): Promise<void>;
-};
-
-export function getAgentConnectionStatus(
-  lastSeenAt: Date | null,
-  now = new Date(),
-): AgentConnectionStatus {
-  if (!lastSeenAt) return "NOT_ENROLLED";
-  return lastSeenAt.getTime() >= now.getTime() - 90_000 ? "ONLINE" : "OFFLINE";
-}
 
 export async function listDepartments(context: AuthContext) {
   return prisma.department.findMany({
@@ -54,44 +18,10 @@ export async function listDepartments(context: AuthContext) {
   });
 }
 
-async function createEmployeeWithStore(
-  context: AuthContext,
-  input: CreateEmployeeInput,
-  store: EmployeeCreationStore,
-) {
-  if (input.departmentId) {
-    const department = await store.findDepartmentById(input.departmentId);
-    if (!department || department.companyId !== context.companyId) {
-      throw new ApiError("NOT_FOUND", "Department not found.", 404);
-    }
-  }
-
-  const passwordHash = await bcrypt.hash(input.temporaryPassword, 12);
-  const employee = await store.createEmployeeWithLogin({
-    employee: {
-      companyId: context.companyId,
-      departmentId: input.departmentId,
-      email: input.email,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      position: input.position,
-      status: "ACTIVE",
-    },
-    user: {
-      companyId: context.companyId,
-      email: input.email,
-      passwordHash,
-      role: "EMPLOYEE",
-    },
-  });
-  await store.writeAudit(employee);
-  return employee;
-}
-
 export async function createEmployee(
   context: AuthContext,
   input: CreateEmployeeInput,
-  store?: EmployeeCreationStore,
+  store?: import("@/lib/services/employee-creation").EmployeeCreationStore,
 ) {
   if (store) return createEmployeeWithStore(context, input, store);
 
