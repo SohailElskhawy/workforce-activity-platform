@@ -12,17 +12,23 @@ const globalForRateLimit = globalThis as typeof globalThis & {
   loginRateLimitBuckets?: Map<string, RateLimitBucket>;
 };
 
-const buckets = globalForRateLimit.loginRateLimitBuckets ?? new Map<string, RateLimitBucket>();
+const buckets =
+  globalForRateLimit.loginRateLimitBuckets ??
+  new Map<string, RateLimitBucket>();
 globalForRateLimit.loginRateLimitBuckets = buckets;
 
 function getHeader(headers: Record<string, unknown> | undefined, name: string) {
-  const headerName = Object.keys(headers ?? {}).find((key) => key.toLowerCase() === name);
+  const headerName = Object.keys(headers ?? {}).find(
+    (key) => key.toLowerCase() === name,
+  );
   const value = headerName ? headers?.[headerName] : undefined;
   return typeof value === "string" ? value : undefined;
 }
 
 function keyFor(email: string, headers: Record<string, unknown> | undefined) {
-  const forwardedFor = getHeader(headers, "x-forwarded-for")?.split(",")[0]?.trim();
+  const forwardedFor = getHeader(headers, "x-forwarded-for")
+    ?.split(",")[0]
+    ?.trim();
   const address = forwardedFor || getHeader(headers, "x-real-ip") || "unknown";
 
   return createHash("sha256").update(`${address}:${email}`).digest("hex");
@@ -40,7 +46,10 @@ function pruneExpiredBuckets(now: number) {
  * Per-process fallback protection for credentials sign-in. Deployments with
  * multiple instances should enforce an equivalent shared edge/WAF rate limit.
  */
-export function consumeLoginAttempt(email: string, headers?: Record<string, unknown>) {
+export function consumeLoginAttempt(
+  email: string,
+  headers?: Record<string, unknown>,
+) {
   const now = Date.now();
   pruneExpiredBuckets(now);
 
@@ -60,6 +69,9 @@ export function consumeLoginAttempt(email: string, headers?: Record<string, unkn
   return true;
 }
 
-export function resetLoginAttempts(email: string, headers?: Record<string, unknown>) {
+export function resetLoginAttempts(
+  email: string,
+  headers?: Record<string, unknown>,
+) {
   buckets.delete(keyFor(email, headers));
 }

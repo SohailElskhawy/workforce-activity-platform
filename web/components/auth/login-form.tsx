@@ -15,7 +15,9 @@ import { type LoginCredentials, loginSchema } from "@/lib/validation/auth";
 
 export function LoginForm() {
   const router = useRouter();
-  const [authenticationError, setAuthenticationError] = useState<string | null>(null);
+  const [authenticationError, setAuthenticationError] = useState<string | null>(
+    null,
+  );
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -44,7 +46,9 @@ export function LoginForm() {
       const destination = getRoleHomeRoute(session?.user.role);
 
       if (!destination) {
-        setAuthenticationError("Unable to start your session. Please sign in again.");
+        setAuthenticationError(
+          "Unable to start your session. Please sign in again.",
+        );
         return;
       }
 
@@ -97,7 +101,12 @@ export function LoginForm() {
           {authenticationError}
         </p>
       ) : null}
-      <Button className="w-full" disabled={isSubmitting} size="lg" type="submit">
+      <Button
+        className="w-full"
+        disabled={isSubmitting}
+        size="lg"
+        type="submit"
+      >
         {isSubmitting ? <LoaderCircle className="animate-spin" /> : null}
         {isSubmitting ? "Signing in…" : "Sign In"}
       </Button>

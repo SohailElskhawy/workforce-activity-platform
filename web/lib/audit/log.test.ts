@@ -23,12 +23,14 @@ test("writeAudit persists the complete entry through the active transaction", as
     metadata: { projectId: "project-a" },
   });
 
-  assert.deepEqual(entries, [{
-    companyId: "company-a",
-    actorUserId: "manager-a",
-    action: "TASK_CREATED",
-    entityType: "Task",
-    entityId: "task-a",
-    metadata: { projectId: "project-a" },
-  }]);
+  assert.deepEqual(entries, [
+    {
+      companyId: "company-a",
+      actorUserId: "manager-a",
+      action: "TASK_CREATED",
+      entityType: "Task",
+      entityId: "task-a",
+      metadata: { projectId: "project-a" },
+    },
+  ]);
 });

@@ -1,5 +1,11 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { EmptyState } from "@/components/states/empty-state";
 import { formatDurationFromSeconds } from "@/lib/formatters";
 import { toTimelineLabel } from "@/lib/services/activity-presentation";
@@ -20,7 +26,10 @@ type TimelineActivity = {
 type ActivityTimelineProps = { activities: TimelineActivity[] };
 
 function formatTime(date: Date) {
-  return new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 export function ActivityTimeline({ activities }: ActivityTimelineProps) {
@@ -28,27 +37,58 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
     <Card>
       <CardHeader>
         <CardTitle>Activity timeline</CardTitle>
-        <CardDescription>Application and idle segments are shown separately.</CardDescription>
+        <CardDescription>
+          Application and idle segments are shown separately.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {activities.length ? (
           <div className="space-y-4">
             {activities.map((activity) => (
-              <div className="flex gap-4 border-b pb-4 last:border-0 last:pb-0" key={activity.id}>
-                <time className="w-14 shrink-0 text-sm text-muted-foreground">{formatTime(activity.startAt)}</time>
+              <div
+                className="flex gap-4 border-b pb-4 last:border-0 last:pb-0"
+                key={activity.id}
+              >
+                <time className="w-14 shrink-0 text-sm text-muted-foreground">
+                  {formatTime(activity.startAt)}
+                </time>
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{toTimelineLabel(activity)}</span>
-                    <Badge variant={activity.type === "IDLE" ? "secondary" : "outline"}>{formatDurationFromSeconds(activity.durationSeconds)}</Badge>
-                    {activity.fileName && !activity.project ? <Badge variant="outline">Unmapped</Badge> : null}
+                    <span className="font-medium">
+                      {toTimelineLabel(activity)}
+                    </span>
+                    <Badge
+                      variant={
+                        activity.type === "IDLE" ? "secondary" : "outline"
+                      }
+                    >
+                      {formatDurationFromSeconds(activity.durationSeconds)}
+                    </Badge>
+                    {activity.fileName && !activity.project ? (
+                      <Badge variant="outline">Unmapped</Badge>
+                    ) : null}
                   </div>
-                  {activity.fileName || activity.windowTitle ? <p className="truncate text-sm text-muted-foreground">{activity.fileName ?? activity.windowTitle}</p> : null}
-                  {activity.project ? <p className="text-xs text-muted-foreground">{activity.project.code} · {activity.project.name}{activity.task ? ` · ${activity.task.title}` : ""}</p> : null}
+                  {activity.fileName || activity.windowTitle ? (
+                    <p className="truncate text-sm text-muted-foreground">
+                      {activity.fileName ?? activity.windowTitle}
+                    </p>
+                  ) : null}
+                  {activity.project ? (
+                    <p className="text-xs text-muted-foreground">
+                      {activity.project.code} · {activity.project.name}
+                      {activity.task ? ` · ${activity.task.title}` : ""}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             ))}
           </div>
-        ) : <EmptyState description="New captured activity will appear here." title="No activity has been captured for this day." />}
+        ) : (
+          <EmptyState
+            description="New captured activity will appear here."
+            title="No activity has been captured for this day."
+          />
+        )}
       </CardContent>
     </Card>
   );

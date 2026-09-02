@@ -2,16 +2,23 @@ export class ClientRequestError extends Error {}
 
 type ErrorPayload = { error?: { message?: string } };
 
-export async function sendJson<T>(url: string, method: "PATCH" | "POST", body: unknown) {
+export async function sendJson<T>(
+  url: string,
+  method: "PATCH" | "POST",
+  body: unknown,
+) {
   const response = await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
-  const payload = (await response.json().catch(() => null)) as { data?: T } & ErrorPayload | null;
+  const payload = (await response.json().catch(() => null)) as
+    ({ data?: T } & ErrorPayload) | null;
   if (!response.ok || !payload || !("data" in payload)) {
-    throw new ClientRequestError(payload?.error?.message ?? "Unable to save your changes.");
+    throw new ClientRequestError(
+      payload?.error?.message ?? "Unable to save your changes.",
+    );
   }
 
   return payload.data;

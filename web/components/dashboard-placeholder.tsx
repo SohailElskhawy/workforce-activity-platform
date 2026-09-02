@@ -17,7 +17,11 @@ type DashboardPlaceholderProps = {
   title: string;
 };
 
-export function DashboardPlaceholder({ email, role, title }: DashboardPlaceholderProps) {
+export function DashboardPlaceholder({
+  email,
+  role,
+  title,
+}: DashboardPlaceholderProps) {
   return (
     <main className="flex flex-1 items-center justify-center bg-muted/30 px-4 py-12">
       <Card className="w-full max-w-xl shadow-sm">
@@ -27,7 +31,8 @@ export function DashboardPlaceholder({ email, role, title }: DashboardPlaceholde
           </div>
           <CardTitle className="text-2xl">{title}</CardTitle>
           <CardDescription>
-            Your role and tenant are verified on the server before this page is rendered.
+            Your role and tenant are verified on the server before this page is
+            rendered.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm">

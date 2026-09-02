@@ -6,4 +6,6 @@ export const updateOwnTaskStatusSchema = z.object({
   status: taskStatusSchema,
 });
 
-export type UpdateOwnTaskStatusInput = z.output<typeof updateOwnTaskStatusSchema>;
+export type UpdateOwnTaskStatusInput = z.output<
+  typeof updateOwnTaskStatusSchema
+>;

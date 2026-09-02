@@ -8,21 +8,44 @@ import { useState } from "react";
 import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ClientRequestError, postJson } from "@/lib/client/api";
-import { type FileMappingInput, fileMappingSchema } from "@/lib/validation/file-mappings";
+import {
+  type FileMappingInput,
+  fileMappingSchema,
+} from "@/lib/validation/file-mappings";
 
 type ProjectOption = { id: string; code: string; name: string };
 type TaskOption = { id: string; project: { id: string }; title: string };
 type FileMappingForm = z.input<typeof fileMappingSchema>;
 
-export function MapFileDialog({ projects, tasks }: { projects: ProjectOption[]; tasks: TaskOption[] }) {
+export function MapFileDialog({
+  projects,
+  tasks,
+}: {
+  projects: ProjectOption[];
+  tasks: TaskOption[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
-  const { control, formState: { errors, isSubmitting }, handleSubmit, register, reset } = useForm<FileMappingForm, unknown, FileMappingInput>({
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<FileMappingForm, unknown, FileMappingInput>({
     defaultValues: { fileName: "", projectId: "", taskId: null },
     resolver: zodResolver(fileMappingSchema),
   });
@@ -37,24 +60,100 @@ export function MapFileDialog({ projects, tasks }: { projects: ProjectOption[]; 
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setRequestError(error instanceof ClientRequestError ? error.message : "Unable to save the file mapping.");
+      setRequestError(
+        error instanceof ClientRequestError
+          ? error.message
+          : "Unable to save the file mapping.",
+      );
     }
   }
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger render={<Button disabled={!projects.length}><Link2 />Map DWG file</Button>} />
+      <DialogTrigger
+        render={
+          <Button disabled={!projects.length}>
+            <Link2 />
+            Map DWG file
+          </Button>
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Map a DWG file</DialogTitle>
-          <DialogDescription>New activity with this filename will be linked to the selected project and task.</DialogDescription>
+          <DialogDescription>
+            New activity with this filename will be linked to the selected
+            project and task.
+          </DialogDescription>
         </DialogHeader>
-        <form className="grid gap-4" noValidate onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-2"><Label htmlFor="mapping-file">DWG filename</Label><Input aria-invalid={Boolean(errors.fileName)} id="mapping-file" placeholder="ABC_A_Block.dwg" {...register("fileName")} />{errors.fileName ? <p className="text-xs text-destructive">{errors.fileName.message}</p> : null}</div>
-          <div className="grid gap-2"><Label htmlFor="mapping-project">Project</Label><select aria-invalid={Boolean(errors.projectId)} className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm" id="mapping-project" {...register("projectId")}><option value="">Select a project</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.code} — {project.name}</option>)}</select>{errors.projectId ? <p className="text-xs text-destructive">{errors.projectId.message}</p> : null}</div>
-          <div className="grid gap-2"><Label htmlFor="mapping-task">Task (optional)</Label><select className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm" id="mapping-task" {...register("taskId", { setValueAs: (value) => value || null })}><option value="">No task</option>{projectTasks.map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}</select>{errors.taskId ? <p className="text-xs text-destructive">{errors.taskId.message}</p> : null}</div>
-          {requestError ? <p className="text-sm text-destructive">{requestError}</p> : null}
-          <DialogFooter><Button disabled={isSubmitting} type="submit">{isSubmitting ? "Saving…" : "Save mapping"}</Button></DialogFooter>
+        <form
+          className="grid gap-4"
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="grid gap-2">
+            <Label htmlFor="mapping-file">DWG filename</Label>
+            <Input
+              aria-invalid={Boolean(errors.fileName)}
+              id="mapping-file"
+              placeholder="ABC_A_Block.dwg"
+              {...register("fileName")}
+            />
+            {errors.fileName ? (
+              <p className="text-xs text-destructive">
+                {errors.fileName.message}
+              </p>
+            ) : null}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="mapping-project">Project</Label>
+            <select
+              aria-invalid={Boolean(errors.projectId)}
+              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              id="mapping-project"
+              {...register("projectId")}
+            >
+              <option value="">Select a project</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.code} — {project.name}
+                </option>
+              ))}
+            </select>
+            {errors.projectId ? (
+              <p className="text-xs text-destructive">
+                {errors.projectId.message}
+              </p>
+            ) : null}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="mapping-task">Task (optional)</Label>
+            <select
+              className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              id="mapping-task"
+              {...register("taskId", { setValueAs: (value) => value || null })}
+            >
+              <option value="">No task</option>
+              {projectTasks.map((task) => (
+                <option key={task.id} value={task.id}>
+                  {task.title}
+                </option>
+              ))}
+            </select>
+            {errors.taskId ? (
+              <p className="text-xs text-destructive">
+                {errors.taskId.message}
+              </p>
+            ) : null}
+          </div>
+          {requestError ? (
+            <p className="text-sm text-destructive">{requestError}</p>
+          ) : null}
+          <DialogFooter>
+            <Button disabled={isSubmitting} type="submit">
+              {isSubmitting ? "Saving…" : "Save mapping"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

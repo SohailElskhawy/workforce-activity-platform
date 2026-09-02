@@ -5,7 +5,13 @@ import { useState, useTransition } from "react";
 import { taskStatusSchema } from "@/lib/validation/tasks";
 import { ClientRequestError, sendJson } from "@/lib/client/api";
 
-export function UpdateTaskStatus({ status, taskId }: { status: string; taskId: string }) {
+export function UpdateTaskStatus({
+  status,
+  taskId,
+}: {
+  status: string;
+  taskId: string;
+}) {
   const [value, setValue] = useState(status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -17,10 +23,16 @@ export function UpdateTaskStatus({ status, taskId }: { status: string; taskId: s
 
     startTransition(async () => {
       try {
-        await sendJson(`/api/my/tasks/${taskId}`, "PATCH", { status: nextStatus });
+        await sendJson(`/api/my/tasks/${taskId}`, "PATCH", {
+          status: nextStatus,
+        });
       } catch (caughtError) {
         setValue(previousStatus);
-        setError(caughtError instanceof ClientRequestError ? caughtError.message : "Unable to update the task.");
+        setError(
+          caughtError instanceof ClientRequestError
+            ? caughtError.message
+            : "Unable to update the task.",
+        );
       }
     });
   }
@@ -34,9 +46,15 @@ export function UpdateTaskStatus({ status, taskId }: { status: string; taskId: s
         onChange={(event) => updateStatus(event.target.value)}
         value={value}
       >
-        {taskStatusSchema.options.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}
+        {taskStatusSchema.options.map((option) => (
+          <option key={option} value={option}>
+            {option.replaceAll("_", " ")}
+          </option>
+        ))}
       </select>
-      {error ? <p className="max-w-48 text-xs text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="max-w-48 text-xs text-destructive">{error}</p>
+      ) : null}
     </div>
   );
 }

@@ -8,12 +8,24 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClientRequestError, postJson } from "@/lib/client/api";
-import { type CreateProjectInput, createProjectSchema, projectStatusSchema } from "@/lib/validation/projects";
+import {
+  type CreateProjectInput,
+  createProjectSchema,
+  projectStatusSchema,
+} from "@/lib/validation/projects";
 
 type CreateProjectForm = z.input<typeof createProjectSchema>;
 
@@ -21,7 +33,12 @@ export function CreateProjectDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
-  const { formState: { errors, isSubmitting }, handleSubmit, register, reset } = useForm<CreateProjectForm, unknown, CreateProjectInput>({
+  const {
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<CreateProjectForm, unknown, CreateProjectInput>({
     defaultValues: { code: "", name: "", status: "PLANNED" },
     resolver: zodResolver(createProjectSchema),
   });
@@ -34,24 +51,113 @@ export function CreateProjectDialog() {
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setRequestError(error instanceof ClientRequestError ? error.message : "Unable to create the project.");
+      setRequestError(
+        error instanceof ClientRequestError
+          ? error.message
+          : "Unable to create the project.",
+      );
     }
   }
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger render={<Button><Plus />New project</Button>} />
+      <DialogTrigger
+        render={
+          <Button>
+            <Plus />
+            New project
+          </Button>
+        }
+      />
       <DialogContent>
-        <DialogHeader><DialogTitle>Create project</DialogTitle><DialogDescription>Add a project to your company workspace.</DialogDescription></DialogHeader>
-        <form className="grid gap-4" noValidate onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-2"><Label htmlFor="project-name">Name</Label><Input id="project-name" aria-invalid={Boolean(errors.name)} {...register("name")} />{errors.name ? <p className="text-xs text-destructive">{errors.name.message}</p> : null}</div>
-          <div className="grid gap-2"><Label htmlFor="project-code">Code</Label><Input id="project-code" aria-invalid={Boolean(errors.code)} {...register("code")} />{errors.code ? <p className="text-xs text-destructive">{errors.code.message}</p> : null}</div>
-          <div className="grid gap-2"><Label htmlFor="client-name">Client</Label><Input id="client-name" {...register("clientName")} /></div>
-          <div className="grid gap-2"><Label htmlFor="project-description">Description</Label><Textarea id="project-description" {...register("description")} /></div>
-          <div className="grid grid-cols-2 gap-3"><div className="grid gap-2"><Label htmlFor="project-status">Status</Label><select className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm" id="project-status" {...register("status")}>{projectStatusSchema.options.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select></div><div className="grid gap-2"><Label htmlFor="estimated-hours">Estimated hours</Label><Input id="estimated-hours" min="1" type="number" {...register("estimatedHours")} /></div></div>
-          <div className="grid grid-cols-2 gap-3"><div className="grid gap-2"><Label htmlFor="project-start">Start date</Label><Input id="project-start" type="date" {...register("startDate")} /></div><div className="grid gap-2"><Label htmlFor="project-end">End date</Label><Input id="project-end" type="date" {...register("endDate")} /></div></div>
-          {requestError ? <p className="text-sm text-destructive">{requestError}</p> : null}
-          <DialogFooter><Button disabled={isSubmitting} type="submit">{isSubmitting ? "Creating…" : "Create project"}</Button></DialogFooter>
+        <DialogHeader>
+          <DialogTitle>Create project</DialogTitle>
+          <DialogDescription>
+            Add a project to your company workspace.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="grid gap-4"
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="grid gap-2">
+            <Label htmlFor="project-name">Name</Label>
+            <Input
+              id="project-name"
+              aria-invalid={Boolean(errors.name)}
+              {...register("name")}
+            />
+            {errors.name ? (
+              <p className="text-xs text-destructive">{errors.name.message}</p>
+            ) : null}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="project-code">Code</Label>
+            <Input
+              id="project-code"
+              aria-invalid={Boolean(errors.code)}
+              {...register("code")}
+            />
+            {errors.code ? (
+              <p className="text-xs text-destructive">{errors.code.message}</p>
+            ) : null}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="client-name">Client</Label>
+            <Input id="client-name" {...register("clientName")} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="project-description">Description</Label>
+            <Textarea id="project-description" {...register("description")} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="project-status">Status</Label>
+              <select
+                className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                id="project-status"
+                {...register("status")}
+              >
+                {projectStatusSchema.options.map((status) => (
+                  <option key={status} value={status}>
+                    {status.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="estimated-hours">Estimated hours</Label>
+              <Input
+                id="estimated-hours"
+                min="1"
+                type="number"
+                {...register("estimatedHours")}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="project-start">Start date</Label>
+              <Input
+                id="project-start"
+                type="date"
+                {...register("startDate")}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="project-end">End date</Label>
+              <Input id="project-end" type="date" {...register("endDate")} />
+            </div>
+          </div>
+          {requestError ? (
+            <p className="text-sm text-destructive">{requestError}</p>
+          ) : null}
+          <DialogFooter>
+            <Button disabled={isSubmitting} type="submit">
+              {isSubmitting ? "Creating…" : "Create project"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

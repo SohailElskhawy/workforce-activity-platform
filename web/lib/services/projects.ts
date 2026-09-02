@@ -60,7 +60,10 @@ export async function getProject(context: AuthContext, projectId: string) {
   return project;
 }
 
-export async function createProject(context: AuthContext, input: CreateProjectInput) {
+export async function createProject(
+  context: AuthContext,
+  input: CreateProjectInput,
+) {
   try {
     return await prisma.$transaction(async (transaction) => {
       const project = await transaction.project.create({
@@ -84,7 +87,11 @@ export async function createProject(context: AuthContext, input: CreateProjectIn
     });
   } catch (error) {
     if (isPrismaErrorWithCode(error, "P2002")) {
-      throw new ApiError("CONFLICT", "A project with this code already exists.", 409);
+      throw new ApiError(
+        "CONFLICT",
+        "A project with this code already exists.",
+        409,
+      );
     }
 
     throw error;

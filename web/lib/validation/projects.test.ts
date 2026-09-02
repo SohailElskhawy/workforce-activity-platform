@@ -15,7 +15,10 @@ test("createProjectSchema rejects an end date before the start date", () => {
 });
 
 test("createProjectSchema normalizes project codes", () => {
-  const result = createProjectSchema.safeParse({ code: "abc-ele", name: "ABC Electrical Project" });
+  const result = createProjectSchema.safeParse({
+    code: "abc-ele",
+    name: "ABC Electrical Project",
+  });
 
   assert.equal(result.success, true);
   if (result.success) assert.equal(result.data.code, "ABC-ELE");

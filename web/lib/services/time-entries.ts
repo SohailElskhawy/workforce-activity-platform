@@ -5,7 +5,10 @@ import { writeAudit } from "@/lib/audit/log";
 import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
-import { durationInMinutes, validateTimeEntryWindow } from "@/lib/services/time-rules";
+import {
+  durationInMinutes,
+  validateTimeEntryWindow,
+} from "@/lib/services/time-rules";
 import type { CreateTimeEntryInput } from "@/lib/validation/time-entries";
 
 function requireEmployeeId(context: AuthContext) {
@@ -35,7 +38,10 @@ export async function listOwnTimeEntries(context: AuthContext) {
   });
 }
 
-export async function createOwnTimeEntry(context: AuthContext, input: CreateTimeEntryInput) {
+export async function createOwnTimeEntry(
+  context: AuthContext,
+  input: CreateTimeEntryInput,
+) {
   const employeeId = requireEmployeeId(context);
   validateTimeEntryWindow(input.startAt, input.endAt);
 
@@ -58,7 +64,11 @@ export async function createOwnTimeEntry(context: AuthContext, input: CreateTime
         select: { id: true },
       });
       if (!task) {
-        throw new ApiError("NOT_FOUND", "Assigned task not found for this project.", 404);
+        throw new ApiError(
+          "NOT_FOUND",
+          "Assigned task not found for this project.",
+          404,
+        );
       }
     }
 
@@ -71,7 +81,11 @@ export async function createOwnTimeEntry(context: AuthContext, input: CreateTime
       select: { id: true },
     });
     if (overlap) {
-      throw new ApiError("CONFLICT", "This time entry overlaps an existing entry.", 409);
+      throw new ApiError(
+        "CONFLICT",
+        "This time entry overlaps an existing entry.",
+        409,
+      );
     }
 
     const entry = await transaction.timeEntry.create({

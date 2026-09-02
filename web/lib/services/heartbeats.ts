@@ -2,7 +2,11 @@ import type { AuthenticatedDevice } from "@/lib/agent/authenticate";
 import type { HeartbeatInput } from "@/lib/agent/schemas";
 
 export type HeartbeatStore = {
-  updateDevice(update: { id: string; agentVersion: string; lastSeenAt: Date }): Promise<void>;
+  updateDevice(update: {
+    id: string;
+    agentVersion: string;
+    lastSeenAt: Date;
+  }): Promise<void>;
 };
 
 async function createPrismaStore(): Promise<HeartbeatStore> {
@@ -12,7 +16,10 @@ async function createPrismaStore(): Promise<HeartbeatStore> {
     async updateDevice(update) {
       await prisma.device.update({
         where: { id: update.id },
-        data: { agentVersion: update.agentVersion, lastSeenAt: update.lastSeenAt },
+        data: {
+          agentVersion: update.agentVersion,
+          lastSeenAt: update.lastSeenAt,
+        },
       });
     },
   };
@@ -26,6 +33,10 @@ export async function recordHeartbeat(
 ) {
   const lastSeenAt = now();
   const heartbeatStore = store ?? (await createPrismaStore());
-  await heartbeatStore.updateDevice({ agentVersion: input.agentVersion, id: device.databaseId, lastSeenAt });
+  await heartbeatStore.updateDevice({
+    agentVersion: input.agentVersion,
+    id: device.databaseId,
+    lastSeenAt,
+  });
   return { lastSeenAt };
 }

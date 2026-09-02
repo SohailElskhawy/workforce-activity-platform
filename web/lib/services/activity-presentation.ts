@@ -12,7 +12,13 @@ export function toTimelineLabel(activity: TimelineLabelActivity) {
   return activity.applicationName ?? activity.type;
 }
 
-export function projectTrackedPercentage(activeSeconds: number, estimatedHours: number | null) {
+export function projectTrackedPercentage(
+  activeSeconds: number,
+  estimatedHours: number | null,
+) {
   if (!estimatedHours || estimatedHours < 0) return null;
-  return Math.min(100, Math.round((activeSeconds / (estimatedHours * 3_600)) * 100));
+  return Math.min(
+    100,
+    Math.round((activeSeconds / (estimatedHours * 3_600)) * 100),
+  );
 }

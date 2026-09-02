@@ -16,6 +16,9 @@ type AuditTransaction = {
 };
 
 /** Writes an audit record through the caller's active transaction. */
-export async function writeAudit(transaction: AuditTransaction, entry: AuditEntry) {
+export async function writeAudit(
+  transaction: AuditTransaction,
+  entry: AuditEntry,
+) {
   await transaction.auditLog.create({ data: entry });
 }

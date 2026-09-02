@@ -6,7 +6,11 @@ import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
 import { isPrismaErrorWithCode } from "@/lib/services/shared";
-import { assertDueDateNotPast, type AssignEmployeeInput, type CreateTaskInput } from "@/lib/validation/tasks";
+import {
+  assertDueDateNotPast,
+  type AssignEmployeeInput,
+  type CreateTaskInput,
+} from "@/lib/validation/tasks";
 
 export async function listTasks(context: AuthContext) {
   return prisma.task.findMany({
@@ -20,7 +24,9 @@ export async function listTasks(context: AuthContext) {
       estimatedMinutes: true,
       project: { select: { id: true, name: true, code: true } },
       assignments: {
-        select: { employee: { select: { id: true, firstName: true, lastName: true } } },
+        select: {
+          employee: { select: { id: true, firstName: true, lastName: true } },
+        },
         orderBy: { assignedAt: "asc" },
       },
     },
@@ -45,7 +51,13 @@ export async function getTask(context: AuthContext, taskId: string) {
           id: true,
           assignedAt: true,
           employee: {
-            select: { id: true, firstName: true, lastName: true, email: true, position: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              position: true,
+            },
           },
         },
         orderBy: { assignedAt: "asc" },
@@ -79,7 +91,13 @@ export async function createTask(context: AuthContext, input: CreateTaskInput) {
         companyId: context.companyId,
         createdById: context.userId,
       },
-      select: { id: true, title: true, projectId: true, status: true, priority: true },
+      select: {
+        id: true,
+        title: true,
+        projectId: true,
+        status: true,
+        priority: true,
+      },
     });
 
     await writeAudit(transaction, {
@@ -141,7 +159,11 @@ export async function assignEmployeeToTask(
     });
   } catch (error) {
     if (isPrismaErrorWithCode(error, "P2002")) {
-      throw new ApiError("CONFLICT", "This employee is already assigned to the task.", 409);
+      throw new ApiError(
+        "CONFLICT",
+        "This employee is already assigned to the task.",
+        409,
+      );
     }
 
     throw error;

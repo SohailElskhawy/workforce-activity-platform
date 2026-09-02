@@ -8,8 +8,14 @@ import { assertRole, tenantWhere, type AuthContext } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { parseRequestBody } from "@/lib/http/request";
 import { assertEmployeeActivityScope } from "@/lib/services/activity-reports";
-import { type AgentActivityStore, ingestActivityBatch } from "@/lib/services/activities";
-import { timeRangesOverlap, validateTimeEntryWindow } from "@/lib/services/time-rules";
+import {
+  type AgentActivityStore,
+  ingestActivityBatch,
+} from "@/lib/services/activities";
+import {
+  timeRangesOverlap,
+  validateTimeEntryWindow,
+} from "@/lib/services/time-rules";
 import { assertDueDateNotPast } from "@/lib/validation/tasks";
 import { createTimeEntrySchema } from "@/lib/validation/time-entries";
 import type { AgentActivityInput } from "@/lib/agent/schemas";
@@ -35,14 +41,17 @@ function isCode(code: ApiError["code"]) {
 }
 
 test("Employee A cannot read Employee B activity", () => {
-  assert.throws(() => assertEmployeeActivityScope(companyAEmployee, companyBEmployeeId), isCode("FORBIDDEN"));
+  assert.throws(
+    () => assertEmployeeActivityScope(companyAEmployee, companyBEmployeeId),
+    isCode("FORBIDDEN"),
+  );
 });
 
 test("manager Company A tenant scopes guessed Company B employee IDs", () => {
-  assert.deepEqual(
-    tenantWhere("company-a", { id: companyBEmployeeId }),
-    { companyId: "company-a", id: companyBEmployeeId },
-  );
+  assert.deepEqual(tenantWhere("company-a", { id: companyBEmployeeId }), {
+    companyId: "company-a",
+    id: companyBEmployeeId,
+  });
 });
 
 test("manager Company A tenant scopes assignment employee IDs", () => {
@@ -53,7 +62,10 @@ test("manager Company A tenant scopes assignment employee IDs", () => {
 });
 
 test("employees cannot use the manager role required by project and task routes", () => {
-  assert.throws(() => assertRole(companyAEmployee, ["MANAGER"]), isCode("FORBIDDEN"));
+  assert.throws(
+    () => assertRole(companyAEmployee, ["MANAGER"]),
+    isCode("FORBIDDEN"),
+  );
 });
 
 test("employee manual-time payloads reject another employee ID", async () => {
@@ -66,11 +78,15 @@ test("employee manual-time payloads reject another employee ID", async () => {
 
   assert.equal(createTimeEntrySchema.safeParse(body).success, false);
   await assert.rejects(
-    () => parseRequestBody(new Request("http://example.test/api/my/time-entries", {
-      body: JSON.stringify(body),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    }), createTimeEntrySchema),
+    () =>
+      parseRequestBody(
+        new Request("http://example.test/api/my/time-entries", {
+          body: JSON.stringify(body),
+          headers: { "content-type": "application/json" },
+          method: "POST",
+        }),
+        createTimeEntrySchema,
+      ),
     isCode("VALIDATION_ERROR"),
   );
 });
@@ -85,41 +101,64 @@ test("invalid and revoked agent tokens are rejected", async () => {
     id: "device-record-a",
     isActive: true,
   };
-  const validRequest = new Request("http://example.test/api/agent/activities/batch", {
-    headers: { authorization: "Bearer valid-agent-token", "x-device-id": "DEVICE-A" },
-  });
+  const validRequest = new Request(
+    "http://example.test/api/agent/activities/batch",
+    {
+      headers: {
+        authorization: "Bearer valid-agent-token",
+        "x-device-id": "DEVICE-A",
+      },
+    },
+  );
 
   await assert.rejects(
-    () => authenticateDevice(new Request("http://example.test/api/agent/activities/batch", {
-      headers: { authorization: "Bearer invalid-agent-token", "x-device-id": "DEVICE-A" },
-    }), async () => device),
+    () =>
+      authenticateDevice(
+        new Request("http://example.test/api/agent/activities/batch", {
+          headers: {
+            authorization: "Bearer invalid-agent-token",
+            "x-device-id": "DEVICE-A",
+          },
+        }),
+        async () => device,
+      ),
     isCode("UNAUTHORIZED"),
   );
   await assert.rejects(
-    () => authenticateDevice(validRequest, async () => ({ ...device, isActive: false })),
+    () =>
+      authenticateDevice(validRequest, async () => ({
+        ...device,
+        isActive: false,
+      })),
     isCode("UNAUTHORIZED"),
   );
 });
 
 test("agent route payloads reject supplied company and employee identity", async () => {
   const payload = {
-    activities: [{
-      endAt: "2026-09-02T09:15:00.000Z",
-      eventId: event.eventId,
-      startAt: "2026-09-02T09:00:00.000Z",
-      type: "APPLICATION",
-      companyId: "company-b",
-      employeeId: companyBEmployeeId,
-    }],
+    activities: [
+      {
+        endAt: "2026-09-02T09:15:00.000Z",
+        eventId: event.eventId,
+        startAt: "2026-09-02T09:00:00.000Z",
+        type: "APPLICATION",
+        companyId: "company-b",
+        employeeId: companyBEmployeeId,
+      },
+    ],
   };
 
   assert.equal(activityBatchSchema.safeParse(payload).success, false);
   await assert.rejects(
-    () => parseRequestBody(new Request("http://example.test/api/agent/activities/batch", {
-      body: JSON.stringify(payload),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    }), activityBatchSchema),
+    () =>
+      parseRequestBody(
+        new Request("http://example.test/api/agent/activities/batch", {
+          body: JSON.stringify(payload),
+          headers: { "content-type": "application/json" },
+          method: "POST",
+        }),
+        activityBatchSchema,
+      ),
     isCode("VALIDATION_ERROR"),
   );
 });
@@ -149,19 +188,30 @@ test("duplicate agent events cannot increase stored activity totals", async () =
   await ingestActivityBatch(device, [event, event], store);
 
   assert.equal(rows.length, 1);
-  assert.equal(rows.reduce((total, row) => total + row.durationSeconds, 0), 900);
+  assert.equal(
+    rows.reduce((total, row) => total + row.durationSeconds, 0),
+    900,
+  );
 });
 
 test("past new deadlines are rejected", () => {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  assert.throws(() => assertDueDateNotPast(yesterday), isCode("VALIDATION_ERROR"));
+  assert.throws(
+    () => assertDueDateNotPast(yesterday),
+    isCode("VALIDATION_ERROR"),
+  );
 });
 
 test("future manual time is rejected", () => {
   const now = new Date("2026-09-02T12:00:00.000Z");
   assert.throws(
-    () => validateTimeEntryWindow(new Date("2026-09-02T11:00:00.000Z"), new Date("2026-09-02T12:01:00.000Z"), now),
+    () =>
+      validateTimeEntryWindow(
+        new Date("2026-09-02T11:00:00.000Z"),
+        new Date("2026-09-02T12:01:00.000Z"),
+        now,
+      ),
     isCode("VALIDATION_ERROR"),
   );
 });

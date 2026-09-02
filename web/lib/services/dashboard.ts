@@ -15,23 +15,30 @@ export async function getManagerDashboardMetrics(context: AuthContext) {
   const companyId = context.companyId;
   const today = startOfToday();
 
-  const [employeeCount, activeTime, idleTime, overdueTaskCount] = await Promise.all([
-    prisma.employee.count({ where: tenantWhere(companyId, {}) }),
-    prisma.activity.aggregate({
-      where: tenantWhere(companyId, { type: ActivityType.APPLICATION, startAt: { gte: today } }),
-      _sum: { durationSeconds: true },
-    }),
-    prisma.activity.aggregate({
-      where: tenantWhere(companyId, { type: ActivityType.IDLE, startAt: { gte: today } }),
-      _sum: { durationSeconds: true },
-    }),
-    prisma.task.count({
-      where: tenantWhere(companyId, {
-        dueDate: { lt: today },
-        status: { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] },
+  const [employeeCount, activeTime, idleTime, overdueTaskCount] =
+    await Promise.all([
+      prisma.employee.count({ where: tenantWhere(companyId, {}) }),
+      prisma.activity.aggregate({
+        where: tenantWhere(companyId, {
+          type: ActivityType.APPLICATION,
+          startAt: { gte: today },
+        }),
+        _sum: { durationSeconds: true },
       }),
-    }),
-  ]);
+      prisma.activity.aggregate({
+        where: tenantWhere(companyId, {
+          type: ActivityType.IDLE,
+          startAt: { gte: today },
+        }),
+        _sum: { durationSeconds: true },
+      }),
+      prisma.task.count({
+        where: tenantWhere(companyId, {
+          dueDate: { lt: today },
+          status: { notIn: [TaskStatus.COMPLETED, TaskStatus.CANCELLED] },
+        }),
+      }),
+    ]);
 
   return {
     employeeCount,

@@ -4,7 +4,8 @@ import { ApiError } from "@/lib/http/errors";
 
 const optionalText = (maxLength: number) =>
   z.preprocess(
-    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
     z.string().trim().max(maxLength).optional(),
   );
 
@@ -21,7 +22,11 @@ export const taskPrioritySchema = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
 
 export const createTaskSchema = z.object({
   projectId: z.uuid("Select a valid project."),
-  title: z.string().trim().min(2, "Task title must have at least 2 characters.").max(160),
+  title: z
+    .string()
+    .trim()
+    .min(2, "Task title must have at least 2 characters.")
+    .max(160),
   description: optionalText(2_000),
   status: taskStatusSchema.default("TODO"),
   priority: taskPrioritySchema.default("MEDIUM"),
@@ -42,7 +47,11 @@ export function assertDueDateNotPast(dueDate: Date | undefined) {
   normalizedDueDate.setHours(0, 0, 0, 0);
 
   if (normalizedDueDate < today) {
-    throw new ApiError("VALIDATION_ERROR", "Due date cannot be in the past.", 400);
+    throw new ApiError(
+      "VALIDATION_ERROR",
+      "Due date cannot be in the past.",
+      400,
+    );
   }
 }
 

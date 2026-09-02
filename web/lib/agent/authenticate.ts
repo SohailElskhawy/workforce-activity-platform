@@ -40,7 +40,10 @@ function unauthorized(): never {
   throw new ApiError("UNAUTHORIZED", "Agent authentication failed.", 401);
 }
 
-export async function authenticateDevice(request: Request, findDevice: DeviceLoader = loadDevice): Promise<AuthenticatedDevice> {
+export async function authenticateDevice(
+  request: Request,
+  findDevice: DeviceLoader = loadDevice,
+): Promise<AuthenticatedDevice> {
   const authorization = request.headers.get("authorization");
   const publicId = request.headers.get("x-device-id")?.trim();
   const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
@@ -53,7 +56,11 @@ export async function authenticateDevice(request: Request, findDevice: DeviceLoa
   const expectedHash = Buffer.from(device.agentTokenHash, "utf8");
   const receivedHash = Buffer.from(hashAgentToken(token), "utf8");
 
-  if (expectedHash.length !== receivedHash.length || !timingSafeEqual(expectedHash, receivedHash)) unauthorized();
+  if (
+    expectedHash.length !== receivedHash.length ||
+    !timingSafeEqual(expectedHash, receivedHash)
+  )
+    unauthorized();
 
   return {
     companyId: device.companyId,

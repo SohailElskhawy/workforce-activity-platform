@@ -14,9 +14,15 @@ function createPublicDeviceId() {
   return `PC-${randomBytes(12).toString("hex").toUpperCase()}`;
 }
 
-export async function registerDevice(context: AuthContext, input: RegisterDeviceInput) {
+export async function registerDevice(
+  context: AuthContext,
+  input: RegisterDeviceInput,
+) {
   const employee = await prisma.employee.findFirst({
-    where: tenantWhere(context.companyId, { id: input.employeeId, status: EmployeeStatus.ACTIVE }),
+    where: tenantWhere(context.companyId, {
+      id: input.employeeId,
+      status: EmployeeStatus.ACTIVE,
+    }),
     select: { id: true },
   });
 

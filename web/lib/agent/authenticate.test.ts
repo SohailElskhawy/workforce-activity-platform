@@ -22,7 +22,10 @@ function request(headers: HeadersInit = {}) {
 
 test("authenticateDevice returns only trusted device identity for valid credentials", async () => {
   const device = await authenticateDevice(
-    request({ Authorization: "Bearer worklens_agent_valid", "X-Device-ID": "PC-TEST-001" }),
+    request({
+      Authorization: "Bearer worklens_agent_valid",
+      "X-Device-ID": "PC-TEST-001",
+    }),
     async () => trustedDevice,
   );
 
@@ -37,8 +40,17 @@ test("authenticateDevice returns only trusted device identity for valid credenti
 test("authenticateDevice rejects missing, inactive, and invalid credentials alike", async () => {
   for (const [agentRequest, lookup] of [
     [request(), async () => trustedDevice],
-    [request({ Authorization: "Bearer wrong", "X-Device-ID": "PC-TEST-001" }), async () => trustedDevice],
-    [request({ Authorization: "Bearer worklens_agent_valid", "X-Device-ID": "PC-TEST-001" }), async () => ({ ...trustedDevice, isActive: false })],
+    [
+      request({ Authorization: "Bearer wrong", "X-Device-ID": "PC-TEST-001" }),
+      async () => trustedDevice,
+    ],
+    [
+      request({
+        Authorization: "Bearer worklens_agent_valid",
+        "X-Device-ID": "PC-TEST-001",
+      }),
+      async () => ({ ...trustedDevice, isActive: false }),
+    ],
   ] as const) {
     await assert.rejects(
       () => authenticateDevice(agentRequest, lookup),

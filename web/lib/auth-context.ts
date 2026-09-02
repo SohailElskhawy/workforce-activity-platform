@@ -14,7 +14,11 @@ export function assertRole(
   allowedRoles: readonly UserRole[],
 ) {
   if (!allowedRoles.includes(context.role)) {
-    throw new ApiError("FORBIDDEN", "You do not have access to this resource.", 403);
+    throw new ApiError(
+      "FORBIDDEN",
+      "You do not have access to this resource.",
+      403,
+    );
   }
 }
 

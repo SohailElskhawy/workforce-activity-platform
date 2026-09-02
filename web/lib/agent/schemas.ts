@@ -36,7 +36,9 @@ export const agentActivitySchema = z
   })
   .strict();
 
-export const activityBatchSchema = z.object({ activities: z.array(agentActivitySchema).min(1).max(100) }).strict();
+export const activityBatchSchema = z
+  .object({ activities: z.array(agentActivitySchema).min(1).max(100) })
+  .strict();
 
 export type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;
 export type HeartbeatInput = z.infer<typeof heartbeatSchema>;

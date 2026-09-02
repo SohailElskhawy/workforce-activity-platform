@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { AgentActivityInput } from "@/lib/agent/schemas";
-import { createConflictSafeActivityStore, ingestActivityBatch, type AgentActivityStore } from "@/lib/services/activities";
+import {
+  createConflictSafeActivityStore,
+  ingestActivityBatch,
+  type AgentActivityStore,
+} from "@/lib/services/activities";
 import { ApiError } from "@/lib/http/errors";
 
 const device = {
@@ -21,7 +25,10 @@ const mappedEvent: AgentActivityInput = {
   type: "APPLICATION",
 };
 
-function createStore(): { store: AgentActivityStore; rows: Array<Record<string, unknown>> } {
+function createStore(): {
+  store: AgentActivityStore;
+  rows: Array<Record<string, unknown>>;
+} {
   const rows: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
 
@@ -36,7 +43,10 @@ function createStore(): { store: AgentActivityStore; rows: Array<Record<string, 
         return "created";
       },
       async findFileMapping(companyId, normalizedFileName) {
-        if (companyId === "company-1" && normalizedFileName === "abc_a_block.dwg") {
+        if (
+          companyId === "company-1" &&
+          normalizedFileName === "abc_a_block.dwg"
+        ) {
           return { projectId: "project-1", taskId: "task-1" };
         }
         return null;
@@ -47,9 +57,17 @@ function createStore(): { store: AgentActivityStore; rows: Array<Record<string, 
 
 test("ingestion derives identity and resolves only configured file mappings", async () => {
   const { rows, store } = createStore();
-  const unmappedEvent = { ...mappedEvent, eventId: "0c2f2c1b-2f2e-4503-94d7-a9bb91b1ff31", fileName: "UNKNOWN.DWG" };
+  const unmappedEvent = {
+    ...mappedEvent,
+    eventId: "0c2f2c1b-2f2e-4503-94d7-a9bb91b1ff31",
+    fileName: "UNKNOWN.DWG",
+  };
 
-  const result = await ingestActivityBatch(device, [mappedEvent, unmappedEvent], store);
+  const result = await ingestActivityBatch(
+    device,
+    [mappedEvent, unmappedEvent],
+    store,
+  );
 
   assert.deepEqual(result, { accepted: 2 });
   assert.deepEqual(rows[0], {
@@ -82,7 +100,9 @@ test("retrying an event ID does not create a second activity", async () => {
 });
 
 test("the Prisma adapter treats duplicate event IDs as a conflict-safe no-op", async () => {
-  const capture: { request: { data: unknown[]; skipDuplicates: boolean } | null } = { request: null };
+  const capture: {
+    request: { data: unknown[]; skipDuplicates: boolean } | null;
+  } = { request: null };
   const store = createConflictSafeActivityStore({
     activity: {
       async createMany(input) {
@@ -121,7 +141,10 @@ test("the Prisma adapter treats duplicate event IDs as a conflict-safe no-op", a
 
 test("ingestion rejects non-positive and over-six-hour durations", async () => {
   const { store } = createStore();
-  const tooLong = { ...mappedEvent, endAt: new Date("2026-09-01T15:01:00.000Z") };
+  const tooLong = {
+    ...mappedEvent,
+    endAt: new Date("2026-09-01T15:01:00.000Z"),
+  };
 
   await assert.rejects(
     () => ingestActivityBatch(device, [tooLong], store),

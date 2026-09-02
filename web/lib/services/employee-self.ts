@@ -105,52 +105,63 @@ export async function getEmployeeDashboard(context: AuthContext) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const [manualTime, assignedTaskCount, inProgressTaskCount, recentAssignments, activeTime, idleTime] =
-    await Promise.all([
-      prisma.timeEntry.aggregate({
-        where: tenantWhere(context.companyId, { employeeId, startAt: { gte: today } }),
-        _sum: { durationMinutes: true },
+  const [
+    manualTime,
+    assignedTaskCount,
+    inProgressTaskCount,
+    recentAssignments,
+    activeTime,
+    idleTime,
+  ] = await Promise.all([
+    prisma.timeEntry.aggregate({
+      where: tenantWhere(context.companyId, {
+        employeeId,
+        startAt: { gte: today },
       }),
-      prisma.taskAssignment.count({ where: tenantWhere(context.companyId, { employeeId }) }),
-      prisma.taskAssignment.count({
-        where: tenantWhere(context.companyId, {
-          employeeId,
-          task: { status: TaskStatus.IN_PROGRESS },
-        }),
+      _sum: { durationMinutes: true },
+    }),
+    prisma.taskAssignment.count({
+      where: tenantWhere(context.companyId, { employeeId }),
+    }),
+    prisma.taskAssignment.count({
+      where: tenantWhere(context.companyId, {
+        employeeId,
+        task: { status: TaskStatus.IN_PROGRESS },
       }),
-      prisma.taskAssignment.findMany({
-        where: tenantWhere(context.companyId, { employeeId }),
-        take: 5,
-        select: {
-          task: {
-            select: {
-              id: true,
-              title: true,
-              status: true,
-              dueDate: true,
-              project: { select: { code: true } },
-            },
+    }),
+    prisma.taskAssignment.findMany({
+      where: tenantWhere(context.companyId, { employeeId }),
+      take: 5,
+      select: {
+        task: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            dueDate: true,
+            project: { select: { code: true } },
           },
         },
-        orderBy: { assignedAt: "desc" },
+      },
+      orderBy: { assignedAt: "desc" },
+    }),
+    prisma.activity.aggregate({
+      where: tenantWhere(context.companyId, {
+        employeeId,
+        type: ActivityType.APPLICATION,
+        startAt: { gte: today },
       }),
-      prisma.activity.aggregate({
-        where: tenantWhere(context.companyId, {
-          employeeId,
-          type: ActivityType.APPLICATION,
-          startAt: { gte: today },
-        }),
-        _sum: { durationSeconds: true },
+      _sum: { durationSeconds: true },
+    }),
+    prisma.activity.aggregate({
+      where: tenantWhere(context.companyId, {
+        employeeId,
+        type: ActivityType.IDLE,
+        startAt: { gte: today },
       }),
-      prisma.activity.aggregate({
-        where: tenantWhere(context.companyId, {
-          employeeId,
-          type: ActivityType.IDLE,
-          startAt: { gte: today },
-        }),
-        _sum: { durationSeconds: true },
-      }),
-    ]);
+      _sum: { durationSeconds: true },
+    }),
+  ]);
 
   return {
     manualMinutes: manualTime._sum?.durationMinutes ?? 0,

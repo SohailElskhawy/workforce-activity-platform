@@ -6,12 +6,19 @@ import type { NextAuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 
-import { EMPLOYEE_HOME_ROUTE, LOGIN_ROUTE, MANAGER_HOME_ROUTE } from "@/lib/auth-routes";
+import {
+  EMPLOYEE_HOME_ROUTE,
+  LOGIN_ROUTE,
+  MANAGER_HOME_ROUTE,
+} from "@/lib/auth-routes";
 import type { AuthContext } from "@/lib/auth-context";
 import { assertRole, tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
-import { consumeLoginAttempt, resetLoginAttempts } from "@/lib/security/login-rate-limit";
+import {
+  consumeLoginAttempt,
+  resetLoginAttempts,
+} from "@/lib/security/login-rate-limit";
 import type { UserRole } from "@/src/generated/prisma/enums";
 import { EmployeeStatus } from "@/src/generated/prisma/enums";
 import { loginSchema } from "@/lib/validation/auth";
@@ -24,7 +31,10 @@ if (!authSecret && process.env.NODE_ENV === "production") {
   throw new Error("AUTH_SECRET must be set in production.");
 }
 
-async function authenticateCredentials(credentials: unknown, request: { headers?: Record<string, unknown> }) {
+async function authenticateCredentials(
+  credentials: unknown,
+  request: { headers?: Record<string, unknown> },
+) {
   const parsedCredentials = loginSchema.safeParse(credentials);
 
   if (!parsedCredentials.success) {
@@ -64,7 +74,11 @@ async function authenticateCredentials(credentials: unknown, request: { headers?
       return null;
     }
 
-    if (user.role === "EMPLOYEE" && (!user.employeeId || user.employee?.companyId !== user.companyId)) return null;
+    if (
+      user.role === "EMPLOYEE" &&
+      (!user.employeeId || user.employee?.companyId !== user.companyId)
+    )
+      return null;
 
     resetLoginAttempts(email, request.headers);
 
@@ -131,7 +145,9 @@ export async function requireUser(): Promise<Session> {
 export async function requireManager(): Promise<Session> {
   const session = await requireUser();
   if (session.user.role !== "MANAGER") {
-    redirect(session.user.role === "EMPLOYEE" ? EMPLOYEE_HOME_ROUTE : LOGIN_ROUTE);
+    redirect(
+      session.user.role === "EMPLOYEE" ? EMPLOYEE_HOME_ROUTE : LOGIN_ROUTE,
+    );
   }
 
   if (!(await getActiveManagerContext(session))) redirect(LOGIN_ROUTE);
@@ -141,7 +157,9 @@ export async function requireManager(): Promise<Session> {
 export async function requireEmployee(): Promise<Session> {
   const session = await requireUser();
   if (session.user.role !== "EMPLOYEE") {
-    redirect(session.user.role === "MANAGER" ? MANAGER_HOME_ROUTE : LOGIN_ROUTE);
+    redirect(
+      session.user.role === "MANAGER" ? MANAGER_HOME_ROUTE : LOGIN_ROUTE,
+    );
   }
   if (!session.user.employeeId) redirect(LOGIN_ROUTE);
 
@@ -181,7 +199,11 @@ export async function requireManagerContext(): Promise<AuthContext> {
 
   const activeContext = await getActiveManagerContext(session);
   if (!activeContext) {
-    throw new ApiError("UNAUTHORIZED", "Your account is no longer active.", 401);
+    throw new ApiError(
+      "UNAUTHORIZED",
+      "Your account is no longer active.",
+      401,
+    );
   }
 
   return activeContext;
@@ -213,13 +235,19 @@ export async function requireEmployeeContext(): Promise<AuthContext> {
   });
 
   if (!employee) {
-    throw new ApiError("UNAUTHORIZED", "Your account is no longer active.", 401);
+    throw new ApiError(
+      "UNAUTHORIZED",
+      "Your account is no longer active.",
+      401,
+    );
   }
 
   return { ...context, companyId: employee.companyId, employeeId: employee.id };
 }
 
-async function getActiveManagerContext(session: Session): Promise<AuthContext | null> {
+async function getActiveManagerContext(
+  session: Session,
+): Promise<AuthContext | null> {
   const context = toAuthContext(session);
   const user = await prisma.user.findFirst({
     where: {
