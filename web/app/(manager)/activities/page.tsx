@@ -12,17 +12,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireManager, toAuthContext } from "@/lib/auth";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listEmployees } from "@/lib/services/employees";
 import { listProjects } from "@/lib/services/projects";
 import { listTasks } from "@/lib/services/tasks";
 
 export default async function ActivitiesPage() {
-  const context = toAuthContext(await requireManager());
-  const [employees, projects, tasks] = await Promise.all([
+  const [session, locale] = await Promise.all([
+    requireManager(),
+    getServerLocale(),
+  ]);
+  const context = toAuthContext(session);
+  const [employees, projects, tasks, t] = await Promise.all([
     listEmployees(context),
     listProjects(context),
     listTasks(context),
+    getServerDictionary(locale),
   ]);
+
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <PageHeading
@@ -40,8 +47,8 @@ export default async function ActivitiesPage() {
             }))}
           />
         }
-        description="Open an employee to review their captured activity timeline and application time, or map a DWG file for future activity."
-        title="Activities"
+        description={t.activities.subtitle}
+        title={t.activities.title}
       />
       {employees.length ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -54,7 +61,7 @@ export default async function ActivitiesPage() {
                       {employee.firstName} {employee.lastName}
                     </CardTitle>
                     <CardDescription>
-                      {employee.department?.name ?? "Unassigned"}
+                      {employee.department?.name ?? t.tasks.unassigned}
                     </CardDescription>
                   </div>
                   <div className="text-right">
@@ -65,7 +72,11 @@ export default async function ActivitiesPage() {
                           : "secondary"
                       }
                     >
-                      {employee.agentStatus.replaceAll("_", " ")}
+                      {employee.agentStatus === "ONLINE"
+                        ? t.employees.deviceOnline
+                        : employee.agentStatus === "OFFLINE"
+                          ? t.employees.deviceOffline
+                          : t.employees.noDevice}
                     </Badge>
                     {employee.agentDeviceName ? (
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -80,7 +91,7 @@ export default async function ActivitiesPage() {
                   className="text-sm font-medium text-primary hover:underline"
                   href={`/employees/${employee.id}`}
                 >
-                  View activity timeline
+                  {t.employeeDashboard.viewActivity}
                 </Link>
               </CardContent>
             </Card>
@@ -88,10 +99,11 @@ export default async function ActivitiesPage() {
         </section>
       ) : (
         <EmptyState
-          description="Employees must be added before their captured activity can be reviewed."
-          title="No employees are available."
+          description={t.employees.emptyDesc}
+          title={t.employees.emptyTitle}
         />
       )}
     </main>
   );
 }
+

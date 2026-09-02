@@ -14,34 +14,43 @@ import {
   formatDurationFromMinutes,
   formatDurationFromSeconds,
 } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
 
 export default async function MyActivityPage() {
-  const context = toAuthContext(await requireEmployee());
-  const summary = await getEmployeeDaySummary(context, context.employeeId!);
+  const [session, locale] = await Promise.all([
+    requireEmployee(),
+    getServerLocale(),
+  ]);
+  const context = toAuthContext(session);
+  const [summary, t] = await Promise.all([
+    getEmployeeDaySummary(context, context.employeeId!),
+    getServerDictionary(locale),
+  ]);
+
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeading
-        description="Your captured application activity for today."
-        title="My Activity"
+        description={t.myActivity.subtitle}
+        title={t.myActivity.title}
       />
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
-          label="Active"
-          value={formatDurationFromSeconds(summary.activeSeconds)}
+          label={t.managerDashboard.active}
+          value={formatDurationFromSeconds(summary.activeSeconds, locale)}
         />
         <Metric
-          label="Idle"
-          value={formatDurationFromSeconds(summary.idleSeconds)}
+          label={t.managerDashboard.idle}
+          value={formatDurationFromSeconds(summary.idleSeconds, locale)}
         />
         <Metric
-          label="Manual time"
-          value={formatDurationFromMinutes(summary.manualMinutes)}
+          label={t.myTime.title}
+          value={formatDurationFromMinutes(summary.manualMinutes, locale)}
         />
         <Metric
-          label="Manual vs activity"
-          value={formatActivityDifference(summary.differenceMinutes)}
+          label={t.reports.manualVsTracked}
+          value={formatActivityDifference(summary.differenceMinutes, locale)}
         />
       </section>
       <ApplicationBreakdown applications={summary.applications} />
@@ -60,3 +69,4 @@ function Metric({ label, value }: { label: string; value: string }) {
     </Card>
   );
 }
+

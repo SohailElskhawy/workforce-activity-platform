@@ -11,19 +11,25 @@ import {
 } from "@/components/ui/table";
 import { requireEmployee, toAuthContext } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listOwnProjects } from "@/lib/services/employee-self";
 
 export default async function MyProjectsPage() {
-  const projects = await listOwnProjects(
-    toAuthContext(await requireEmployee()),
-  );
+  const [session, locale] = await Promise.all([
+    requireEmployee(),
+    getServerLocale(),
+  ]);
+  const [projects, t] = await Promise.all([
+    listOwnProjects(toAuthContext(session)),
+    getServerDictionary(locale),
+  ]);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Projects</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t.myProjects.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Projects connected to your assigned tasks.
+          {t.myProjects.subtitle}
         </p>
       </div>
       <Card>
@@ -32,11 +38,11 @@ export default async function MyProjectsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tasks</TableHead>
-                  <TableHead>End date</TableHead>
+                  <TableHead>{t.projects.title}</TableHead>
+                  <TableHead>{t.projects.client}</TableHead>
+                  <TableHead>{t.projects.status}</TableHead>
+                  <TableHead>{t.tasks.title}</TableHead>
+                  <TableHead>{t.projects.endDate}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -50,15 +56,15 @@ export default async function MyProjectsPage() {
                       <StatusBadge value={project.status} />
                     </TableCell>
                     <TableCell>{project._count.tasks}</TableCell>
-                    <TableCell>{formatDate(project.endDate)}</TableCell>
+                    <TableCell>{formatDate(project.endDate, locale)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
             <EmptyState
-              description="Projects connected to assigned work will appear here."
-              title="You are not assigned to a project yet."
+              description={t.myProjects.emptyDesc}
+              title={t.myProjects.emptyTitle}
             />
           )}
         </CardContent>
@@ -66,3 +72,4 @@ export default async function MyProjectsPage() {
     </main>
   );
 }
+

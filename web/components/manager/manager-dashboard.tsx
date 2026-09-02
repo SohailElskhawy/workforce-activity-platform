@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Activity,
   ArrowRight,
@@ -22,6 +24,7 @@ import {
   formatDate,
   formatDurationFromSeconds,
 } from "@/lib/formatters";
+import { useI18n } from "@/lib/i18n";
 
 type DashboardMetrics = {
   activeSeconds: number;
@@ -77,6 +80,8 @@ export function ManagerDashboard({
   recentActivities: DashboardActivity[];
   tasks: DashboardTask[];
 }) {
+  const { locale, t } = useI18n();
+
   const activeProjectCount = projects.filter(
     ({ status }) => status === "ACTIVE",
   ).length;
@@ -85,30 +90,30 @@ export function ManagerDashboard({
   ).length;
   const cards = [
     {
-      label: "Team members",
+      label: t.managerDashboard.teamMembers,
       value: String(metrics.employeeCount),
-      detail: `${metrics.onlineDeviceCount} agent${metrics.onlineDeviceCount === 1 ? "" : "s"} online`,
+      detail: t.managerDashboard.agentsOnline(metrics.onlineDeviceCount),
       icon: Users,
       tone: "bg-sky-50 text-sky-700",
     },
     {
-      label: "Active projects",
+      label: t.managerDashboard.activeProjects,
       value: String(activeProjectCount),
-      detail: `${projects.length} projects in portfolio`,
+      detail: t.managerDashboard.projectsInPortfolio(projects.length),
       icon: BriefcaseBusiness,
       tone: "bg-violet-50 text-violet-700",
     },
     {
-      label: "Open tasks",
+      label: t.managerDashboard.openTasks,
       value: String(openTaskCount),
-      detail: `${metrics.overdueTaskCount} overdue`,
+      detail: t.managerDashboard.overdue(metrics.overdueTaskCount),
       icon: ListChecks,
       tone: "bg-amber-50 text-amber-700",
     },
     {
-      label: "7-day activity",
-      value: formatDurationFromSeconds(metrics.weekActiveSeconds),
-      detail: "Foreground application time",
+      label: t.managerDashboard.sevenDayActivity,
+      value: formatDurationFromSeconds(metrics.weekActiveSeconds, locale),
+      detail: t.managerDashboard.foregroundAppTime,
       icon: Activity,
       tone: "bg-emerald-50 text-emerald-700",
     },
@@ -119,13 +124,13 @@ export function ManagerDashboard({
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-            Company overview
+            {t.managerDashboard.companyOverview}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-            Manager Dashboard
+            {t.managerDashboard.title}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            A clear view of delivery, workload, and recent employee activity.
+            {t.managerDashboard.subtitle}
           </p>
         </div>
         <div className="flex gap-2">
@@ -133,13 +138,13 @@ export function ManagerDashboard({
             className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
             href="/reports"
           >
-            View reports
+            {t.managerDashboard.viewReports}
           </Link>
           <Link
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800"
             href="/projects"
           >
-            Open projects <ArrowRight className="size-4" />
+            {t.managerDashboard.openProjects} <ArrowRight className="size-4" />
           </Link>
         </div>
       </section>
@@ -173,16 +178,16 @@ export function ManagerDashboard({
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="flex-row items-center justify-between">
             <div>
-              <CardTitle>Portfolio overview</CardTitle>
+              <CardTitle>{t.managerDashboard.portfolioOverview}</CardTitle>
               <CardDescription>
-                Current projects, task volume, and delivery dates.
+                {t.managerDashboard.portfolioOverviewDesc}
               </CardDescription>
             </div>
             <Link
               className="text-sm font-medium text-slate-600 hover:text-slate-950"
               href="/projects"
             >
-              View all
+              {t.common.viewAll}
             </Link>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -203,7 +208,7 @@ export function ManagerDashboard({
                     {project.name}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {project.clientName ?? "Internal project"}
+                    {project.clientName ?? t.managerDashboard.internalProject}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-6 text-sm sm:text-right">
@@ -211,13 +216,13 @@ export function ManagerDashboard({
                     <p className="font-semibold text-slate-900">
                       {project.taskCount}
                     </p>
-                    <p className="text-xs text-slate-500">Tasks</p>
+                    <p className="text-xs text-slate-500">{t.managerDashboard.tasksCount}</p>
                   </div>
                   <div>
                     <p className="font-semibold text-slate-900">
-                      {formatDate(project.endDate)}
+                      {formatDate(project.endDate, locale)}
                     </p>
-                    <p className="text-xs text-slate-500">Target</p>
+                    <p className="text-xs text-slate-500">{t.managerDashboard.targetDate}</p>
                   </div>
                 </div>
               </Link>
@@ -227,9 +232,9 @@ export function ManagerDashboard({
 
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
-            <CardTitle>Priority work</CardTitle>
+            <CardTitle>{t.managerDashboard.priorityWork}</CardTitle>
             <CardDescription>
-              Upcoming and high-priority work requiring attention.
+              {t.managerDashboard.priorityWorkDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -245,10 +250,10 @@ export function ManagerDashboard({
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
                     {task.projectCode} ·{" "}
-                    {task.assignees.join(", ") || "Unassigned"}
+                    {task.assignees.join(", ") || t.managerDashboard.unassigned}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Due {formatDate(task.dueDate)}
+                    {t.managerDashboard.due} {formatDate(task.dueDate, locale)}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -265,16 +270,16 @@ export function ManagerDashboard({
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent activity</CardTitle>
+              <CardTitle>{t.managerDashboard.recentActivity}</CardTitle>
               <CardDescription>
-                Latest captured work across the company.
+                {t.managerDashboard.recentActivityDesc}
               </CardDescription>
             </div>
             <Link
               className="text-sm font-medium text-slate-600 hover:text-slate-950"
               href="/activities"
             >
-              Explore activity
+              {t.managerDashboard.exploreActivity}
             </Link>
           </CardHeader>
           <CardContent className="divide-y divide-slate-100">
@@ -300,22 +305,22 @@ export function ManagerDashboard({
                     </Link>
                     <p className="truncate text-sm text-slate-600">
                       {activity.type === "IDLE"
-                        ? "Idle period"
+                        ? t.managerDashboard.idlePeriod
                         : activity.applicationName ?? activity.type}
                       {activity.fileName ? ` · ${activity.fileName}` : ""}
                     </p>
                     <p className="truncate text-xs text-slate-500">
-                      {activity.projectCode ?? "Unmapped activity"}
+                      {activity.projectCode ?? t.managerDashboard.unmappedActivity}
                       {activity.taskTitle ? ` · ${activity.taskTitle}` : ""}
                     </p>
                   </div>
                 </div>
                 <div className="shrink-0 text-left sm:text-right">
                   <p className="text-sm font-semibold text-slate-900">
-                    {formatDurationFromSeconds(activity.durationSeconds)}
+                    {formatDurationFromSeconds(activity.durationSeconds, locale)}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {formatDate(activity.startAt)}
+                    {formatDate(activity.startAt, locale)}
                   </p>
                 </div>
               </div>
@@ -328,29 +333,29 @@ export function ManagerDashboard({
             <div className="mb-1 flex size-10 items-center justify-center rounded-xl bg-emerald-400 text-slate-950">
               <Wifi className="size-5" />
             </div>
-            <CardTitle className="text-white">Today&apos;s signal</CardTitle>
+            <CardTitle className="text-white">{t.managerDashboard.todaysSignal}</CardTitle>
             <CardDescription className="text-slate-400">
-              Live activity updates as agents report.
+              {t.managerDashboard.todaysSignalDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Signal
-              label="Active"
-              value={formatDurationFromSeconds(metrics.activeSeconds)}
+              label={t.managerDashboard.active}
+              value={formatDurationFromSeconds(metrics.activeSeconds, locale)}
             />
             <Signal
-              label="Idle"
-              value={formatDurationFromSeconds(metrics.idleSeconds)}
+              label={t.managerDashboard.idle}
+              value={formatDurationFromSeconds(metrics.idleSeconds, locale)}
             />
             <Signal
-              label="Agents online"
+              label={t.employees.title}
               value={String(metrics.onlineDeviceCount)}
             />
             <Link
               className="inline-flex items-center gap-2 pt-2 text-sm font-medium text-emerald-300 hover:text-emerald-200"
               href="/activities"
             >
-              View live activity <ArrowRight className="size-4" />
+              {t.managerDashboard.viewLiveActivity} <ArrowRight className="size-4" />
             </Link>
           </CardContent>
         </Card>
@@ -367,4 +372,5 @@ function Signal({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
 

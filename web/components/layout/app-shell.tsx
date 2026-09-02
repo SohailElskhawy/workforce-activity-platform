@@ -1,3 +1,5 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
@@ -14,6 +16,8 @@ import {
 import Link from "next/link";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { useI18n } from "@/lib/i18n";
 
 type AppRole = "MANAGER" | "EMPLOYEE";
 
@@ -22,23 +26,6 @@ type NavigationItem = {
   icon: LucideIcon;
   label: string;
 };
-
-const managerNavigation: NavigationItem[] = [
-  { href: "/dashboard", icon: Gauge, label: "Dashboard" },
-  { href: "/projects", icon: FolderKanban, label: "Projects" },
-  { href: "/tasks", icon: ListChecks, label: "Tasks" },
-  { href: "/employees", icon: Users, label: "Employees" },
-  { href: "/activities", icon: Activity, label: "Activity" },
-  { href: "/reports", icon: BarChart3, label: "Reports" },
-];
-
-const employeeNavigation: NavigationItem[] = [
-  { href: "/my-dashboard", icon: Gauge, label: "Overview" },
-  { href: "/my-projects", icon: BriefcaseBusiness, label: "My projects" },
-  { href: "/my-tasks", icon: ListChecks, label: "My tasks" },
-  { href: "/my-time", icon: Clock3, label: "Manual time" },
-  { href: "/my-activity", icon: Activity, label: "My activity" },
-];
 
 export function AppShell({
   children,
@@ -49,30 +36,51 @@ export function AppShell({
   email: string | null | undefined;
   role: AppRole;
 }) {
+  const { t } = useI18n();
   const isManager = role === "MANAGER";
+  
+  const managerNavigation: NavigationItem[] = [
+    { href: "/dashboard", icon: Gauge, label: t.common.navigation.dashboard },
+    { href: "/projects", icon: FolderKanban, label: t.common.navigation.projects },
+    { href: "/tasks", icon: ListChecks, label: t.common.navigation.tasks },
+    { href: "/employees", icon: Users, label: t.common.navigation.employees },
+    { href: "/activities", icon: Activity, label: t.common.navigation.activities },
+    { href: "/reports", icon: BarChart3, label: t.common.navigation.reports },
+  ];
+
+  const employeeNavigation: NavigationItem[] = [
+    { href: "/my-dashboard", icon: Gauge, label: t.common.navigation.overview },
+    { href: "/my-projects", icon: BriefcaseBusiness, label: t.common.navigation.myProjects },
+    { href: "/my-tasks", icon: ListChecks, label: t.common.navigation.myTasks },
+    { href: "/my-time", icon: Clock3, label: t.common.navigation.manualTime },
+    { href: "/my-activity", icon: Activity, label: t.common.navigation.myActivity },
+  ];
+
   const navigation = isManager ? managerNavigation : employeeNavigation;
-  const roleLabel = isManager ? "Manager" : "Employee";
+  const workspaceTitle = isManager ? t.common.managerWorkspace : t.common.employeeWorkspace;
+  const navAriaLabel = isManager ? t.common.navigation.managerNavigation : t.common.navigation.employeeNavigation;
+  const accountLabel = isManager ? t.common.managerAccount : t.common.employeeAccount;
   const homeHref = isManager ? "/dashboard" : "/my-dashboard";
-  const safeEmail = email ?? "Signed-in user";
+  const safeEmail = email ?? t.common.signedInUser;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-slate-800 bg-slate-950 text-slate-100 lg:flex">
-        <Brand href={homeHref} />
+        <Brand href={homeHref} tagline={t.common.brandTagline} />
         <div className="px-5 pb-3 pt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-          {roleLabel} workspace
+          {workspaceTitle}
         </div>
-        <Navigation items={navigation} label={`${roleLabel} navigation`} />
+        <Navigation items={navigation} label={navAriaLabel} />
         <div className="mt-auto space-y-4 border-t border-slate-800 p-5">
           <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
             <div className="mb-2 flex items-center gap-2 text-xs font-medium text-emerald-300">
               <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.12)]" />
-              Workspace connected
+              {t.common.workspaceConnected}
             </div>
             <p className="truncate text-sm font-medium text-white">
               {safeEmail}
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">{roleLabel} account</p>
+            <p className="mt-0.5 text-xs text-slate-400">{accountLabel}</p>
           </div>
           <LogoutButton className="w-full justify-start border-slate-700 bg-transparent text-slate-200 hover:bg-slate-800 hover:text-white" />
         </div>
@@ -91,10 +99,13 @@ export function AppShell({
               <div className="absolute left-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/15">
                 <Navigation
                   items={navigation}
-                  label={`${roleLabel} navigation`}
+                  label={navAriaLabel}
                   mobile
                 />
-                <div className="mt-3 border-t border-slate-100 px-2 pt-3">
+                <div className="mt-3 flex items-center justify-between border-t border-slate-100 px-2 pt-3">
+                  <LanguageSwitcher />
+                </div>
+                <div className="mt-2 border-t border-slate-100 px-2 pt-2">
                   <p className="truncate px-2 pb-2 text-xs text-slate-500">
                     {safeEmail}
                   </p>
@@ -106,17 +117,18 @@ export function AppShell({
 
           <div className="hidden lg:block">
             <p className="text-sm font-semibold text-slate-900">
-              Operational workspace
+              {t.common.operationalWorkspace}
             </p>
             <p className="text-xs text-slate-500">
-              Projects, people, and activity in one place
+              {t.common.operationalWorkspaceDesc}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:flex">
               <span className="size-1.5 rounded-full bg-emerald-500" />
-              Live data
+              {t.common.liveData}
             </div>
             <div className="flex size-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
               {safeEmail.charAt(0).toUpperCase()}
@@ -129,7 +141,7 @@ export function AppShell({
   );
 }
 
-function Brand({ href }: { href: string }) {
+function Brand({ href, tagline }: { href: string; tagline: string }) {
   return (
     <Link
       className="flex h-20 items-center gap-3 border-b border-slate-800 px-6"
@@ -143,7 +155,7 @@ function Brand({ href }: { href: string }) {
           WorkLens
         </span>
         <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
-          Workforce intelligence
+          {tagline}
         </span>
       </span>
     </Link>
@@ -181,3 +193,4 @@ function Navigation({
     </nav>
   );
 }
+

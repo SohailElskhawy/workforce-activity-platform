@@ -11,15 +11,21 @@ import {
 } from "@/components/ui/table";
 import { requireEmployee, toAuthContext } from "@/lib/auth";
 import { formatDate, formatDurationFromMinutes } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listOwnProjects, listOwnTasks } from "@/lib/services/employee-self";
 import { listOwnTimeEntries } from "@/lib/services/time-entries";
 
 export default async function MyTimePage() {
-  const context = toAuthContext(await requireEmployee());
-  const [entries, projects, assignments] = await Promise.all([
+  const [session, locale] = await Promise.all([
+    requireEmployee(),
+    getServerLocale(),
+  ]);
+  const context = toAuthContext(session);
+  const [entries, projects, assignments, t] = await Promise.all([
     listOwnTimeEntries(context),
     listOwnProjects(context),
     listOwnTasks(context),
+    getServerDictionary(locale),
   ]);
   const tasks = assignments.map(({ task }) => ({
     id: task.id,
@@ -31,9 +37,9 @@ export default async function MyTimePage() {
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Time</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t.myTime.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manual entries are kept separate from automatic activity.
+            {t.myTime.subtitle}
           </p>
         </div>
         <AddTimeEntryDialog
@@ -47,23 +53,23 @@ export default async function MyTimePage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead>{t.myTime.date}</TableHead>
+                  <TableHead>{t.tasks.project}</TableHead>
+                  <TableHead>{t.tasks.taskTitle}</TableHead>
+                  <TableHead>{t.myTime.duration}</TableHead>
+                  <TableHead>{t.myTime.notes}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {entries.map((entry) => (
                   <TableRow key={entry.id}>
-                    <TableCell>{formatDate(entry.startAt)}</TableCell>
+                    <TableCell>{formatDate(entry.startAt, locale)}</TableCell>
                     <TableCell>
                       {entry.project.code} — {entry.project.name}
                     </TableCell>
                     <TableCell>{entry.task?.title ?? "—"}</TableCell>
                     <TableCell>
-                      {formatDurationFromMinutes(entry.durationMinutes)}
+                      {formatDurationFromMinutes(entry.durationMinutes, locale)}
                     </TableCell>
                     <TableCell className="max-w-64 truncate">
                       {entry.notes ?? "—"}
@@ -74,8 +80,8 @@ export default async function MyTimePage() {
             </Table>
           ) : (
             <EmptyState
-              description="Add an entry when you report time against an assigned project or task."
-              title="No manual time entries yet."
+              description={t.myTime.emptyDesc}
+              title={t.myTime.emptyTitle}
             />
           )}
         </CardContent>
@@ -83,3 +89,4 @@ export default async function MyTimePage() {
     </main>
   );
 }
+

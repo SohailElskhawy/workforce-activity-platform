@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 import {
   type CreateProjectInput,
   createProjectSchema,
@@ -30,6 +31,7 @@ import {
 type CreateProjectForm = z.input<typeof createProjectSchema>;
 
 export function CreateProjectDialog() {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -65,15 +67,15 @@ export function CreateProjectDialog() {
         render={
           <Button>
             <Plus />
-            New project
+            {t.projects.newProject}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create project</DialogTitle>
+          <DialogTitle>{t.projects.createProjectTitle}</DialogTitle>
           <DialogDescription>
-            Add a project to your company workspace.
+            {t.projects.createProjectDesc}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -82,7 +84,7 @@ export function CreateProjectDialog() {
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="grid gap-2">
-            <Label htmlFor="project-name">Name</Label>
+            <Label htmlFor="project-name">{t.projects.name}</Label>
             <Input
               id="project-name"
               aria-invalid={Boolean(errors.name)}
@@ -93,7 +95,7 @@ export function CreateProjectDialog() {
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="project-code">Code</Label>
+            <Label htmlFor="project-code">{t.projects.code}</Label>
             <Input
               id="project-code"
               aria-invalid={Boolean(errors.code)}
@@ -104,16 +106,16 @@ export function CreateProjectDialog() {
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="client-name">Client</Label>
+            <Label htmlFor="client-name">{t.projects.client}</Label>
             <Input id="client-name" {...register("clientName")} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="project-description">Description</Label>
+            <Label htmlFor="project-description">{t.projects.description}</Label>
             <Textarea id="project-description" {...register("description")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="project-status">Status</Label>
+              <Label htmlFor="project-status">{t.projects.status}</Label>
               <select
                 className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 id="project-status"
@@ -121,13 +123,15 @@ export function CreateProjectDialog() {
               >
                 {projectStatusSchema.options.map((status) => (
                   <option key={status} value={status}>
-                    {status.replaceAll("_", " ")}
+                    {status in t.status
+                      ? t.status[status as keyof typeof t.status]
+                      : status.replaceAll("_", " ")}
                   </option>
                 ))}
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="estimated-hours">Estimated hours</Label>
+              <Label htmlFor="estimated-hours">{t.projects.estimatedHours}</Label>
               <Input
                 id="estimated-hours"
                 min="1"
@@ -138,7 +142,7 @@ export function CreateProjectDialog() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="project-start">Start date</Label>
+              <Label htmlFor="project-start">{t.projects.startDate}</Label>
               <Input
                 id="project-start"
                 type="date"
@@ -146,7 +150,7 @@ export function CreateProjectDialog() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="project-end">End date</Label>
+              <Label htmlFor="project-end">{t.projects.endDate}</Label>
               <Input id="project-end" type="date" {...register("endDate")} />
             </div>
           </div>
@@ -155,7 +159,7 @@ export function CreateProjectDialog() {
           ) : null}
           <DialogFooter>
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Creating…" : "Create project"}
+              {isSubmitting ? t.projects.creating : t.projects.createButton}
             </Button>
           </DialogFooter>
         </form>
@@ -163,3 +167,4 @@ export function CreateProjectDialog() {
     </Dialog>
   );
 }
+

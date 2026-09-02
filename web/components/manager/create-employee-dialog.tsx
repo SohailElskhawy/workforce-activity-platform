@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 import {
   type CreateEmployeeInput,
   createEmployeeSchema,
@@ -33,6 +34,7 @@ export function CreateEmployeeDialog({
 }: {
   departments: DepartmentOption[];
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [createdEmail, setCreatedEmail] = useState<string | null>(null);
@@ -89,7 +91,7 @@ export function CreateEmployeeDialog({
         render={
           <Button>
             <UserPlus />
-            Add employee
+            {t.employees.createEmployeeTitle}
           </Button>
         }
       />
@@ -97,25 +99,23 @@ export function CreateEmployeeDialog({
         {createdEmail ? (
           <>
             <DialogHeader>
-              <DialogTitle>Employee created</DialogTitle>
+              <DialogTitle>{t.employees.createEmployeeTitle}</DialogTitle>
               <DialogDescription>
-                {createdEmail} can now sign in. Share the temporary password you
-                entered through an approved secure channel; it is not stored or
-                shown again here.
+                {createdEmail}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button onClick={closeDialog} type="button">
-                Done
+                {t.common.close}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Add employee</DialogTitle>
+              <DialogTitle>{t.employees.createEmployeeTitle}</DialogTitle>
               <DialogDescription>
-                This creates an active employee and their WorkLens login.
+                {t.employees.createEmployeeDesc}
               </DialogDescription>
             </DialogHeader>
             <form
@@ -126,14 +126,14 @@ export function CreateEmployeeDialog({
               <div className="grid grid-cols-2 gap-3">
                 <Field
                   error={errors.firstName?.message}
-                  label="First name"
+                  label={t.employees.firstName}
                   name="employee-first-name"
                 >
                   <Input id="employee-first-name" {...register("firstName")} />
                 </Field>
                 <Field
                   error={errors.lastName?.message}
-                  label="Last name"
+                  label={t.employees.lastName}
                   name="employee-last-name"
                 >
                   <Input id="employee-last-name" {...register("lastName")} />
@@ -141,7 +141,7 @@ export function CreateEmployeeDialog({
               </div>
               <Field
                 error={errors.email?.message}
-                label="Work email"
+                label={t.employees.email}
                 name="employee-email"
               >
                 <Input
@@ -153,7 +153,7 @@ export function CreateEmployeeDialog({
               <div className="grid grid-cols-2 gap-3">
                 <Field
                   error={errors.departmentId?.message}
-                  label="Department"
+                  label={t.employees.department}
                   name="employee-department"
                 >
                   <select
@@ -163,7 +163,7 @@ export function CreateEmployeeDialog({
                       setValueAs: (value) => value || null,
                     })}
                   >
-                    <option value="">No department</option>
+                    <option value="">—</option>
                     {departments.map((department) => (
                       <option key={department.id} value={department.id}>
                         {department.name}
@@ -173,7 +173,7 @@ export function CreateEmployeeDialog({
                 </Field>
                 <Field
                   error={errors.position?.message}
-                  label="Position"
+                  label={t.employees.role}
                   name="employee-position"
                 >
                   <Input id="employee-position" {...register("position")} />
@@ -181,7 +181,7 @@ export function CreateEmployeeDialog({
               </div>
               <Field
                 error={errors.temporaryPassword?.message}
-                label="Temporary password"
+                label={t.employees.temporaryPassword}
                 name="employee-password"
               >
                 <Input
@@ -195,7 +195,7 @@ export function CreateEmployeeDialog({
               ) : null}
               <DialogFooter>
                 <Button disabled={isSubmitting} type="submit">
-                  {isSubmitting ? "Creating…" : "Create employee"}
+                  {isSubmitting ? t.projects.creating : t.employees.createEmployeeTitle}
                 </Button>
               </DialogFooter>
             </form>
@@ -225,3 +225,4 @@ function Field({
     </div>
   );
 }
+

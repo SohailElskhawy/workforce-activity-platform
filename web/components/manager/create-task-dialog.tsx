@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 import {
   type CreateTaskInput,
   createTaskSchema,
@@ -32,6 +33,7 @@ type ProjectOption = { id: string; name: string; code: string };
 type CreateTaskForm = z.input<typeof createTaskSchema>;
 
 export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -72,15 +74,15 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
         render={
           <Button disabled={!projects.length}>
             <Plus />
-            New task
+            {t.tasks.newTask}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create task</DialogTitle>
+          <DialogTitle>{t.tasks.createTaskTitle}</DialogTitle>
           <DialogDescription>
-            Add a task to one of your company projects.
+            {t.tasks.createTaskDesc}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -89,14 +91,14 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="grid gap-2">
-            <Label htmlFor="task-project">Project</Label>
+            <Label htmlFor="task-project">{t.tasks.project}</Label>
             <select
               className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               id="task-project"
               aria-invalid={Boolean(errors.projectId)}
               {...register("projectId")}
             >
-              <option value="">Select a project</option>
+              <option value="">{t.tasks.selectProject}</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.code} — {project.name}
@@ -110,7 +112,7 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="task-title">Title</Label>
+            <Label htmlFor="task-title">{t.tasks.taskTitle}</Label>
             <Input
               id="task-title"
               aria-invalid={Boolean(errors.title)}
@@ -121,12 +123,12 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="task-description">Description</Label>
+            <Label htmlFor="task-description">{t.projects.description}</Label>
             <Textarea id="task-description" {...register("description")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="task-status">Status</Label>
+              <Label htmlFor="task-status">{t.projects.status}</Label>
               <select
                 className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 id="task-status"
@@ -134,13 +136,15 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
               >
                 {taskStatusSchema.options.map((status) => (
                   <option key={status} value={status}>
-                    {status.replaceAll("_", " ")}
+                    {status in t.status
+                      ? t.status[status as keyof typeof t.status]
+                      : status.replaceAll("_", " ")}
                   </option>
                 ))}
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="task-priority">Priority</Label>
+              <Label htmlFor="task-priority">{t.tasks.priority}</Label>
               <select
                 className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 id="task-priority"
@@ -148,7 +152,7 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
               >
                 {taskPrioritySchema.options.map((priority) => (
                   <option key={priority} value={priority}>
-                    {priority}
+                    {t.priority[priority] ?? priority}
                   </option>
                 ))}
               </select>
@@ -156,7 +160,7 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="task-estimate">Estimated minutes</Label>
+              <Label htmlFor="task-estimate">{t.myTime.duration}</Label>
               <Input
                 id="task-estimate"
                 min="1"
@@ -165,7 +169,7 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="task-due-date">Due date</Label>
+              <Label htmlFor="task-due-date">{t.tasks.dueDate}</Label>
               <Input
                 id="task-due-date"
                 type="date"
@@ -184,7 +188,7 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
           ) : null}
           <DialogFooter>
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Creating…" : "Create task"}
+              {isSubmitting ? t.projects.creating : t.tasks.createTaskTitle}
             </Button>
           </DialogFooter>
         </form>
@@ -192,3 +196,4 @@ export function CreateTaskDialog({ projects }: { projects: ProjectOption[] }) {
     </Dialog>
   );
 }
+

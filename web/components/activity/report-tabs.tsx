@@ -10,6 +10,8 @@ import {
   formatDurationFromMinutes,
   formatDurationFromSeconds,
 } from "@/lib/formatters";
+import { useI18n } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/config";
 import { projectTrackedPercentage } from "@/lib/services/activity-presentation";
 
 type EmployeeOption = { id: string; firstName: string; lastName: string };
@@ -79,17 +81,19 @@ function ReportMessage({
   hasSelection: boolean;
   onRetry: () => void;
 }) {
+  const { t } = useI18n();
+
   if (!hasSelection)
     return (
       <EmptyState
-        description="Choose an employee, project, or task to view its report."
-        title="Select a record to view its summary."
+        description={t.reports.subtitle}
+        title={t.reports.title}
       />
     );
   return error ? (
     <DataError message={error} onRetry={onRetry} />
   ) : (
-    <p className="pt-4 text-sm text-muted-foreground">Loading report…</p>
+    <p className="pt-4 text-sm text-muted-foreground">{t.common.loading}</p>
   );
 }
 
@@ -102,6 +106,7 @@ export function ReportTabs({
   projects: ProjectOption[];
   tasks: TaskOption[];
 }) {
+  const { t } = useI18n();
   const [employeeId, setEmployeeId] = useState(employees[0]?.id ?? "");
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
   const [taskId, setTaskId] = useState(tasks[0]?.id ?? "");
@@ -123,10 +128,10 @@ export function ReportTabs({
   return (
     <Tabs defaultValue="employee">
       <TabsList>
-        <TabsTrigger value="employee">Employee Summary</TabsTrigger>
-        <TabsTrigger value="project">Project Summary</TabsTrigger>
-        <TabsTrigger value="task">Task Summary</TabsTrigger>
-        <TabsTrigger value="difference">Manual vs Activity</TabsTrigger>
+        <TabsTrigger value="employee">{t.reports.byEmployee}</TabsTrigger>
+        <TabsTrigger value="project">{t.reports.byProject}</TabsTrigger>
+        <TabsTrigger value="task">{t.tasks.taskDetails}</TabsTrigger>
+        <TabsTrigger value="difference">{t.reports.manualVsTracked}</TabsTrigger>
       </TabsList>
       <TabsContent value="employee">
         <EmployeePicker
@@ -148,13 +153,13 @@ export function ReportTabs({
       </TabsContent>
       <TabsContent value="project">
         <label className="grid gap-1 pt-4 text-sm">
-          Project
+          {t.tasks.project}
           <select
             className="h-8 rounded-lg border border-input bg-transparent px-2.5"
             onChange={(event) => setProjectId(event.target.value)}
             value={projectId}
           >
-            <option value="">Select a project</option>
+            <option value="">{t.tasks.selectProject}</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.code} — {project.name}
@@ -174,13 +179,13 @@ export function ReportTabs({
       </TabsContent>
       <TabsContent value="task">
         <label className="grid gap-1 pt-4 text-sm">
-          Task
+          {t.tasks.taskTitle}
           <select
             className="h-8 rounded-lg border border-input bg-transparent px-2.5"
             onChange={(event) => setTaskId(event.target.value)}
             value={taskId}
           >
-            <option value="">Select a task</option>
+            <option value="">{t.tasks.newTask}</option>
             {tasks.map((task) => (
               <option key={task.id} value={task.id}>
                 {task.project.code} — {task.title}
@@ -233,16 +238,18 @@ function EmployeePicker({
   onDayChange: (value: string) => void;
   onEmployeeChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="grid gap-3 pt-4 sm:grid-cols-2">
       <label className="grid gap-1 text-sm">
-        Employee
+        {t.common.employee}
         <select
           className="h-8 rounded-lg border border-input bg-transparent px-2.5"
           onChange={(event) => onEmployeeChange(event.target.value)}
           value={employeeId}
         >
-          <option value="">Select an employee</option>
+          <option value="">{t.tasks.selectEmployees}</option>
           {employees.map((employee) => (
             <option key={employee.id} value={employee.id}>
               {employee.firstName} {employee.lastName}
@@ -251,7 +258,7 @@ function EmployeePicker({
         </select>
       </label>
       <label className="grid gap-1 text-sm">
-        Date
+        {t.myTime.date}
         <input
           className="h-8 rounded-lg border border-input bg-transparent px-2.5"
           onChange={(event) => onDayChange(event.target.value)}
@@ -303,16 +310,12 @@ function ProjectMetrics({ summary }: { summary: ReportPayload }) {
       />
       {trackedPercentage === null ? (
         <p className="text-sm text-muted-foreground">
-          No project estimate is available for a tracked-versus-estimate
-          comparison.
+          —
         </p>
       ) : (
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
-            <span>Tracked activity vs estimate</span>
-            <span>
-              {trackedPercentage}% of {estimatedHours}h
-            </span>
+            <span>{trackedPercentage}% of {estimatedHours}h</span>
           </div>
           <progress
             aria-label="Tracked activity versus estimate"
@@ -350,26 +353,28 @@ function Metrics({
   manualMinutes: number;
   differenceOnly?: boolean;
 }) {
+  const { locale, t } = useI18n();
+
   return (
     <dl className="grid gap-3 pt-4 sm:grid-cols-3">
       <Metric
-        label={differenceOnly ? "Tracked activity" : "Active"}
-        value={formatDurationFromSeconds(activeSeconds)}
+        label={differenceOnly ? t.projects.trackedActivity : t.managerDashboard.active}
+        value={formatDurationFromSeconds(activeSeconds, locale)}
       />
       {differenceOnly ? (
         <Metric
-          label="Manual time"
-          value={formatDurationFromMinutes(manualMinutes)}
+          label={t.myTime.title}
+          value={formatDurationFromMinutes(manualMinutes, locale)}
         />
       ) : (
-        <Metric label="Idle" value={formatDurationFromSeconds(idleSeconds)} />
+        <Metric label={t.managerDashboard.idle} value={formatDurationFromSeconds(idleSeconds, locale)} />
       )}
       <Metric
-        label={differenceOnly ? "Neutral difference" : "Manual time"}
+        label={differenceOnly ? t.reports.manualVsTracked : t.myTime.title}
         value={
           differenceOnly
-            ? formatActivityDifference(differenceMinutes)
-            : formatDurationFromMinutes(manualMinutes)
+            ? formatActivityDifference(differenceMinutes, locale)
+            : formatDurationFromMinutes(manualMinutes, locale)
         }
       />
     </dl>
@@ -384,3 +389,4 @@ function Metric({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+

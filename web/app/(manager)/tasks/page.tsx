@@ -16,14 +16,20 @@ import {
 } from "@/components/ui/table";
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { formatDate, formatDurationFromMinutes } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listProjects } from "@/lib/services/projects";
 import { listTasks } from "@/lib/services/tasks";
 
 export default async function TasksPage() {
-  const context = toAuthContext(await requireManager());
-  const [projects, tasks] = await Promise.all([
+  const [session, locale] = await Promise.all([
+    requireManager(),
+    getServerLocale(),
+  ]);
+  const context = toAuthContext(session);
+  const [projects, tasks, t] = await Promise.all([
     listProjects(context),
     listTasks(context),
+    getServerDictionary(locale),
   ]);
 
   return (
@@ -38,8 +44,8 @@ export default async function TasksPage() {
             }))}
           />
         }
-        description="Assign and monitor project work across your company."
-        title="Tasks"
+        description={t.tasks.subtitle}
+        title={t.tasks.title}
       />
       <Card>
         <CardContent className="pt-0">
@@ -47,12 +53,12 @@ export default async function TasksPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Assignees</TableHead>
-                  <TableHead>Due date</TableHead>
+                  <TableHead>{t.tasks.taskTitle}</TableHead>
+                  <TableHead>{t.tasks.project}</TableHead>
+                  <TableHead>{t.projects.status}</TableHead>
+                  <TableHead>{t.tasks.priority}</TableHead>
+                  <TableHead>{t.tasks.assignees}</TableHead>
+                  <TableHead>{t.tasks.dueDate}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -66,7 +72,7 @@ export default async function TasksPage() {
                         {task.title}
                       </Link>
                       <div className="text-xs text-muted-foreground">
-                        {formatDurationFromMinutes(task.estimatedMinutes)}
+                        {formatDurationFromMinutes(task.estimatedMinutes, locale)}
                       </div>
                     </TableCell>
                     <TableCell>{task.project.code}</TableCell>
@@ -84,17 +90,17 @@ export default async function TasksPage() {
                                 `${employee.firstName} ${employee.lastName}`,
                             )
                             .join(", ")
-                        : "Unassigned"}
+                        : t.tasks.unassigned}
                     </TableCell>
-                    <TableCell>{formatDate(task.dueDate)}</TableCell>
+                    <TableCell>{formatDate(task.dueDate, locale)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
             <EmptyState
-              description="Create a task after creating a project."
-              title="No tasks yet."
+              description={t.tasks.emptyDesc}
+              title={t.tasks.emptyTitle}
             />
           )}
         </CardContent>
@@ -102,3 +108,4 @@ export default async function TasksPage() {
     </main>
   );
 }
+

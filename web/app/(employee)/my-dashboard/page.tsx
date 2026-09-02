@@ -16,30 +16,37 @@ import {
   formatDurationFromMinutes,
   formatDurationFromSeconds,
 } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDashboard } from "@/lib/services/employee-self";
 
 export default async function MyDashboardPage() {
-  const session = await requireEmployee();
-  const dashboard = await getEmployeeDashboard(toAuthContext(session));
+  const [session, locale] = await Promise.all([
+    requireEmployee(),
+    getServerLocale(),
+  ]);
+  const [dashboard, t] = await Promise.all([
+    getEmployeeDashboard(toAuthContext(session)),
+    getServerDictionary(locale),
+  ]);
   const cards = [
     {
-      label: "Today's manual time",
-      value: formatDurationFromMinutes(dashboard.manualMinutes),
+      label: t.employeeDashboard.todaysManualTime,
+      value: formatDurationFromMinutes(dashboard.manualMinutes, locale),
       icon: Clock3,
     },
     {
-      label: "Assigned tasks",
+      label: t.employeeDashboard.assignedTasks,
       value: dashboard.assignedTaskCount,
       icon: ListChecks,
     },
     {
-      label: "In progress",
+      label: t.employeeDashboard.inProgress,
       value: dashboard.inProgressTaskCount,
       icon: CheckSquare,
     },
     {
-      label: "Today's activity",
-      value: formatDurationFromSeconds(dashboard.activeSeconds),
+      label: t.employeeDashboard.todaysActivity,
+      value: formatDurationFromSeconds(dashboard.activeSeconds, locale),
       icon: Activity,
     },
   ];
@@ -47,9 +54,9 @@ export default async function MyDashboardPage() {
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t.employeeDashboard.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your assignments, reported time, and recent activity.
+          {t.employeeDashboard.subtitle}
         </p>
       </div>
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -68,8 +75,8 @@ export default async function MyDashboardPage() {
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent tasks</CardTitle>
-            <CardDescription>Your most recently assigned work.</CardDescription>
+            <CardTitle>{t.employeeDashboard.recentTasks}</CardTitle>
+            <CardDescription>{t.employeeDashboard.recentTasksDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             {dashboard.recentTasks.length ? (
@@ -87,7 +94,7 @@ export default async function MyDashboardPage() {
                         {task.title}
                       </Link>
                       <p className="text-xs text-muted-foreground">
-                        {task.project.code} · Due {formatDate(task.dueDate)}
+                        {task.project.code} · {t.managerDashboard.due} {formatDate(task.dueDate, locale)}
                       </p>
                     </div>
                     <StatusBadge value={task.status} />
@@ -96,39 +103,39 @@ export default async function MyDashboardPage() {
               </div>
             ) : (
               <EmptyState
-                description="Tasks will appear here when a manager assigns you work."
-                title="No assigned tasks yet."
+                description={t.employeeDashboard.noAssignedTasksDesc}
+                title={t.employeeDashboard.noAssignedTasks}
               />
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Activity today</CardTitle>
+            <CardTitle>{t.employeeDashboard.activityToday}</CardTitle>
             <CardDescription>
-              Automatically captured computer activity.
+              {t.employeeDashboard.activityTodayDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                Active application time
+                {t.employeeDashboard.activeAppTime}
               </span>
               <span className="font-medium">
-                {formatDurationFromSeconds(dashboard.activeSeconds)}
+                {formatDurationFromSeconds(dashboard.activeSeconds, locale)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Idle time</span>
+              <span className="text-muted-foreground">{t.employeeDashboard.idleTime}</span>
               <span className="font-medium">
-                {formatDurationFromSeconds(dashboard.idleSeconds)}
+                {formatDurationFromSeconds(dashboard.idleSeconds, locale)}
               </span>
             </div>
             <Link
               className="text-sm font-medium text-primary hover:underline"
               href="/my-activity"
             >
-              View activity
+              {t.employeeDashboard.viewActivity}
             </Link>
           </CardContent>
         </Card>
@@ -136,3 +143,4 @@ export default async function MyDashboardPage() {
     </main>
   );
 }
+

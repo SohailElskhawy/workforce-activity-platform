@@ -12,17 +12,25 @@ import {
 } from "@/components/ui/table";
 import { requireEmployee, toAuthContext } from "@/lib/auth";
 import { formatDate, formatDurationFromMinutes } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listOwnTasks } from "@/lib/services/employee-self";
 
 export default async function MyTasksPage() {
-  const tasks = await listOwnTasks(toAuthContext(await requireEmployee()));
+  const [session, locale] = await Promise.all([
+    requireEmployee(),
+    getServerLocale(),
+  ]);
+  const [tasks, t] = await Promise.all([
+    listOwnTasks(toAuthContext(session)),
+    getServerDictionary(locale),
+  ]);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Tasks</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t.myTasks.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Only tasks assigned to you appear here.
+          {t.myTasks.subtitle}
         </p>
       </div>
       <Card>
@@ -31,12 +39,12 @@ export default async function MyTasksPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Estimate</TableHead>
-                  <TableHead>Due date</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t.tasks.taskTitle}</TableHead>
+                  <TableHead>{t.tasks.project}</TableHead>
+                  <TableHead>{t.tasks.priority}</TableHead>
+                  <TableHead>{t.myTime.duration}</TableHead>
+                  <TableHead>{t.tasks.dueDate}</TableHead>
+                  <TableHead>{t.projects.status}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -45,7 +53,7 @@ export default async function MyTasksPage() {
                     <TableCell>
                       <div className="font-medium">{task.title}</div>
                       <div className="max-w-64 truncate text-xs text-muted-foreground">
-                        {task.description ?? "No description"}
+                        {task.description ?? "—"}
                       </div>
                     </TableCell>
                     <TableCell>{task.project.code}</TableCell>
@@ -53,9 +61,9 @@ export default async function MyTasksPage() {
                       <PriorityBadge value={task.priority} />
                     </TableCell>
                     <TableCell>
-                      {formatDurationFromMinutes(task.estimatedMinutes)}
+                      {formatDurationFromMinutes(task.estimatedMinutes, locale)}
                     </TableCell>
-                    <TableCell>{formatDate(task.dueDate)}</TableCell>
+                    <TableCell>{formatDate(task.dueDate, locale)}</TableCell>
                     <TableCell>
                       <UpdateTaskStatus status={task.status} taskId={task.id} />
                     </TableCell>
@@ -65,8 +73,8 @@ export default async function MyTasksPage() {
             </Table>
           ) : (
             <EmptyState
-              description="Assigned tasks will appear here when a manager adds you to work."
-              title="You do not have assigned tasks yet."
+              description={t.myTasks.emptyDesc}
+              title={t.myTasks.emptyTitle}
             />
           )}
         </CardContent>
@@ -74,3 +82,4 @@ export default async function MyTasksPage() {
     </main>
   );
 }
+

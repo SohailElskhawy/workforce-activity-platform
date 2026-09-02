@@ -21,6 +21,7 @@ import {
   type RegisteredDevice,
 } from "@/lib/agent/device-registration";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 
 type CredentialField = "deviceId" | "token";
 
@@ -31,6 +32,7 @@ export function RegisterAgentDeviceDialog({
   employeeId: string;
   employeeName: string;
 }) {
+  const { t } = useI18n();
   const defaultName = `${employeeName}'s computer`;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(defaultName);
@@ -97,7 +99,7 @@ export function RegisterAgentDeviceDialog({
         render={
           <Button variant="outline">
             <Monitor />
-            Register agent device
+            {t.employees.registerAgentDevice}
           </Button>
         }
       />
@@ -105,10 +107,9 @@ export function RegisterAgentDeviceDialog({
         {enrollment ? (
           <>
             <DialogHeader>
-              <DialogTitle>Device credentials created</DialogTitle>
+              <DialogTitle>{t.employees.registerAgentDevice}</DialogTitle>
               <DialogDescription>
-                Save the token now and share it only through an approved secure
-                channel. It will not be shown again after this window closes.
+                {t.employees.registerAgentDeviceDesc}
               </DialogDescription>
             </DialogHeader>
             <CredentialFieldView
@@ -125,16 +126,16 @@ export function RegisterAgentDeviceDialog({
             />
             <DialogFooter>
               <Button onClick={() => onOpenChange(false)} type="button">
-                I saved these credentials
+                {t.common.close}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Register agent device</DialogTitle>
+              <DialogTitle>{t.employees.registerAgentDevice}</DialogTitle>
               <DialogDescription>
-                Create one device ID and one-time token for {employeeName}.
+                {t.employees.registerAgentDeviceDesc}
               </DialogDescription>
             </DialogHeader>
             <form className="grid gap-4" noValidate onSubmit={registerDevice}>
@@ -153,7 +154,7 @@ export function RegisterAgentDeviceDialog({
               ) : null}
               <DialogFooter>
                 <Button disabled={isSubmitting} type="submit">
-                  {isSubmitting ? "Creating…" : "Create device credentials"}
+                  {isSubmitting ? t.projects.creating : t.employees.registerAgentDevice}
                 </Button>
               </DialogFooter>
             </form>
@@ -188,3 +189,4 @@ function CredentialFieldView({
     </div>
   );
 }
+

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { taskStatusSchema } from "@/lib/validation/tasks";
 import { ClientRequestError, sendJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 
 export function UpdateTaskStatus({
   status,
@@ -12,6 +13,7 @@ export function UpdateTaskStatus({
   status: string;
   taskId: string;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState(status);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -48,7 +50,9 @@ export function UpdateTaskStatus({
       >
         {taskStatusSchema.options.map((option) => (
           <option key={option} value={option}>
-            {option.replaceAll("_", " ")}
+            {option in t.status
+              ? t.status[option as keyof typeof t.status]
+              : option.replaceAll("_", " ")}
           </option>
         ))}
       </select>
@@ -58,3 +62,4 @@ export function UpdateTaskStatus({
     </div>
   );
 }
+

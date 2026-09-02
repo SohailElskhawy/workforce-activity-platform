@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 import {
   type AssignEmployeeInput,
   assignEmployeeSchema,
@@ -37,6 +38,7 @@ export function AssignEmployeeDialog({
   employees: EmployeeOption[];
   taskId: string;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -72,15 +74,15 @@ export function AssignEmployeeDialog({
         render={
           <Button disabled={!employees.length} variant="outline">
             <UserPlus />
-            Assign employee
+            {t.tasks.assignEmployeeTitle}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Assign employee</DialogTitle>
+          <DialogTitle>{t.tasks.assignEmployeeTitle}</DialogTitle>
           <DialogDescription>
-            Only employees in your company can be assigned.
+            {t.tasks.assignEmployeeDesc}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -89,14 +91,14 @@ export function AssignEmployeeDialog({
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="grid gap-2">
-            <Label htmlFor="assignment-employee">Employee</Label>
+            <Label htmlFor="assignment-employee">{t.common.employee}</Label>
             <select
               className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               id="assignment-employee"
               aria-invalid={Boolean(errors.employeeId)}
               {...register("employeeId")}
             >
-              <option value="">Select an employee</option>
+              <option value="">{t.tasks.selectEmployees}</option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.id}>
                   {employee.firstName} {employee.lastName} — {employee.email}
@@ -114,7 +116,7 @@ export function AssignEmployeeDialog({
           ) : null}
           <DialogFooter>
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Assigning…" : "Assign employee"}
+              {isSubmitting ? t.common.saving : t.tasks.assignEmployeeTitle}
             </Button>
           </DialogFooter>
         </form>
@@ -122,3 +124,4 @@ export function AssignEmployeeDialog({
     </Dialog>
   );
 }
+

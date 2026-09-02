@@ -11,9 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getRoleHomeRoute } from "@/lib/auth-routes";
+import { useI18n } from "@/lib/i18n";
 import { type LoginCredentials, loginSchema } from "@/lib/validation/auth";
 
 export function LoginForm() {
+  const { t } = useI18n();
   const router = useRouter();
   const [authenticationError, setAuthenticationError] = useState<string | null>(
     null,
@@ -38,7 +40,7 @@ export function LoginForm() {
       });
 
       if (!result || result.error) {
-        setAuthenticationError("Invalid email or password.");
+        setAuthenticationError(t.auth.invalidCredentials);
         return;
       }
 
@@ -47,7 +49,7 @@ export function LoginForm() {
 
       if (!destination) {
         setAuthenticationError(
-          "Unable to start your session. Please sign in again.",
+          t.auth.invalidCredentials,
         );
         return;
       }
@@ -55,21 +57,21 @@ export function LoginForm() {
       router.replace(destination);
       router.refresh();
     } catch {
-      setAuthenticationError("Unable to sign in right now. Please try again.");
+      setAuthenticationError(t.auth.invalidCredentials);
     }
   }
 
   return (
     <form className="grid gap-5" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t.auth.emailLabel}</Label>
         <Input
           aria-describedby={errors.email ? "email-error" : undefined}
           aria-invalid={Boolean(errors.email)}
           autoComplete="email"
           disabled={isSubmitting}
           id="email"
-          placeholder="you@company.com"
+          placeholder={t.auth.emailPlaceholder}
           type="email"
           {...register("email")}
         />
@@ -80,13 +82,14 @@ export function LoginForm() {
         ) : null}
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t.auth.passwordLabel}</Label>
         <Input
           aria-describedby={errors.password ? "password-error" : undefined}
           aria-invalid={Boolean(errors.password)}
           autoComplete="current-password"
           disabled={isSubmitting}
           id="password"
+          placeholder={t.auth.passwordPlaceholder}
           type="password"
           {...register("password")}
         />
@@ -108,8 +111,9 @@ export function LoginForm() {
         type="submit"
       >
         {isSubmitting ? <LoaderCircle className="animate-spin" /> : null}
-        {isSubmitting ? "Signing in…" : "Sign In"}
+        {isSubmitting ? t.auth.signingIn : t.auth.signInButton}
       </Button>
     </form>
   );
 }
+

@@ -15,17 +15,25 @@ import {
 } from "@/components/ui/table";
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listProjects } from "@/lib/services/projects";
 
 export default async function ProjectsPage() {
-  const projects = await listProjects(toAuthContext(await requireManager()));
+  const [session, locale] = await Promise.all([
+    requireManager(),
+    getServerLocale(),
+  ]);
+  const [projects, t] = await Promise.all([
+    listProjects(toAuthContext(session)),
+    getServerDictionary(locale),
+  ]);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <PageHeading
         action={<CreateProjectDialog />}
-        description="Plan and track work across your company."
-        title="Projects"
+        description={t.projects.subtitle}
+        title={t.projects.title}
       />
       <Card>
         <CardContent className="pt-0">
@@ -33,11 +41,11 @@ export default async function ProjectsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tasks</TableHead>
-                  <TableHead>End date</TableHead>
+                  <TableHead>{t.projects.title}</TableHead>
+                  <TableHead>{t.projects.client}</TableHead>
+                  <TableHead>{t.projects.status}</TableHead>
+                  <TableHead>{t.tasks.title}</TableHead>
+                  <TableHead>{t.projects.endDate}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -56,15 +64,15 @@ export default async function ProjectsPage() {
                       <StatusBadge value={project.status} />
                     </TableCell>
                     <TableCell>{project._count.tasks}</TableCell>
-                    <TableCell>{formatDate(project.endDate)}</TableCell>
+                    <TableCell>{formatDate(project.endDate, locale)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
             <EmptyState
-              description="Create your first project to start assigning work."
-              title="No projects yet."
+              description={t.projects.emptyDesc}
+              title={t.projects.emptyTitle}
             />
           )}
         </CardContent>
@@ -72,3 +80,4 @@ export default async function ProjectsPage() {
     </main>
   );
 }
+

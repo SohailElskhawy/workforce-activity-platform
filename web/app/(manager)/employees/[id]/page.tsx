@@ -17,23 +17,28 @@ import {
   formatDurationFromMinutes,
   formatDurationFromSeconds,
 } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
 
 export default async function EmployeeDetailPage({
   params,
 }: PageProps<"/employees/[id]">) {
   const { id } = await params;
-  const summary = await getEmployeeDaySummary(
-    toAuthContext(await requireManager()),
-    id,
-  );
-  const difference = formatActivityDifference(summary.differenceMinutes);
+  const [session, locale] = await Promise.all([
+    requireManager(),
+    getServerLocale(),
+  ]);
+  const [summary, t] = await Promise.all([
+    getEmployeeDaySummary(toAuthContext(session), id),
+    getServerDictionary(locale),
+  ]);
+  const difference = formatActivityDifference(summary.differenceMinutes, locale);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeading
-        description={`${summary.employee.department ?? "Unassigned department"} · ${summary.employee.position ?? "Employee"}`}
+        description={`${summary.employee.department ?? t.tasks.unassigned} · ${summary.employee.position ?? t.common.employee}`}
         title={summary.employee.name}
         action={
           <div className="flex items-center gap-2">
@@ -44,32 +49,32 @@ export default async function EmployeeDetailPage({
             <Badge
               variant={summary.employee.isOnline ? "default" : "secondary"}
             >
-              {summary.employee.isOnline ? "Agent online" : "Agent offline"}
+              {summary.employee.isOnline ? t.employees.deviceOnline : t.employees.deviceOffline}
             </Badge>
           </div>
         }
       />
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Today's active"
-          value={formatDurationFromSeconds(summary.activeSeconds)}
+          label={t.employees.activeTimeToday}
+          value={formatDurationFromSeconds(summary.activeSeconds, locale)}
         />
         <MetricCard
-          label="Today's idle"
-          value={formatDurationFromSeconds(summary.idleSeconds)}
+          label={t.employees.idleTimeToday}
+          value={formatDurationFromSeconds(summary.idleSeconds, locale)}
         />
         <MetricCard
-          label="Manual time"
-          value={formatDurationFromMinutes(summary.manualMinutes)}
+          label={t.myTime.title}
+          value={formatDurationFromMinutes(summary.manualMinutes, locale)}
         />
-        <MetricCard label="Manual vs activity" value={difference} />
+        <MetricCard label={t.reports.manualVsTracked} value={difference} />
       </section>
       <section className="grid gap-6 lg:grid-cols-2">
         <ApplicationBreakdown applications={summary.applications} />
         <Card>
           <CardHeader>
-            <CardTitle>In-progress tasks</CardTitle>
-            <CardDescription>Current assigned project work.</CardDescription>
+            <CardTitle>{t.employeeDashboard.inProgress}</CardTitle>
+            <CardDescription>{t.tasks.subtitle}</CardDescription>
           </CardHeader>
           <CardContent>
             {summary.inProgressTasks.length ? (
@@ -85,7 +90,7 @@ export default async function EmployeeDetailPage({
               </ul>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No in-progress tasks.
+                {t.tasks.emptyTitle}
               </p>
             )}
           </CardContent>
@@ -106,3 +111,4 @@ function MetricCard({ label, value }: { label: string; value: string }) {
     </Card>
   );
 }
+

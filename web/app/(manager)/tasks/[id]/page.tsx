@@ -15,6 +15,7 @@ import {
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { ApiError } from "@/lib/http/errors";
 import { formatDate, formatDurationFromMinutes } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listEmployees } from "@/lib/services/employees";
 import { getTask } from "@/lib/services/tasks";
 
@@ -24,7 +25,11 @@ export default async function TaskDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const context = toAuthContext(await requireManager());
+  const [session, locale] = await Promise.all([
+    requireManager(),
+    getServerLocale(),
+  ]);
+  const context = toAuthContext(session);
   let task;
 
   try {
@@ -34,7 +39,10 @@ export default async function TaskDetailPage({
     throw error;
   }
 
-  const employees = await listEmployees(context);
+  const [employees, t] = await Promise.all([
+    listEmployees(context),
+    getServerDictionary(locale),
+  ]);
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
@@ -44,7 +52,7 @@ export default async function TaskDetailPage({
             className="text-sm text-muted-foreground hover:text-foreground"
             href="/tasks"
           >
-            ← Tasks
+            ← {t.tasks.title}
           </Link>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">
             {task.title}
@@ -72,41 +80,41 @@ export default async function TaskDetailPage({
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Task details</CardTitle>
+          <CardTitle>{t.tasks.taskDetails}</CardTitle>
           <CardDescription>
-            {task.description ?? "No description provided."}
+            {task.description ?? "—"}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 text-sm sm:grid-cols-4">
           <div>
-            <p className="text-muted-foreground">Status</p>
+            <p className="text-muted-foreground">{t.projects.status}</p>
             <div className="mt-1">
               <StatusBadge value={task.status} />
             </div>
           </div>
           <div>
-            <p className="text-muted-foreground">Priority</p>
+            <p className="text-muted-foreground">{t.tasks.priority}</p>
             <div className="mt-1">
               <PriorityBadge value={task.priority} />
             </div>
           </div>
           <div>
-            <p className="text-muted-foreground">Estimate</p>
+            <p className="text-muted-foreground">{t.myTime.duration}</p>
             <p className="mt-1 font-medium">
-              {formatDurationFromMinutes(task.estimatedMinutes)}
+              {formatDurationFromMinutes(task.estimatedMinutes, locale)}
             </p>
           </div>
           <div>
-            <p className="text-muted-foreground">Due date</p>
-            <p className="mt-1 font-medium">{formatDate(task.dueDate)}</p>
+            <p className="text-muted-foreground">{t.tasks.dueDate}</p>
+            <p className="mt-1 font-medium">{formatDate(task.dueDate, locale)}</p>
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Assigned employees</CardTitle>
+          <CardTitle>{t.tasks.assignees}</CardTitle>
           <CardDescription>
-            People currently responsible for this task.
+            {t.tasks.assignEmployeeDesc}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,15 +136,15 @@ export default async function TaskDetailPage({
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Assigned {formatDate(assignment.assignedAt)}
+                    {formatDate(assignment.assignedAt, locale)}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
             <EmptyState
-              description="Assign an employee when this task is ready to begin."
-              title="No employees have been assigned yet."
+              description={t.tasks.emptyDesc}
+              title={t.tasks.unassigned}
             />
           )}
         </CardContent>
@@ -144,3 +152,4 @@ export default async function TaskDetailPage({
     </main>
   );
 }
+

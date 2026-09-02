@@ -22,6 +22,7 @@ import {
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { ApiError } from "@/lib/http/errors";
 import { formatDate, formatDurationFromMinutes } from "@/lib/formatters";
+import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getProject } from "@/lib/services/projects";
 
 export default async function ProjectDetailPage({
@@ -30,7 +31,11 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const context = toAuthContext(await requireManager());
+  const [session, locale] = await Promise.all([
+    requireManager(),
+    getServerLocale(),
+  ]);
+  const context = toAuthContext(session);
   let project;
 
   try {
@@ -40,6 +45,8 @@ export default async function ProjectDetailPage({
     throw error;
   }
 
+  const t = await getServerDictionary(locale);
+
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <div>
@@ -47,48 +54,48 @@ export default async function ProjectDetailPage({
           className="text-sm text-muted-foreground hover:text-foreground"
           href="/projects"
         >
-          ← Projects
+          ← {t.projects.title}
         </Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">
           {project.name}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {project.code} · {project.clientName ?? "No client recorded"}
+          {project.code} · {project.clientName ?? t.managerDashboard.internalProject}
         </p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Project details</CardTitle>
+          <CardTitle>{t.projects.projectDetails}</CardTitle>
           <CardDescription>
-            {project.description ?? "No description provided."}
+            {project.description ?? "—"}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 text-sm sm:grid-cols-4">
           <div>
-            <p className="text-muted-foreground">Status</p>
+            <p className="text-muted-foreground">{t.projects.status}</p>
             <div className="mt-1">
               <StatusBadge value={project.status} />
             </div>
           </div>
           <div>
-            <p className="text-muted-foreground">Estimated hours</p>
+            <p className="text-muted-foreground">{t.projects.estimatedHours}</p>
             <p className="mt-1 font-medium">{project.estimatedHours ?? "—"}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Start date</p>
-            <p className="mt-1 font-medium">{formatDate(project.startDate)}</p>
+            <p className="text-muted-foreground">{t.projects.startDate}</p>
+            <p className="mt-1 font-medium">{formatDate(project.startDate, locale)}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">End date</p>
-            <p className="mt-1 font-medium">{formatDate(project.endDate)}</p>
+            <p className="text-muted-foreground">{t.projects.endDate}</p>
+            <p className="mt-1 font-medium">{formatDate(project.endDate, locale)}</p>
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Tasks</CardTitle>
+          <CardTitle>{t.projects.assignedTasks}</CardTitle>
           <CardDescription>
-            Work items currently associated with this project.
+            {t.tasks.subtitle}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
@@ -96,12 +103,12 @@ export default async function ProjectDetailPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Estimate</TableHead>
-                  <TableHead>Assignees</TableHead>
-                  <TableHead>Due date</TableHead>
+                  <TableHead>{t.tasks.taskTitle}</TableHead>
+                  <TableHead>{t.projects.status}</TableHead>
+                  <TableHead>{t.tasks.priority}</TableHead>
+                  <TableHead>{t.myTime.duration}</TableHead>
+                  <TableHead>{t.tasks.assignees}</TableHead>
+                  <TableHead>{t.tasks.dueDate}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,18 +129,18 @@ export default async function ProjectDetailPage({
                       <PriorityBadge value={task.priority} />
                     </TableCell>
                     <TableCell>
-                      {formatDurationFromMinutes(task.estimatedMinutes)}
+                      {formatDurationFromMinutes(task.estimatedMinutes, locale)}
                     </TableCell>
                     <TableCell>{task._count.assignments}</TableCell>
-                    <TableCell>{formatDate(task.dueDate)}</TableCell>
+                    <TableCell>{formatDate(task.dueDate, locale)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
             <EmptyState
-              description="Create a task to begin tracking work for this project."
-              title="No tasks for this project yet."
+              description={t.projects.noTasks}
+              title={t.tasks.emptyTitle}
             />
           )}
         </CardContent>
@@ -141,3 +148,4 @@ export default async function ProjectDetailPage({
     </main>
   );
 }
+

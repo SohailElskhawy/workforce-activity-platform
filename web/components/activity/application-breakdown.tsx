@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -7,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/states/empty-state";
 import { formatDurationFromSeconds } from "@/lib/formatters";
+import { useI18n } from "@/lib/i18n";
 
 type ApplicationBreakdownProps = {
   applications: Array<{ name: string; durationSeconds: number }>;
@@ -15,12 +18,14 @@ type ApplicationBreakdownProps = {
 export function ApplicationBreakdown({
   applications,
 }: ApplicationBreakdownProps) {
+  const { locale, t } = useI18n();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Applications</CardTitle>
+        <CardTitle>{t.activities.applicationBreakdown}</CardTitle>
         <CardDescription>
-          Active application time for the selected day.
+          {t.activities.subtitle}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -33,18 +38,19 @@ export function ApplicationBreakdown({
               >
                 <span className="font-medium">{application.name}</span>
                 <span className="text-muted-foreground">
-                  {formatDurationFromSeconds(application.durationSeconds)}
+                  {formatDurationFromSeconds(application.durationSeconds, locale)}
                 </span>
               </div>
             ))}
           </div>
         ) : (
           <EmptyState
-            description="Captured application activity will appear here."
-            title="No application activity for this day."
+            description={t.activities.emptyDesc}
+            title={t.activities.emptyTitle}
           />
         )}
       </CardContent>
     </Card>
   );
 }
+

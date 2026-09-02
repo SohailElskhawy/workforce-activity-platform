@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -8,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/states/empty-state";
 import { formatDurationFromSeconds } from "@/lib/formatters";
+import { useI18n } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n/config";
 import { toTimelineLabel } from "@/lib/services/activity-presentation";
 
 type TimelineActivity = {
@@ -25,20 +29,23 @@ type TimelineActivity = {
 
 type ActivityTimelineProps = { activities: TimelineActivity[] };
 
-function formatTime(date: Date) {
-  return new Intl.DateTimeFormat("en", {
+function formatTime(date: Date, locale: Locale) {
+  const intlLocale = locale === "tr" ? "tr-TR" : "en-US";
+  return new Intl.DateTimeFormat(intlLocale, {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
 }
 
 export function ActivityTimeline({ activities }: ActivityTimelineProps) {
+  const { locale, t } = useI18n();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Activity timeline</CardTitle>
+        <CardTitle>{t.activities.title}</CardTitle>
         <CardDescription>
-          Application and idle segments are shown separately.
+          {t.activities.subtitle}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -50,7 +57,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                 key={activity.id}
               >
                 <time className="w-14 shrink-0 text-sm text-muted-foreground">
-                  {formatTime(activity.startAt)}
+                  {formatTime(activity.startAt, locale)}
                 </time>
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -62,10 +69,10 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                         activity.type === "IDLE" ? "secondary" : "outline"
                       }
                     >
-                      {formatDurationFromSeconds(activity.durationSeconds)}
+                      {formatDurationFromSeconds(activity.durationSeconds, locale)}
                     </Badge>
                     {activity.fileName && !activity.project ? (
-                      <Badge variant="outline">Unmapped</Badge>
+                      <Badge variant="outline">{t.managerDashboard.unmappedActivity}</Badge>
                     ) : null}
                   </div>
                   {activity.fileName || activity.windowTitle ? (
@@ -85,11 +92,12 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
           </div>
         ) : (
           <EmptyState
-            description="New captured activity will appear here."
-            title="No activity has been captured for this day."
+            description={t.activities.emptyDesc}
+            title={t.activities.emptyTitle}
           />
         )}
       </CardContent>
     </Card>
   );
 }
+

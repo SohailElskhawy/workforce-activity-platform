@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 import {
   type FileMappingInput,
   fileMappingSchema,
@@ -36,6 +37,7 @@ export function MapFileDialog({
   projects: ProjectOption[];
   tasks: TaskOption[];
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -74,16 +76,15 @@ export function MapFileDialog({
         render={
           <Button disabled={!projects.length}>
             <Link2 />
-            Map DWG file
+            {t.activities.mapFile}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Map a DWG file</DialogTitle>
+          <DialogTitle>{t.activities.mapFile}</DialogTitle>
           <DialogDescription>
-            New activity with this filename will be linked to the selected
-            project and task.
+            {t.activities.mapFileDesc}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -106,14 +107,14 @@ export function MapFileDialog({
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="mapping-project">Project</Label>
+            <Label htmlFor="mapping-project">{t.tasks.project}</Label>
             <select
               aria-invalid={Boolean(errors.projectId)}
               className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               id="mapping-project"
               {...register("projectId")}
             >
-              <option value="">Select a project</option>
+              <option value="">{t.tasks.selectProject}</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.code} — {project.name}
@@ -127,13 +128,13 @@ export function MapFileDialog({
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="mapping-task">Task (optional)</Label>
+            <Label htmlFor="mapping-task">{t.tasks.taskTitle}</Label>
             <select
               className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               id="mapping-task"
               {...register("taskId", { setValueAs: (value) => value || null })}
             >
-              <option value="">No task</option>
+              <option value="">—</option>
               {projectTasks.map((task) => (
                 <option key={task.id} value={task.id}>
                   {task.title}
@@ -151,7 +152,7 @@ export function MapFileDialog({
           ) : null}
           <DialogFooter>
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Saving…" : "Save mapping"}
+              {isSubmitting ? t.common.saving : t.common.save}
             </Button>
           </DialogFooter>
         </form>
@@ -159,3 +160,4 @@ export function MapFileDialog({
     </Dialog>
   );
 }
+

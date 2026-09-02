@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClientRequestError, postJson } from "@/lib/client/api";
+import { useI18n } from "@/lib/i18n";
 import {
   type CreateTimeEntryInput,
   createTimeEntrySchema,
@@ -37,6 +38,7 @@ export function AddTimeEntryDialog({
   projects: ProjectOption[];
   tasks: TaskOption[];
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -75,15 +77,15 @@ export function AddTimeEntryDialog({
         render={
           <Button disabled={!projects.length}>
             <Plus />
-            Add time
+            {t.myTime.addTimeEntry}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add time entry</DialogTitle>
+          <DialogTitle>{t.myTime.addTimeEntryTitle}</DialogTitle>
           <DialogDescription>
-            Record time against one of your assigned projects or tasks.
+            {t.myTime.addTimeEntryDesc}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -92,14 +94,14 @@ export function AddTimeEntryDialog({
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="grid gap-2">
-            <Label htmlFor="time-project">Project</Label>
+            <Label htmlFor="time-project">{t.tasks.project}</Label>
             <select
               aria-invalid={Boolean(errors.projectId)}
               className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               id="time-project"
               {...register("projectId")}
             >
-              <option value="">Select a project</option>
+              <option value="">{t.tasks.selectProject}</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.code} — {project.name}
@@ -113,13 +115,13 @@ export function AddTimeEntryDialog({
             ) : null}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="time-task">Task (optional)</Label>
+            <Label htmlFor="time-task">{t.tasks.taskTitle}</Label>
             <select
               className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
               id="time-task"
               {...register("taskId")}
             >
-              <option value="">No task</option>
+              <option value="">—</option>
               {availableTasks.map((task) => (
                 <option key={task.id} value={task.id}>
                   {task.title}
@@ -134,7 +136,7 @@ export function AddTimeEntryDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="time-start">Start</Label>
+              <Label htmlFor="time-start">{t.myTime.startTime}</Label>
               <Input
                 aria-invalid={Boolean(errors.startAt)}
                 id="time-start"
@@ -148,7 +150,7 @@ export function AddTimeEntryDialog({
               ) : null}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="time-end">End</Label>
+              <Label htmlFor="time-end">{t.myTime.endTime}</Label>
               <Input
                 aria-invalid={Boolean(errors.endAt)}
                 id="time-end"
@@ -163,15 +165,15 @@ export function AddTimeEntryDialog({
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="time-notes">Notes</Label>
-            <Textarea id="time-notes" {...register("notes")} />
+            <Label htmlFor="time-notes">{t.myTime.notes}</Label>
+            <Textarea id="time-notes" placeholder={t.myTime.notesPlaceholder} {...register("notes")} />
           </div>
           {requestError ? (
             <p className="text-sm text-destructive">{requestError}</p>
           ) : null}
           <DialogFooter>
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Saving…" : "Add time"}
+              {isSubmitting ? t.common.saving : t.myTime.addTimeEntry}
             </Button>
           </DialogFooter>
         </form>
@@ -179,3 +181,4 @@ export function AddTimeEntryDialog({
     </Dialog>
   );
 }
+

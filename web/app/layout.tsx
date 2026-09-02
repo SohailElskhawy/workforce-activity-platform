@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { I18nProvider } from "@/lib/i18n/context";
+import { getServerLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,10 +8,15 @@ export const metadata: Metadata = {
   description: "Workforce activity tracking",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getServerLocale();
+
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang={locale} className="h-full antialiased">
+      <body className="min-h-full flex flex-col">
+        <I18nProvider initialLocale={locale}>{children}</I18nProvider>
+      </body>
     </html>
   );
 }
+
