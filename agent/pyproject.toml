@@ -18,6 +18,9 @@ test = [
 [project.scripts]
 format = "worklens_agent.format:main"
 
+[tool.setuptools]
+packages = ["worklens_agent"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
