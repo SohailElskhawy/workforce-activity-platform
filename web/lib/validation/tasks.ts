@@ -38,13 +38,13 @@ export const assignEmployeeSchema = z.object({
   employeeId: z.uuid("Select a valid employee."),
 });
 
+import { getZonedDayBounds } from "@/lib/time/timezone";
+
 export function assertDueDateNotPast(dueDate: Date | undefined) {
   if (!dueDate) return;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const normalizedDueDate = new Date(dueDate);
-  normalizedDueDate.setHours(0, 0, 0, 0);
+  const today = getZonedDayBounds(new Date()).startAt;
+  const normalizedDueDate = getZonedDayBounds(dueDate).startAt;
 
   if (normalizedDueDate < today) {
     throw new ApiError(
@@ -55,5 +55,20 @@ export function assertDueDateNotPast(dueDate: Date | undefined) {
   }
 }
 
+export const updateTaskSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(2, "Task title must have at least 2 characters.")
+    .max(160)
+    .optional(),
+  description: optionalText(2_000),
+  status: taskStatusSchema.optional(),
+  priority: taskPrioritySchema.optional(),
+  estimatedMinutes: z.coerce.number().int().min(0).max(100_000).nullable().optional(),
+  dueDate: z.coerce.date().nullable().optional(),
+});
+
 export type CreateTaskInput = z.output<typeof createTaskSchema>;
+export type UpdateTaskInput = z.output<typeof updateTaskSchema>;
 export type AssignEmployeeInput = z.output<typeof assignEmployeeSchema>;

@@ -115,6 +115,29 @@ class MainLoopTests(unittest.TestCase):
             stderr.getvalue(),
         )
 
+    def test_status_command_reports_operational_status(self) -> None:
+        config = AgentConfig(
+            api_url="https://host.example",
+            device_id="PC-STATUS-TEST",
+            agent_token="issued-token",
+            agent_version="1.0.0",
+            idle_threshold_seconds=300,
+            excluded_processes=frozenset(),
+        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            runtime_dir = Path(tempdir)
+            config.write_runtime_file(runtime_dir / "config.json")
+            stdout = StringIO()
+            with (
+                patch("sys.stdout", stdout),
+                patch("worklens_agent.client.AgentClient.send_heartbeat", return_value=True),
+            ):
+                code = main(["--status", "--runtime-dir", str(runtime_dir)])
+            self.assertEqual(code, 0)
+            output = stdout.getvalue()
+            self.assertIn("PC-STATUS-TEST", output)
+            self.assertIn("CONNECTED (Online)", output)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,9 @@ import { ApplicationBreakdown } from "@/components/activity/application-breakdow
 import { ActivityPoller } from "@/components/activity/activity-poller";
 import { DwgSummaryCard } from "@/components/activity/dwg-summary-card";
 import { HistoricalDateFilter } from "@/components/activity/historical-date-filter";
+import { EditEmployeeDialog } from "@/components/manager/edit-employee-dialog";
+import { EmployeeDevicesCard } from "@/components/manager/employee-devices-card";
+import { EmployeeManualTimeCard } from "@/components/manager/employee-manual-time-card";
 import { PageHeading } from "@/components/manager/page-heading";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +24,7 @@ import {
 } from "@/lib/formatters";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
+import { listDepartments } from "@/lib/services/employees";
 import { formatDayString, parseSafeDate } from "@/lib/services/dwg-reports";
 
 export default async function EmployeeDetailPage({
@@ -39,25 +43,50 @@ export default async function EmployeeDetailPage({
     requireManager(),
     getServerLocale(),
   ]);
-  const [summary, t] = await Promise.all([
-    getEmployeeDaySummary(toAuthContext(session), id, selectedDate),
+  const authContext = toAuthContext(session);
+  const [summary, departments, t] = await Promise.all([
+    getEmployeeDaySummary(authContext, id, selectedDate),
+    listDepartments(authContext),
     getServerDictionary(locale),
   ]);
   const difference = formatActivityDifference(summary.differenceMinutes, locale);
+
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeading
-        description={`${summary.employee.department ?? t.tasks.unassigned} · ${summary.employee.position ?? t.common.employee}`}
+        description={`${summary.employee.department ?? t.tasks.unassigned} · ${summary.employee.position ?? t.common.employee} · ${summary.employee.email}`}
         title={summary.employee.name}
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <EditEmployeeDialog
+              employee={{
+                id: summary.employee.id,
+                firstName: summary.employee.firstName,
+                lastName: summary.employee.lastName,
+                email: summary.employee.email,
+                phone: summary.employee.phone,
+                position: summary.employee.position,
+                status: summary.employee.status,
+                departmentId: summary.employee.departmentId,
+              }}
+              departments={departments}
+            />
             <HistoricalDateFilter selectedDate={dayString} />
             <RegisterAgentDeviceDialog
               employeeId={id}
               employeeName={summary.employee.name}
             />
+            <Badge
+              variant={
+                summary.employee.status === "ACTIVE"
+                  ? "default"
+                  : "destructive"
+              }
+            >
+              {summary.employee.status}
+            </Badge>
             <Badge
               variant={summary.employee.isOnline ? "default" : "secondary"}
             >
@@ -109,6 +138,11 @@ export default async function EmployeeDetailPage({
           </CardContent>
         </Card>
       </section>
+      <EmployeeManualTimeCard
+        entries={summary.manualTimeEntries}
+        selectedDate={summary.selectedDate}
+      />
+      <EmployeeDevicesCard devices={summary.employee.devices} />
       <ActivityTimeline activities={summary.timeline} />
     </main>
   );

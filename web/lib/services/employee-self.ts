@@ -100,10 +100,11 @@ export async function updateOwnAssignedTaskStatus(
   });
 }
 
+import { getZonedDayBounds } from "@/lib/time/timezone";
+
 export async function getEmployeeDashboard(context: AuthContext) {
   const employeeId = requireEmployeeId(context);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getZonedDayBounds(new Date()).startAt;
 
   const [
     manualTime,

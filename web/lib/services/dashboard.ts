@@ -5,10 +5,10 @@ import { tenantWhere } from "@/lib/auth-context";
 import { prisma } from "@/lib/prisma";
 import { ActivityType, TaskStatus } from "@/src/generated/prisma/enums";
 
+import { getZonedDayBounds } from "@/lib/time/timezone";
+
 function startOfToday() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today;
+  return getZonedDayBounds(new Date()).startAt;
 }
 
 export async function getManagerDashboardMetrics(context: AuthContext) {

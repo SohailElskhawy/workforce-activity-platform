@@ -10,6 +10,7 @@
     "test": "tsx --test lib/**/*.test.ts",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "db:bootstrap": "tsx scripts/bootstrap-company.ts",
     "postinstall": "prisma skills sync || exit 0",
     "format": "prettier --write ."
   },

@@ -72,6 +72,10 @@ export const tr: TranslationDictionary = {
     COMPLETED: "Tamamlandı",
     CANCELLED: "İptal Edildi",
     PENDING: "Bekliyor",
+    TODO: "Yapılacak",
+    ARCHIVED: "Arşivlendi",
+    BLOCKED: "Engellendi",
+    REVIEW: "İncelemede",
   },
   priority: {
     LOW: "Düşük",

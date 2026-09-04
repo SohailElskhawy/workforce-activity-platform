@@ -1,162 +1,235 @@
 # WorkLens
-Workforce & Project Activity Tracking Platform
 
-## Problem
+**Workforce & Project Activity Tracking Platform**
 
-Engineering teams often need a trustworthy view of project effort without requiring people to keep a second, manual activity log. WorkLens brings together project work, task assignments, manual time entries, and lightweight desktop activity signals in one role-aware dashboard.
+WorkLens is an activity tracking and project management platform designed for engineering and design consultancies. It seamlessly combines project and task assignment, manual time tracking, and background Windows desktop activity telemetry to provide clear, actionable insights into project effort—particularly AutoCAD/DWG design work—without invasive monitoring.
 
-## Demo Scope
+---
 
-This repository is a deterministic demo, not a production monitoring product. It includes a manager dashboard, employee self-service views, seeded projects and activity data, a protected agent ingestion API, and a Python simulator that drives that API.
-
-## Architecture
+## Architecture Overview
 
 ```text
-                         +---------------------+
-                         |  Next.js Web App    |
-                         |  manager + employee |
-                         +----------+----------+
-                                    |
-                                    v
-                         +---------------------+
-                         | PostgreSQL / Prisma |
-                         +---------------------+
-
- +---------------------+       HTTPS       +---------------------+
- | Windows Agent or    +------------------->| Agent API           |
- | Python Simulator    |                    | /api/agent/*        |
- +---------------------+                    +----------+----------+
-                                                       |
-                                                       v
-                                             +---------------------+
-                                             | PostgreSQL / Prisma |
-                                             +---------------------+
+                               +-----------------------------+
+                               |     Next.js 16 Web App      |
+                               |    (Manager & Employee)     |
+                               +--------------+--------------+
+                                              |
+                                              v
+                               +-----------------------------+
+                               |     PostgreSQL / Prisma     |
+                               +-----------------------------+
+                                              ^
+                                              |
+   +------------------------------+           |
+   |     Windows Desktop Agent    |    HTTPS  |
+   | (Win32 Collector + Segmenter)|-----------+
+   | (DPAPI Encrypted Credentials)|   /api/agent/*
+   | (SQLite Queue + Auto-Prune)  |
+   +------------------------------+
 ```
 
-The web application owns authentication and business data. The agent sends authenticated heartbeats and batches of activity segments to the Agent API; the API validates the registered device and writes idempotent activity rows to PostgreSQL.
+1. **Manager & Employee Web Application**: Next.js 16 (React 19, TypeScript, Tailwind CSS, Shadcn UI) providing role-based workspaces for managers (projects, tasks, employees, devices, manual time, DWG reports) and employees (tasks, time tracking, personal timeline).
+2. **PostgreSQL Database**: Relational schema managed with Prisma 7 migrations, featuring strict tenant isolation and composite query indexes.
+3. **Windows Desktop Agent**: Lightweight Python agent compiled to a standalone executable via PyInstaller and packaged with Inno Setup. Runs unobtrusively in the user session, securely storing credentials using Windows DPAPI, logging active application titles and DWG filenames, caching offline activity in SQLite, and uploading batches idempotently.
 
-## Core Features
+---
 
-- Manager dashboards for projects, employees, assignments, activity, and reports.
-- Employee dashboards for their own projects, tasks, time entries, and activity.
-- Deterministic demo seed with projects, mappings, devices, and recent activity.
-- Manager-only device registration and token issuance.
-- Agent batching, SQLite offline queue, and idempotent backend ingestion.
-- Optional Windows foreground-window collection plus a platform-independent simulator.
+## Privacy Commitments
 
-## Tech Stack
+WorkLens is built on the principle of non-invasive, task-relevant telemetry. **WorkLens V1 does NOT collect**:
 
-- Next.js 16, React 19, NextAuth credentials sessions, and TypeScript.
-- PostgreSQL with Prisma 7 migrations and seed data.
-- Python 3.12+ agent using `httpx`, `psutil`, optional `pywin32`, and SQLite.
-- Vercel is the intended Next.js host; use any managed PostgreSQL provider reachable from Vercel.
+* ❌ Keystrokes or keylogging
+* ❌ Passwords or credential fields
+* ❌ Screenshots or screen grabs
+* ❌ Continuous screen video recording
+* ❌ Clipboard contents
+* ❌ File contents or CAD drawing data from disk
+* ❌ Network browsing content or message body text
 
-## Hosted Demo
+**What WorkLens DOES collect**:
+* Foreground window title and process name (e.g. `AutoCAD - ABC_A_Block.dwg`, `Google Chrome`)
+* Active application time vs. user idle time (based on keyboard/mouse inactivity threshold, default 300s)
+* Extracted DWG filename for AutoCAD windows to map effort to projects and tasks
+* Configured process exclusions: processes listed in `excludedProcesses` (e.g. `keepass.exe`, `1password.exe`) are completely omitted from collection.
 
-No public deployment URL is configured in this checkout. To publish it, create a Vercel project with **Root Directory** set to `web`, deploy the `main` branch, and then replace this section with the canonical HTTPS URL.
+---
 
-The production database and Vercel account are intentionally not represented in the repository. Follow the deployment sequence in [Web Setup](#web-setup), then verify both demo accounts in a private browser window.
+## Web Setup & Production Deployment
 
-## Demo Accounts
+### Prerequisites
+* Node.js 20+ LTS
+* PostgreSQL 15+ database
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Manager | `manager@worklens.demo` | `Demo1234!` |
-| Employee | `employee@worklens.demo` | `z` |
+### Environment Variables
+Configure the following in your deployment environment (e.g., Vercel, Docker, or Linux VM):
 
-The seed also creates the primary project `ABC AVM Electrical Project` and the `ABC_A_Block.dwg` file mapping. These are safe, deterministic demo records only.
+| Variable | Description | Required |
+|---|---|:---:|
+| `DATABASE_URL` | PostgreSQL connection string (`postgresql://user:pass@host:5432/dbname`) | Yes |
+| `AUTH_SECRET` | 32+ byte cryptographic secret for NextAuth sessions (`openssl rand -base64 32`) | Yes (enforced in prod) |
+| `NEXTAUTH_URL` | Canonical HTTPS URL of the deployed web application (e.g. `https://worklens.yourcompany.com`) | Yes |
+| `AGENT_TOKEN_PEPPER` | Secret pepper used to HMAC agent device tokens before storage (`openssl rand -base64 32`) | Yes (fails fast if missing) |
 
-## Repository Structure
-
-```text
-web/                 Next.js application, Prisma schema, migrations, and seed
-agent/               Python desktop agent and simulator
-docs/                product design and implementation notes
-README.md            deployment and demo handoff
-```
-
-This repository intentionally uses npm rather than a pnpm workspace. The Vercel Root Directory is `web`, so web commands run from that directory.
-
-## Web Setup
-
-1. Install dependencies:
-
-   ```bash
-   cd web
-   npm ci
-   ```
-
-2. Copy `.env.example` to `.env` and set the four required values. Do not commit `.env`.
-
-   ```text
-   DATABASE_URL
-   AUTH_SECRET
-   NEXTAUTH_URL
-   AGENT_TOKEN_PEPPER
-   ```
-
-3. For local development, apply migrations and create the deterministic demo data:
-
-   ```bash
-   npm run db:deploy
-   npm run db:seed
-   npm run dev
-   ```
-
-For production, create a managed PostgreSQL database and use a production-only `DATABASE_URL`. Generate separate high-entropy `AUTH_SECRET` and `AGENT_TOKEN_PEPPER` values; set `NEXTAUTH_URL` to the exact canonical HTTPS deployment URL. In Vercel, set all four variables for the Production environment, use `npm ci` as the install command and `npm run build` as the build command, then run the migration and seed commands once from a trusted environment that has the production `DATABASE_URL`.
-
-After deployment, use a private or incognito browser to verify: manager login reaches the manager dashboard; employee login reaches the employee dashboard; logout returns to `/login`.
-
-## Desktop Agent
-
-See [agent/README.md](agent/README.md) for Python setup, manager device registration, environment variables, simulator mode, Windows mode, privacy behavior, and the offline queue.
-
-## Simulator Mode
-
-The simulator is not a mock API. It uses the same authentication headers, heartbeat endpoint, SQLite queue, batch upload endpoint, validation, idempotency rules, and PostgreSQL persistence path as the Windows agent. Configure it with a registered device and run:
+### Database Migrations
+Always deploy database schema updates using Prisma's migration runner:
 
 ```bash
-cd agent
-python -m worklens_agent.main --mode simulate
+cd web
+npm ci
+npx prisma migrate deploy
+```
+*(Do not use `prisma db push` or destructive reset commands in production).*
+
+### Initial Clean Client Setup (Bootstrap)
+To initialize a fresh production database with a new company and initial manager account without seeding demo data:
+
+```bash
+cd web
+npx tsx scripts/bootstrap-company.ts \
+  --company "Your Company Name" \
+  --email "manager@yourcompany.com" \
+  --password "SecurePassword123!" \
+  --first "Firstname" \
+  --last "Lastname"
+```
+Or set `BOOTSTRAP_COMPANY_NAME`, `BOOTSTRAP_MANAGER_EMAIL`, and `BOOTSTRAP_MANAGER_PASSWORD` and run:
+```bash
+npm run db:bootstrap
 ```
 
-## Activity Pipeline
+Once bootstrapped, navigate to `/login` to access the manager portal.
 
-1. The Windows collector observes only the foreground window, or the simulator emits a deterministic sequence.
-2. The segmenter turns unchanged observations into bounded activity segments and closes segments on state changes.
-3. The queue stores segments locally before upload.
-4. The agent sends heartbeats and activity batches with a bearer token and device ID.
-5. The Agent API authenticates the active device, validates the batch, resolves mappings, and persists activity for dashboard/report queries.
+*(Optional Demo Seed: For local evaluation only, `npm run db:seed` will populate sample projects and demo employees under "WorkLens Demo Engineering".)*
 
-## Offline Queue and Idempotency
+---
 
-The agent stores pending segments in `agent/data/activity.db` until a successful upload response. Failed network requests remain queued and are retried on the next upload cycle. Each segment has an event ID; the database unique constraint on `(deviceId, eventId)` makes backend ingestion idempotent, so retries do not create duplicate activities.
+## Manager Portal Operations
 
-## AutoCAD/DWG Strategy
+1. **Employee Management (`/employees`)**:
+   - Create new employees with company email, department, position, and temporary login credentials.
+   - Edit employee profiles or change status (`ACTIVE`, `INACTIVE`, `SUSPENDED`). Deactivating an employee automatically revokes all associated hardware devices.
+2. **Project & Task Management (`/projects`, `/tasks`)**:
+   - Create projects with unique project codes, estimated hours, and planned start/end dates.
+   - Create tasks under projects with priorities (`LOW`, `MEDIUM`, `HIGH`, `URGENT`), due dates, and assign team members.
+   - Update task status (`TODO`, `IN_PROGRESS`, `BLOCKED`, `REVIEW`, `COMPLETED`, `CANCELLED`).
+3. **Device Registration & Revocation**:
+   - On an employee's profile page (`/employees/[id]`), click **"Register Agent Device"** to issue a new hardware device identity and secure one-time agent token.
+   - Hand the `Device ID` and `Device Token` to the employee or deployment technician.
+   - View device status (Online/Offline indicator, agent version, last seen timestamp).
+   - If an employee leaves or a computer is lost, click **"Revoke Access"** to immediately block future agent heartbeats and uploads.
+4. **AutoCAD & DWG Reports (`/reports/dwg`)**:
+   - Track active engineering minutes spent in AutoCAD per DWG file, broken down by employee, project, and task.
+   - View unmapped DWG files, view accumulated time, and map them to the correct project and task.
 
-For AutoCAD foreground windows, the Windows collector extracts a DWG filename when it appears in the window title. The backend matches normalized filenames to manager-maintained file mappings, for example `ABC_A_Block.dwg`, and associates matching activity with the mapped project and task. WorkLens does not inspect DWG contents or files on disk.
+---
 
-## Security and Privacy
+## Windows Desktop Agent Runbook
 
-- Production secrets belong only in the managed host and database environment settings; never commit, document, screenshot, or seed them.
-- Passwords and registered agent tokens are stored as hashes; a newly issued raw agent token is shown only at registration time.
-- Agent API requests require both `Authorization: Bearer <token>` and `X-Device-ID`; inactive devices are rejected.
-- The collector records foreground application/process/window metadata and optional DWG filename, not keystrokes, screenshots, document contents, or network traffic.
-- Configure sensitive applications in `WORKLENS_EXCLUDED_PROCESSES`; excluded foreground windows produce no activity segment.
-- Manager and employee routes enforce role and tenant scope.
+### Build Installer
+To build the Windows executable and setup installer:
+
+```powershell
+# In agent/
+cd agent
+
+# 1. Build PyInstaller binary
+powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1 -DefaultApiUrl "https://worklens.yourcompany.com"
+
+# 2. Build Inno Setup installer
+powershell -ExecutionPolicy Bypass -File installer/build-installer.ps1
+```
+The output installer is generated at `agent/installer/output/WorkLensAgentSetup.exe`.
+
+### Installation & Enrollment
+1. Run `WorkLensAgentSetup.exe` on the employee's Windows machine.
+2. The installer creates program files in `C:\Program Files (x86)\WorkLens Agent` and a startup shortcut in `{userstartup}` so the agent starts automatically upon Windows login.
+3. Upon first run (or via the **"Configure WorkLens Agent"** shortcut), the enrollment dialog appears:
+   - **Hosted API URL**: `https://worklens.yourcompany.com`
+   - **Device ID**: Provided by manager (e.g. `WS-ENG-001`)
+   - **Device Token**: One-time secret token generated during device registration.
+4. Clicking **"Enroll"** tests connection with the server, verifies credentials via heartbeat, and securely writes configuration.
+
+### Local Agent File Locations
+* **Configuration**: `%LOCALAPPDATA%\WorkLens\config.json`
+* **Secure Token Storage**: The agent token is encrypted on disk using **Windows DPAPI** (`CryptProtectData`). Raw secrets are never saved in plaintext. Any legacy configuration with plaintext tokens is automatically migrated and re-encrypted on startup.
+* **SQLite Offline Queue**: `%LOCALAPPDATA%\WorkLens\activity.db`
+* **Rotating Logs**: `%LOCALAPPDATA%\WorkLens\logs\agent.log` (5 MB per file, 3 backups, max 20 MB).
+
+### Verifying Agent Health & Status
+Technicians or users can check agent operational health at any time:
+
+```powershell
+# Run the status command
+& "C:\Program Files (x86)\WorkLens Agent\WorkLensAgent.exe" --status
+```
+Example Output:
+```text
+=== WorkLens Agent Status ===
+Runtime Root: C:\Users\employee\AppData\Local\WorkLens
+Log File:     C:\Users\employee\AppData\Local\WorkLens\logs\agent.log
+Database:     C:\Users\employee\AppData\Local\WorkLens\activity.db
+Device ID:    WS-ENG-001
+API URL:      https://worklens.yourcompany.com
+Version:      0.1.0
+Local Queue:  0 pending segment(s)
+Status:       CONNECTED (Online)
+=============================
+```
+
+### Offline Queue & Automatic Pruning
+* When the user is offline or the company network drops, activity collection continues locally in `activity.db`.
+* Once connectivity returns, queued records upload in chronological batches.
+* **Safe Pruning**: Successfully uploaded activities older than **7 days** are automatically pruned on startup and periodically every hour. **Pending/unuploaded records are NEVER pruned** under any condition, guaranteeing zero data loss during prolonged offline periods.
+
+---
+
+## AutoCAD Project-Time Pipeline
+
+```text
+AutoCAD Active Window
+  (acad.exe, title: "ABC_A_Block.dwg")
+       │
+       ▼
+Filename Extraction & Normalization
+  (normalizeFileName -> "abc_a_block.dwg")
+       │
+       ▼
+Activity Segment Created (Type: APPLICATION)
+  (Idle time excluded; duration recorded)
+       │
+       ▼
+Batch Ingestion & File Mapping Resolution
+  (Matches Company FileMapping table)
+       │
+       ├─► If Mapped: Associates with Project & Task automatically
+       │
+       └─► If Unmapped: Stored with fileName for Manager Mapping
+               │
+               ▼
+       Manager maps DWG in UI
+               │
+               ▼
+       Retroactive Update
+         (Updates all matching past activity rows for that company)
+               │
+               ▼
+       Manager AutoCAD Report
+         (Aggregates active minutes by Engineer, DWG, Project, Task)
+```
+
+**Timezone Handling**: All activity boundaries, timeline displays, and DWG aggregation reports use `Europe/Istanbul` (UTC+3) calendar day bounds (00:00:00 to 24:00:00 local time).
+
+---
 
 ## Known Limitations
 
-- This checkout has no linked Vercel project, managed PostgreSQL instance, or public hosted URL. Provisioning and production verification require the owner’s cloud accounts.
-- Device registration is currently a manager-protected API endpoint; there is no dedicated registration screen in the web UI.
-- The real collector is Windows-only and observes the foreground window at a fixed interval. It does not capture lock/unlock events directly.
-- The local SQLite queue is intentionally simple: it has no encryption at rest, background service installer, or automated update channel.
-- The demo seed resets the demo company on each run. Run it only against an isolated demo database, never against real customer data.
+1. **Foreground Window Focus**: WorkLens monitors only the currently active foreground window on the primary user session. Background applications running on secondary monitors without user focus are marked inactive or idle.
+2. **Multi-User / Terminal Server**: Designed for single-user desktop workstations. Multi-session Remote Desktop Server environments require separate per-user agent processes.
+3. **AutoCAD Title Conventions**: The agent extracts filenames formatted in standard AutoCAD window title formats (`filename.dwg`, `[filename.dwg]`, etc.). Custom third-party title modifiers that strip the `.dwg` extension will prevent automatic DWG extraction.
+4. **Inno Setup Build Dependency**: Compiling the `.iss` installer requires Inno Setup 6 (`ISCC.exe`) installed on the build machine. The PyInstaller executable can be built independently on any Windows machine with Python 3.12+.
 
-## Future Improvements
+---
 
-- Add a manager device-registration UI with one-time token display and revocation.
-- Add agent packaging, Windows service management, encrypted local storage, and automatic updates.
-- Add configurable retention, consent workflows, export controls, and organization-specific privacy policies.
-- Add production deployment automation that runs migrations safely and blocks duplicate seeding.
-- Add broader OS support and richer, policy-controlled project-file integrations.
+## Client Delivery Verification
+
+Refer to [docs/CLIENT_DELIVERY_CHECKLIST.md](docs/CLIENT_DELIVERY_CHECKLIST.md) for the sign-off checklist and pre-flight verification steps.

@@ -70,6 +70,10 @@ export interface TranslationDictionary {
     COMPLETED: string;
     CANCELLED: string;
     PENDING: string;
+    TODO: string;
+    ARCHIVED: string;
+    BLOCKED: string;
+    REVIEW: string;
   };
   priority: {
     LOW: string;

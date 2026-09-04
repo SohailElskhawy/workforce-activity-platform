@@ -27,6 +27,41 @@ class RuntimeConfigurationTests(unittest.TestCase):
         self.assertEqual(loaded.idle_threshold_seconds, 120)
         self.assertEqual(loaded.excluded_processes, frozenset({"keepass.exe"}))
 
+    def test_token_is_encrypted_on_disk_not_plaintext(self) -> None:
+        config = AgentConfig(
+            api_url="https://host.example/",
+            device_id="PC-SECURE",
+            agent_token="super-secret-raw-token",
+            agent_version="1.0.0",
+            idle_threshold_seconds=300,
+            excluded_processes=frozenset(),
+        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = Path(tempdir) / "config.json"
+            config.write_runtime_file(path)
+
+            raw_file_content = path.read_text(encoding="utf-8")
+            self.assertNotIn("super-secret-raw-token", raw_file_content)
+            self.assertIn("agentTokenEncrypted", raw_file_content)
+
+            loaded = AgentConfig.from_runtime_file(path)
+            self.assertEqual(loaded.agent_token, "super-secret-raw-token")
+
+    def test_migration_from_legacy_plaintext_token(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = Path(tempdir) / "config.json"
+            path.write_text(
+                '{"apiUrl":"https://host.example","deviceId":"PC-LEGACY","agentToken":"plaintext-secret-123"}',
+                encoding="utf-8",
+            )
+            loaded = AgentConfig.from_runtime_file(path)
+            self.assertEqual(loaded.agent_token, "plaintext-secret-123")
+
+            # Verify the file on disk was automatically migrated and no longer has the raw secret
+            migrated_content = path.read_text(encoding="utf-8")
+            self.assertNotIn("plaintext-secret-123", migrated_content)
+            self.assertIn("agentTokenEncrypted", migrated_content)
+
     def test_runtime_config_rejects_missing_token(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             path = Path(tempdir) / "config.json"

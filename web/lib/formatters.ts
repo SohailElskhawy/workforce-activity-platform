@@ -61,3 +61,20 @@ export function formatActivityDifference(
     : `${amount} more activity time than manual time`;
 }
 
+export function formatTime(
+  date: Date | string | null | undefined,
+  locale: Locale = "en",
+) {
+  if (!date) return "—";
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
+
+  const intlLocale = locale === "tr" ? "tr-TR" : "en-US";
+  return new Intl.DateTimeFormat(intlLocale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Istanbul",
+  }).format(d);
+}
+
+

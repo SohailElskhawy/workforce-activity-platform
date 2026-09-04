@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { EditProjectDialog } from "@/components/manager/edit-project-dialog";
 import { PriorityBadge } from "@/components/manager/priority-badge";
 import { EmptyState } from "@/components/states/empty-state";
 import { StatusBadge } from "@/components/manager/status-badge";
@@ -49,19 +50,34 @@ export default async function ProjectDetailPage({
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div>
-        <Link
-          className="text-sm text-muted-foreground hover:text-foreground"
-          href="/projects"
-        >
-          ← {t.projects.title}
-        </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
-          {project.name}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {project.code} · {project.clientName ?? t.managerDashboard.internalProject}
-        </p>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <Link
+            className="text-sm text-muted-foreground hover:text-foreground"
+            href="/projects"
+          >
+            ← {t.projects.title}
+          </Link>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+            {project.name}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {project.code} · {project.clientName ?? t.managerDashboard.internalProject}
+          </p>
+        </div>
+        <EditProjectDialog
+          project={{
+            id: project.id,
+            name: project.name,
+            code: project.code,
+            description: project.description,
+            clientName: project.clientName,
+            status: project.status,
+            startDate: project.startDate,
+            endDate: project.endDate,
+            estimatedHours: project.estimatedHours,
+          }}
+        />
       </div>
       <Card>
         <CardHeader>

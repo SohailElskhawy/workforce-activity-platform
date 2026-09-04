@@ -48,6 +48,11 @@ class AgentClient:
         except httpx.RequestError as error:
             logger.warning("Activity upload failed: %s", error)
             return False
+        if response.status_code == 401:
+            logger.warning(
+                "Device authentication failed (HTTP 401). Device may have been revoked by manager or token is invalid."
+            )
+            return False
         if not response.is_success:
             logger.warning("Activity upload returned HTTP %s", response.status_code)
             return False
@@ -66,6 +71,11 @@ class AgentClient:
             )
         except httpx.RequestError as error:
             logger.warning("Heartbeat failed: %s", error)
+            return False
+        if response.status_code == 401:
+            logger.warning(
+                "Heartbeat rejected: device authentication failed (HTTP 401). Device may have been revoked."
+            )
             return False
         if not response.is_success:
             logger.warning("Heartbeat returned HTTP %s", response.status_code)

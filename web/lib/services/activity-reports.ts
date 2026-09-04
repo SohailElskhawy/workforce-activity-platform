@@ -62,22 +62,16 @@ export function summarizeActivities(activities: ActivityForSummary[]) {
   };
 }
 
-function dayBounds(day: Date) {
-  const startAt = new Date(day);
-  startAt.setHours(0, 0, 0, 0);
-  const endAt = new Date(startAt);
-  endAt.setDate(endAt.getDate() + 1);
-  return { startAt, endAt };
-}
+import { getZonedDayBounds } from "@/lib/time/timezone";
 
 export async function getEmployeeDaySummary(
   context: AuthContext,
   employeeId: string,
-  day = new Date(),
+  day: Date | string = new Date(),
 ) {
   assertEmployeeActivityScope(context, employeeId);
   const { prisma } = await import("@/lib/prisma");
-  const { startAt, endAt } = dayBounds(day);
+  const { dayStr, startAt, endAt } = getZonedDayBounds(day);
 
   const employee = await prisma.employee.findFirst({
     where: tenantWhere(context.companyId, { id: employeeId }),
@@ -86,13 +80,22 @@ export async function getEmployeeDaySummary(
       firstName: true,
       lastName: true,
       email: true,
+      phone: true,
       position: true,
       status: true,
-      department: { select: { name: true } },
+      departmentId: true,
+      department: { select: { id: true, name: true } },
       devices: {
-        select: { lastSeenAt: true, name: true },
+        select: {
+          id: true,
+          deviceId: true,
+          name: true,
+          agentVersion: true,
+          lastSeenAt: true,
+          isActive: true,
+          createdAt: true,
+        },
         orderBy: { lastSeenAt: "desc" },
-        take: 1,
       },
       assignments: {
         where: { task: { status: "IN_PROGRESS" } },
@@ -111,7 +114,7 @@ export async function getEmployeeDaySummary(
 
   if (!employee) throw new ApiError("NOT_FOUND", "Employee not found.", 404);
 
-  const [activities, manualTime] = await Promise.all([
+  const [activities, manualTimeEntries] = await Promise.all([
     prisma.activity.findMany({
       where: tenantWhere(context.companyId, {
         employeeId,
@@ -132,18 +135,32 @@ export async function getEmployeeDaySummary(
       },
       orderBy: { startAt: "asc" },
     }),
-    prisma.timeEntry.aggregate({
+    prisma.timeEntry.findMany({
       where: tenantWhere(context.companyId, {
         employeeId,
         startAt: { gte: startAt, lt: endAt },
       }),
-      _sum: { durationMinutes: true },
+      select: {
+        id: true,
+        startAt: true,
+        endAt: true,
+        durationMinutes: true,
+        notes: true,
+        project: { select: { id: true, name: true, code: true } },
+        task: { select: { id: true, title: true } },
+      },
+      orderBy: { startAt: "asc" },
     }),
   ]);
 
   const activityTotals = summarizeActivities(activities);
-  const manualMinutes = manualTime._sum.durationMinutes ?? 0;
-  const lastSeenAt = employee.devices[0]?.lastSeenAt ?? null;
+  const manualMinutes = manualTimeEntries.reduce(
+    (sum, entry) => sum + entry.durationMinutes,
+    0,
+  );
+  const activeDevice =
+    employee.devices.find((d) => d.isActive) ?? employee.devices[0] ?? null;
+  const lastSeenAt = activeDevice?.lastSeenAt ?? null;
   const employeeName = `${employee.firstName} ${employee.lastName}`.trim();
   const dwgSummary = aggregateDwgActivities(
     activities.map((act) => ({
@@ -164,12 +181,17 @@ export async function getEmployeeDaySummary(
   return {
     employee: {
       id: employee.id,
+      firstName: employee.firstName,
+      lastName: employee.lastName,
       name: employeeName,
       email: employee.email,
+      phone: employee.phone,
       position: employee.position,
       status: employee.status,
+      departmentId: employee.departmentId,
       department: employee.department?.name ?? null,
-      device: employee.devices[0]?.name ?? null,
+      device: activeDevice?.name ?? null,
+      devices: employee.devices,
       lastSeenAt,
       isOnline: lastSeenAt
         ? lastSeenAt.getTime() >= Date.now() - 90_000
@@ -177,6 +199,7 @@ export async function getEmployeeDaySummary(
     },
     ...activityTotals,
     manualMinutes,
+    manualTimeEntries,
     differenceMinutes: manualActivityDifference(
       manualMinutes,
       activityTotals.activeSeconds,
@@ -184,7 +207,7 @@ export async function getEmployeeDaySummary(
     inProgressTasks: employee.assignments.map(({ task }) => task),
     timeline: activities,
     dwgSummary,
-    selectedDate: formatDayString(startAt),
+    selectedDate: dayStr,
   };
 }
 

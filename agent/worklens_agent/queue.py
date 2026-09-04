@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import sqlite3
+import time
 
 from worklens_agent.models import ActivitySegment
 
@@ -27,7 +28,16 @@ class ActivityQueue:
             )
             """
         )
+        self._connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_pending_activity_uploaded
+            ON pending_activity (uploaded_at)
+            """
+        )
         self._connection.commit()
+        self._last_prune_time = time.monotonic()
+        # Perform startup pruning of old uploaded records
+        self.prune_uploaded()
 
     def enqueue(self, segment: ActivitySegment) -> None:
         self._connection.execute(
@@ -60,5 +70,30 @@ class ActivityQueue:
         )
         self._connection.commit()
 
+        # Periodically prune uploaded rows without excessive execution (every 1 hour)
+        now = time.monotonic()
+        if now - self._last_prune_time >= 3600:
+            self.prune_uploaded()
+            self._last_prune_time = now
+
+    def prune_uploaded(
+        self, retention_days: int = 7, cutoff: datetime | None = None
+    ) -> int:
+        """Prune successfully uploaded rows older than the retention window.
+        Pending/unuploaded rows (uploaded_at IS NULL) are NEVER deleted.
+        """
+        if cutoff is None:
+            cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+        cutoff_iso = cutoff.isoformat()
+        cursor = self._connection.execute(
+            "DELETE FROM pending_activity WHERE uploaded_at IS NOT NULL AND uploaded_at < ?",
+            (cutoff_iso,),
+        )
+        deleted_count = cursor.rowcount
+        if deleted_count > 0:
+            self._connection.commit()
+        return deleted_count
+
     def close(self) -> None:
         self._connection.close()
+

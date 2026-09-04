@@ -36,6 +36,45 @@ def process_observations(
         queue.enqueue(segment)
 
 
+def print_agent_status(paths: RuntimePaths) -> int:
+    default_api_url = load_packaged_default_api_url()
+    print("=== WorkLens Agent Status ===")
+    print(f"Runtime Root: {paths.root}")
+    print(f"Log File:     {paths.log_path}")
+    print(f"Database:     {paths.database_path}")
+
+    try:
+        config = AgentConfig.from_runtime_file(paths.config_path, default_api_url)
+    except (ValueError, FileNotFoundError):
+        print("Status:       CONFIGURATION REQUIRED (Not enrolled)")
+        print("Run with --enroll to configure the agent.")
+        return 1
+
+    print(f"Device ID:    {config.device_id}")
+    print(f"API URL:      {config.api_url}")
+    print(f"Version:      {config.agent_version}")
+
+    queue = ActivityQueue(paths.database_path)
+    pending_items = queue.pending()
+    print(f"Local Queue:  {len(pending_items)} pending segment(s)")
+
+    client = AgentClient(config, queue)
+    try:
+        hb_success = client.send_heartbeat()
+        if hb_success:
+            print("Status:       CONNECTED (Online)")
+        else:
+            print("Status:       OFFLINE / AUTHENTICATION REJECTED")
+    except Exception as err:
+        print(f"Status:       OFFLINE ({err})")
+    finally:
+        client.close()
+        queue.close()
+
+    print("=============================")
+    return 0
+
+
 def run_simulator(config: AgentConfig, database_path: Path | None = None) -> None:
     queue = ActivityQueue(database_path or Path("data") / "activity.db")
     client = AgentClient(config, queue)
@@ -46,17 +85,26 @@ def run_simulator(config: AgentConfig, database_path: Path | None = None) -> Non
     last_heartbeat = last_upload
     last_observation: Observation | None = None
     try:
-        client.send_heartbeat()
+        try:
+            client.send_heartbeat()
+        except Exception as error:
+            logger.warning("Initial heartbeat error: %s", error)
         for observation in observations:
             last_observation = observation
             for segment in builder.observe(observation):
                 queue.enqueue(segment)
             now = time.monotonic()
             if now - last_upload >= 15:
-                client.upload_pending()
+                try:
+                    client.upload_pending()
+                except Exception as error:
+                    logger.warning("Upload error: %s", error)
                 last_upload = now
             if now - last_heartbeat >= 30:
-                client.send_heartbeat()
+                try:
+                    client.send_heartbeat()
+                except Exception as error:
+                    logger.warning("Heartbeat error: %s", error)
                 last_heartbeat = now
             time.sleep(2)
     finally:
@@ -67,7 +115,10 @@ def run_simulator(config: AgentConfig, database_path: Path | None = None) -> Non
         )
         for segment in builder.finish(finish_at):
             queue.enqueue(segment)
-        client.upload_pending()
+        try:
+            client.upload_pending()
+        except Exception:
+            pass
         client.close()
         queue.close()
 
@@ -82,23 +133,39 @@ def run_real(config: AgentConfig, database_path: Path | None = None) -> None:
     last_upload = time.monotonic()
     last_heartbeat = last_upload
     try:
-        client.send_heartbeat()
+        try:
+            client.send_heartbeat()
+        except Exception as error:
+            logger.warning("Initial heartbeat error: %s", error)
         while True:
-            observation = collector.observe()
-            for segment in builder.observe(observation):
-                queue.enqueue(segment)
+            try:
+                observation = collector.observe()
+                for segment in builder.observe(observation):
+                    queue.enqueue(segment)
+            except Exception as error:
+                logger.error("Error collecting activity observation: %s", error)
+
             now = time.monotonic()
             if now - last_upload >= 15:
-                client.upload_pending()
+                try:
+                    client.upload_pending()
+                except Exception as error:
+                    logger.warning("Upload pending error: %s", error)
                 last_upload = now
             if now - last_heartbeat >= 30:
-                client.send_heartbeat()
+                try:
+                    client.send_heartbeat()
+                except Exception as error:
+                    logger.warning("Heartbeat error: %s", error)
                 last_heartbeat = now
             time.sleep(2)
     finally:
         for segment in builder.finish(datetime.now(timezone.utc)):
             queue.enqueue(segment)
-        client.upload_pending()
+        try:
+            client.upload_pending()
+        except Exception:
+            pass
         client.close()
         queue.close()
 
@@ -111,18 +178,21 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="WorkLens activity agent")
     parser.add_argument("--mode", choices=["simulate", "real"], default="real")
     parser.add_argument("--enroll", action="store_true")
+    parser.add_argument("--status", action="store_true", help="Print agent operational status and verify connectivity")
     parser.add_argument("--runtime-dir", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.mode == "real" and sys.platform != "win32":
         parser.error(
             "Real collector requires Windows. Use --mode simulate on this machine."
         )
-    uses_runtime_config = is_packaged() or args.runtime_dir is not None or args.enroll
+    uses_runtime_config = is_packaged() or args.runtime_dir is not None or args.enroll or args.status
     paths = (
         RuntimePaths(args.runtime_dir)
         if args.runtime_dir
         else RuntimePaths.for_current_user()
     )
+    if args.status:
+        return print_agent_status(paths)
     if uses_runtime_config:
         configure_file_logging(paths.log_path)
         default_api_url = load_packaged_default_api_url()

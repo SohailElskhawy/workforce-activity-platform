@@ -72,6 +72,10 @@ export const en: TranslationDictionary = {
     COMPLETED: "Completed",
     CANCELLED: "Cancelled",
     PENDING: "Pending",
+    TODO: "To Do",
+    ARCHIVED: "Archived",
+    BLOCKED: "Blocked",
+    REVIEW: "In Review",
   },
   priority: {
     LOW: "Low",

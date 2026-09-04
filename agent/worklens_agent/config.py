@@ -6,6 +6,8 @@ from typing import Mapping
 
 from dotenv import load_dotenv
 
+from worklens_agent.security import protect_secret, unprotect_secret
+
 
 @dataclass(frozen=True)
 class AgentConfig:
@@ -42,24 +44,46 @@ class AgentConfig:
             raise ValueError("WorkLens runtime configuration is invalid.") from error
         if not isinstance(values, Mapping):
             raise ValueError("WorkLens runtime configuration is invalid.")
-        return cls._from_values(
+
+        should_migrate = False
+        encrypted_token = values.get("agentTokenEncrypted")
+        if encrypted_token and isinstance(encrypted_token, str):
+            try:
+                agent_token = unprotect_secret(encrypted_token)
+            except Exception as error:
+                raise ValueError("WorkLens secure token could not be decrypted.") from error
+        elif "agentToken" in values and isinstance(values["agentToken"], str) and values["agentToken"]:
+            # Legacy plaintext token detected -> load and mark for secure migration
+            agent_token = values["agentToken"]
+            should_migrate = True
+        else:
+            agent_token = ""
+
+        config = cls._from_values(
             api_url=values.get("apiUrl", default_api_url),
             device_id=values.get("deviceId", ""),
-            agent_token=values.get("agentToken", ""),
+            agent_token=agent_token,
             agent_version=values.get("agentVersion", "0.1.0"),
             idle_threshold_seconds=values.get("idleThresholdSeconds", "300"),
             excluded_processes=values.get("excludedProcesses", ""),
         )
 
+        if should_migrate:
+            # Overwrite file with encrypted token to eliminate plaintext on disk
+            config.write_runtime_file(path)
+
+        return config
+
     def write_runtime_file(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary_path = path.with_suffix(f"{path.suffix}.tmp")
+        encrypted_token = protect_secret(self.agent_token)
         temporary_path.write_text(
             json.dumps(
                 {
                     "apiUrl": self.api_url,
                     "deviceId": self.device_id,
-                    "agentToken": self.agent_token,
+                    "agentTokenEncrypted": encrypted_token,
                     "agentVersion": self.agent_version,
                     "idleThresholdSeconds": self.idle_threshold_seconds,
                     "excludedProcesses": sorted(self.excluded_processes),

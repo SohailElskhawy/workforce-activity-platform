@@ -53,6 +53,8 @@ export function extractDisplayFileName(fileName: string): string {
   return baseName.replace(/\*+$/, "").trim();
 }
 
+import { getZonedDayBounds } from "@/lib/time/timezone";
+
 export function parseSafeDate(rawDay?: string | Date | null): Date {
   if (!rawDay) return new Date();
   if (rawDay instanceof Date) {
@@ -69,11 +71,8 @@ export function formatDayString(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function dayBounds(day: Date) {
-  const startAt = new Date(day);
-  startAt.setHours(0, 0, 0, 0);
-  const endAt = new Date(startAt);
-  endAt.setDate(endAt.getDate() + 1);
+export function dayBounds(day: Date | string) {
+  const { startAt, endAt } = getZonedDayBounds(day);
   return { startAt, endAt };
 }
 
@@ -220,8 +219,7 @@ export async function getManagerDwgReport(
   } = {},
 ) {
   const { prisma } = await import("@/lib/prisma");
-  const selectedDate = parseSafeDate(options.day);
-  const { startAt, endAt } = dayBounds(selectedDate);
+  const { dayStr, startAt, endAt } = getZonedDayBounds(options.day);
 
   const whereClause: Record<string, unknown> = {
     companyId: context.companyId,
@@ -290,7 +288,7 @@ export async function getManagerDwgReport(
 
   const rows = aggregateDwgActivities(flatActivities);
   return {
-    date: formatDayString(selectedDate),
+    date: dayStr,
     rows,
   };
 }

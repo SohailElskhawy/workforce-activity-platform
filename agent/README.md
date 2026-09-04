@@ -79,15 +79,27 @@ The agent does not record keystrokes, screenshots, file contents, browser histor
 
 For sensitive tools, list executable names in `WORKLENS_EXCLUDED_PROCESSES`, for example `1password.exe,keepass.exe`. An excluded process becomes `SKIP`: the current segment is closed and no segment is created for the excluded interval. Idle time becomes an `IDLE` segment after `WORKLENS_IDLE_THRESHOLD_SECONDS` (300 seconds by default).
 
-## Offline queue and delivery
+## Offline queue, pruning, and secure storage
 
-Developer runs store pending segments in `agent/data/activity.db`. Installed runs store their queue in `%LOCALAPPDATA%\WorkLens\activity.db`, alongside `%LOCALAPPDATA%\WorkLens\config.json` and `%LOCALAPPDATA%\WorkLens\logs\agent.log`. Network failures or non-success responses leave queued records in place for later retry. A successful upload marks only the acknowledged batch as uploaded. Event IDs are stable, and the backend has a `(deviceId, eventId)` uniqueness rule, so retrying an already delivered activity is safe.
+Developer runs store pending segments in `agent/data/activity.db`. Installed runs store their queue in `%LOCALAPPDATA%\WorkLens\activity.db`, alongside `%LOCALAPPDATA%\WorkLens\config.json` and rotating logs in `%LOCALAPPDATA%\WorkLens\logs\agent.log`.
+
+* **Windows DPAPI Security**: In installed mode, the agent token is encrypted at rest using Windows DPAPI (`CryptProtectData`). Plaintext secrets are never stored on disk.
+* **Safe Queue Pruning**: Successfully uploaded activities older than 7 days are automatically pruned from SQLite on startup and once every hour. Pending/unuploaded rows are NEVER deleted.
+* **Idempotent Delivery**: Event IDs are stable, and the backend has a `(deviceId, eventId)` uniqueness rule, so retrying an already delivered activity is safe.
+
+## Status visibility
+
+To check agent health, connection status, and queue depth:
+
+```powershell
+python -m worklens_agent.main --status
+```
 
 ## Testing
 
-Install the test extra, then run:
+Run unit and integration tests:
 
 ```bash
 cd agent
-python -m pytest
+python -m unittest discover tests
 ```

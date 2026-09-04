@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AssignEmployeeDialog } from "@/components/manager/assign-employee-dialog";
+import { EditTaskDialog } from "@/components/manager/edit-task-dialog";
+import { UnassignEmployeeButton } from "@/components/manager/unassign-employee-button";
 import { EmptyState } from "@/components/states/empty-state";
 import { PriorityBadge } from "@/components/manager/priority-badge";
 import { StatusBadge } from "@/components/manager/status-badge";
@@ -66,17 +68,30 @@ export default async function TaskDetailPage({
             </Link>
           </p>
         </div>
-        <AssignEmployeeDialog
-          employees={employees.map(
-            ({ email, firstName, id: employeeId, lastName }) => ({
-              email,
-              firstName,
-              id: employeeId,
-              lastName,
-            }),
-          )}
-          taskId={task.id}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <EditTaskDialog
+            task={{
+              id: task.id,
+              title: task.title,
+              description: task.description,
+              status: task.status,
+              priority: task.priority,
+              estimatedMinutes: task.estimatedMinutes,
+              dueDate: task.dueDate,
+            }}
+          />
+          <AssignEmployeeDialog
+            employees={employees.map(
+              ({ email, firstName, id: employeeId, lastName }) => ({
+                email,
+                firstName,
+                id: employeeId,
+                lastName,
+              }),
+            )}
+            taskId={task.id}
+          />
+        </div>
       </div>
       <Card>
         <CardHeader>
@@ -135,9 +150,16 @@ export default async function TaskDetailPage({
                         assignment.employee.email}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDate(assignment.assignedAt, locale)}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(assignment.assignedAt, locale)}
+                    </p>
+                    <UnassignEmployeeButton
+                      taskId={task.id}
+                      employeeId={assignment.employee.id}
+                      employeeName={`${assignment.employee.firstName} ${assignment.employee.lastName}`}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

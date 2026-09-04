@@ -23,3 +23,5 @@ export const createTimeEntrySchema = z
   .strict();
 
 export type CreateTimeEntryInput = z.output<typeof createTimeEntrySchema>;
+export const updateTimeEntrySchema = createTimeEntrySchema;
+export type UpdateTimeEntryInput = CreateTimeEntryInput;

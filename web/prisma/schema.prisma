@@ -295,6 +295,8 @@ model Activity {
 
     @@unique([deviceId, eventId])
     @@index([companyId])
+    @@index([companyId, type, startAt])
+    @@index([companyId, fileName])
     @@index([employeeId, startAt])
     @@index([projectId])
     @@index([taskId])

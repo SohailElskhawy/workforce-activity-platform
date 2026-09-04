@@ -1,4 +1,6 @@
 import { AddTimeEntryDialog } from "@/components/employee/add-time-entry-dialog";
+import { DeleteTimeEntryButton } from "@/components/employee/delete-time-entry-button";
+import { EditTimeEntryDialog } from "@/components/employee/edit-time-entry-dialog";
 import { EmptyState } from "@/components/states/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -58,6 +60,7 @@ export default async function MyTimePage() {
                   <TableHead>{t.tasks.taskTitle}</TableHead>
                   <TableHead>{t.myTime.duration}</TableHead>
                   <TableHead>{t.myTime.notes}</TableHead>
+                  <TableHead className="text-right">{t.common.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -73,6 +76,27 @@ export default async function MyTimePage() {
                     </TableCell>
                     <TableCell className="max-w-64 truncate">
                       {entry.notes ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <EditTimeEntryDialog
+                          entry={{
+                            id: entry.id,
+                            projectId: entry.projectId,
+                            taskId: entry.taskId,
+                            startAt: entry.startAt,
+                            endAt: entry.endAt,
+                            notes: entry.notes,
+                          }}
+                          projects={projects.map(({ code, id, name }) => ({
+                            code,
+                            id,
+                            name,
+                          }))}
+                          tasks={tasks}
+                        />
+                        <DeleteTimeEntryButton id={entry.id} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

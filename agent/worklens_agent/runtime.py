@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import sys
@@ -22,6 +23,10 @@ class RuntimePaths:
     @property
     def log_path(self) -> Path:
         return self.root / "logs" / "agent.log"
+
+    @property
+    def status_path(self) -> Path:
+        return self.root / "status.json"
 
     @classmethod
     def for_current_user(
@@ -48,20 +53,24 @@ def load_packaged_default_api_url() -> str:
     return api_url.rstrip("/") if isinstance(api_url, str) else ""
 
 
-def configure_file_logging(log_path: Path) -> logging.FileHandler:
+def configure_file_logging(log_path: Path) -> logging.Handler:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
     resolved_path = log_path.resolve()
     for handler in root_logger.handlers:
         if (
-            isinstance(handler, logging.FileHandler)
+            isinstance(handler, (logging.FileHandler, RotatingFileHandler))
+            and hasattr(handler, "baseFilename")
             and Path(handler.baseFilename) == resolved_path
         ):
             return handler
-    handler = logging.FileHandler(log_path, encoding="utf-8")
+    # Rotating log file: max 5 MB per file, keep 3 backups (total max ~20MB)
+    handler = RotatingFileHandler(
+        log_path, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
+    )
     handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
+        logging.Formatter("%(asctime)s [%(levelname)s] [%(name)s] %(message)s")
     )
     root_logger.addHandler(handler)
     return handler
@@ -71,8 +80,11 @@ def close_file_logging(log_path: Path | None = None) -> None:
     root_logger = logging.getLogger()
     resolved_path = log_path.resolve() if log_path is not None else None
     for handler in list(root_logger.handlers):
-        if isinstance(handler, logging.FileHandler):
-            if resolved_path is None or Path(handler.baseFilename) == resolved_path:
+        if isinstance(handler, (logging.FileHandler, RotatingFileHandler)):
+            if resolved_path is None or (
+                hasattr(handler, "baseFilename")
+                and Path(handler.baseFilename) == resolved_path
+            ):
                 handler.close()
                 root_logger.removeHandler(handler)
 
