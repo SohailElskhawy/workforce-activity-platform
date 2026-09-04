@@ -92,6 +92,58 @@ class SegmentBuilderTests(unittest.TestCase):
             [("APPLICATION", 10)],
         )
 
+    def test_switching_dwg_files_closes_previous_and_starts_new_dwg_segment(
+        self,
+    ) -> None:
+        builder = SegmentBuilder()
+
+        builder.observe(observation(0, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg"))
+        builder.observe(observation(2, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg"))
+        closed_a = builder.observe(
+            observation(10, "APPLICATION", "AutoCAD", "ABC_B_Block.dwg")
+        )
+        builder.observe(observation(12, "APPLICATION", "AutoCAD", "ABC_B_Block.dwg"))
+        closed_b = builder.finish(BASE_TIME + timedelta(seconds=20))
+
+        self.assertEqual(len(closed_a), 1)
+        self.assertEqual(closed_a[0].type, "APPLICATION")
+        self.assertEqual(closed_a[0].file_name, "ABC_A_Block.dwg")
+        self.assertEqual(closed_a[0].duration_seconds, 10)
+
+        self.assertEqual(len(closed_b), 1)
+        self.assertEqual(closed_b[0].type, "APPLICATION")
+        self.assertEqual(closed_b[0].file_name, "ABC_B_Block.dwg")
+        self.assertEqual(closed_b[0].duration_seconds, 10)
+
+    def test_application_idle_application_dwg_transition(self) -> None:
+        builder = SegmentBuilder()
+
+        builder.observe(observation(0, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg"))
+        dwg_closed = builder.observe(observation(10, "IDLE"))
+        builder.observe(observation(12, "IDLE"))
+        idle_closed = builder.observe(
+            observation(25, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg")
+        )
+        resumed_dwg_closed = builder.finish(BASE_TIME + timedelta(seconds=35))
+
+        self.assertEqual(
+            [
+                (
+                    segment.type,
+                    segment.application_name,
+                    segment.file_name,
+                    segment.duration_seconds,
+                )
+                for segment in dwg_closed + idle_closed + resumed_dwg_closed
+            ],
+            [
+                ("APPLICATION", "AutoCAD", "ABC_A_Block.dwg", 10),
+                ("IDLE", None, None, 15),
+                ("APPLICATION", "AutoCAD", "ABC_A_Block.dwg", 10),
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
+

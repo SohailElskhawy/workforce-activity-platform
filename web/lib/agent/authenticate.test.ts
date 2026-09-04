@@ -58,3 +58,30 @@ test("authenticateDevice rejects missing, inactive, and invalid credentials alik
     );
   }
 });
+
+test("authenticateDevice accepts seeded demo agent tokens", async () => {
+  const seededMehmetDevice = {
+    agentTokenHash: hashAgentToken("demo-agent-token-mehmet"),
+    companyId: "company-demo",
+    deviceId: "WS-IST-0141",
+    employeeId: "employee-mehmet",
+    id: "device-record-mehmet",
+    isActive: true,
+  };
+
+  const authenticated = await authenticateDevice(
+    request({
+      Authorization: "Bearer demo-agent-token-mehmet",
+      "X-Device-ID": "WS-IST-0141",
+    }),
+    async () => seededMehmetDevice,
+  );
+
+  assert.deepEqual(authenticated, {
+    companyId: "company-demo",
+    databaseId: "device-record-mehmet",
+    employeeId: "employee-mehmet",
+    publicId: "WS-IST-0141",
+  });
+});
+

@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from worklens_agent.runtime import (
     RuntimePaths,
+    close_file_logging,
     configure_file_logging,
     load_packaged_default_api_url,
 )
@@ -27,10 +28,13 @@ class RuntimePathsTests(unittest.TestCase):
     def test_file_logging_creates_parent_directory_and_log_file(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             log_path = Path(tempdir) / "logs" / "agent.log"
-            configure_file_logging(log_path)
-            logging.getLogger("worklens.test.runtime").warning("persist me")
+            try:
+                configure_file_logging(log_path)
+                logging.getLogger("worklens.test.runtime").warning("persist me")
 
-            self.assertIn("persist me", log_path.read_text(encoding="utf-8"))
+                self.assertIn("persist me", log_path.read_text(encoding="utf-8"))
+            finally:
+                close_file_logging(log_path)
 
     def test_packaged_default_url_accepts_windows_utf8_bom(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

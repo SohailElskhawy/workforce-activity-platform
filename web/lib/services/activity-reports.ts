@@ -1,3 +1,5 @@
+import { aggregateDwgActivities, formatDayString } from "@/lib/services/dwg-reports";
+
 type ActivityForSummary = {
   type:
     | "APPLICATION"
@@ -142,11 +144,27 @@ export async function getEmployeeDaySummary(
   const activityTotals = summarizeActivities(activities);
   const manualMinutes = manualTime._sum.durationMinutes ?? 0;
   const lastSeenAt = employee.devices[0]?.lastSeenAt ?? null;
+  const employeeName = `${employee.firstName} ${employee.lastName}`.trim();
+  const dwgSummary = aggregateDwgActivities(
+    activities.map((act) => ({
+      employeeId: employee.id,
+      employeeName,
+      type: act.type,
+      applicationName: act.applicationName,
+      fileName: act.fileName,
+      durationSeconds: act.durationSeconds,
+      projectId: act.project?.id ?? null,
+      projectName: act.project?.name ?? null,
+      projectCode: act.project?.code ?? null,
+      taskId: act.task?.id ?? null,
+      taskTitle: act.task?.title ?? null,
+    })),
+  );
 
   return {
     employee: {
       id: employee.id,
-      name: `${employee.firstName} ${employee.lastName}`,
+      name: employeeName,
       email: employee.email,
       position: employee.position,
       status: employee.status,
@@ -165,6 +183,8 @@ export async function getEmployeeDaySummary(
     ),
     inProgressTasks: employee.assignments.map(({ task }) => task),
     timeline: activities,
+    dwgSummary,
+    selectedDate: formatDayString(startAt),
   };
 }
 

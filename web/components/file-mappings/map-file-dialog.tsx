@@ -33,9 +33,13 @@ type FileMappingForm = z.input<typeof fileMappingSchema>;
 export function MapFileDialog({
   projects,
   tasks,
+  initialFileName = "",
+  trigger,
 }: {
   projects: ProjectOption[];
   tasks: TaskOption[];
+  initialFileName?: string;
+  trigger?: React.ReactNode;
 }) {
   const { formatError, t } = useI18n();
   const router = useRouter();
@@ -48,11 +52,18 @@ export function MapFileDialog({
     register,
     reset,
   } = useForm<FileMappingForm, unknown, FileMappingInput>({
-    defaultValues: { fileName: "", projectId: "", taskId: null },
+    defaultValues: { fileName: initialFileName, projectId: "", taskId: null },
     resolver: zodResolver(fileMappingSchema),
   });
   const projectId = useWatch({ control, name: "projectId" });
   const projectTasks = tasks.filter((task) => task.project.id === projectId);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      reset({ fileName: initialFileName, projectId: "", taskId: null });
+    }
+    setOpen(nextOpen);
+  }
 
   async function onSubmit(values: FileMappingInput) {
     setRequestError(null);
@@ -67,13 +78,17 @@ export function MapFileDialog({
   }
 
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogTrigger
         render={
-          <Button disabled={!projects.length}>
-            <Link2 />
-            {t.activities.mapFile}
-          </Button>
+          trigger ? (
+            <>{trigger}</>
+          ) : (
+            <Button disabled={!projects.length}>
+              <Link2 />
+              {t.activities.mapFile}
+            </Button>
+          )
         }
       />
       <DialogContent className="sm:max-w-md">

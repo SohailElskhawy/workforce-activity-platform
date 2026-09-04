@@ -1,6 +1,8 @@
 import { ActivityTimeline } from "@/components/activity/activity-timeline";
 import { ApplicationBreakdown } from "@/components/activity/application-breakdown";
 import { ActivityPoller } from "@/components/activity/activity-poller";
+import { DwgSummaryCard } from "@/components/activity/dwg-summary-card";
+import { HistoricalDateFilter } from "@/components/activity/historical-date-filter";
 import { PageHeading } from "@/components/manager/page-heading";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -19,17 +21,26 @@ import {
 } from "@/lib/formatters";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
+import { formatDayString, parseSafeDate } from "@/lib/services/dwg-reports";
 
 export default async function EmployeeDetailPage({
   params,
-}: PageProps<"/employees/[id]">) {
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ day?: string }>;
+}) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const selectedDate = parseSafeDate(resolvedSearchParams?.day);
+  const dayString = formatDayString(selectedDate);
+
   const [session, locale] = await Promise.all([
     requireManager(),
     getServerLocale(),
   ]);
   const [summary, t] = await Promise.all([
-    getEmployeeDaySummary(toAuthContext(session), id),
+    getEmployeeDaySummary(toAuthContext(session), id, selectedDate),
     getServerDictionary(locale),
   ]);
   const difference = formatActivityDifference(summary.differenceMinutes, locale);
@@ -41,7 +52,8 @@ export default async function EmployeeDetailPage({
         description={`${summary.employee.department ?? t.tasks.unassigned} · ${summary.employee.position ?? t.common.employee}`}
         title={summary.employee.name}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <HistoricalDateFilter selectedDate={dayString} />
             <RegisterAgentDeviceDialog
               employeeId={id}
               employeeName={summary.employee.name}
@@ -69,6 +81,7 @@ export default async function EmployeeDetailPage({
         />
         <MetricCard label={t.reports.manualVsTracked} value={difference} />
       </section>
+      <DwgSummaryCard items={summary.dwgSummary} />
       <section className="grid gap-6 lg:grid-cols-2">
         <ApplicationBreakdown applications={summary.applications} />
         <Card>

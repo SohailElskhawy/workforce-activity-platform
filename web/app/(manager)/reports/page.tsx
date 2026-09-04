@@ -71,7 +71,7 @@ export default async function ReportsPage() {
             }))}
             tasks={tasks.map(({ id, project, title }) => ({
               id,
-              project: { code: project.code },
+              project: { code: project.code, id: project.id },
               title,
             }))}
           />

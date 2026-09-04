@@ -11,6 +11,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { hashAgentToken } from "../lib/agent/token";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
@@ -706,8 +707,13 @@ async function main() {
   }
 
   // ----------------------------------------------------------------- devices
-  const agentTokenHashMehmet = await bcrypt.hash("demo-agent-token-mehmet", 12);
-  const agentTokenHashAyse = await bcrypt.hash("demo-agent-token-ayse", 12);
+  const demoAgentTokenPepper =
+    process.env.AGENT_TOKEN_PEPPER || "worklens-demo-agent-token-pepper";
+  process.env.AGENT_TOKEN_PEPPER = demoAgentTokenPepper;
+
+  const agentTokenHashMehmet = hashAgentToken("demo-agent-token-mehmet");
+  const agentTokenHashAyse = hashAgentToken("demo-agent-token-ayse");
+
 
   const deviceMehmet = await prisma.device.create({
     data: {

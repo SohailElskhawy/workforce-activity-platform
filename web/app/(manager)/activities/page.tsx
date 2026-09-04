@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { MapFileDialog } from "@/components/file-mappings/map-file-dialog";
+import { UnmappedDwgTable } from "@/components/file-mappings/unmapped-dwg-table";
 import { PageHeading } from "@/components/manager/page-heading";
 import { EmptyState } from "@/components/states/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
+import { getUnmappedDwgFiles } from "@/lib/services/dwg-reports";
 import { listEmployees } from "@/lib/services/employees";
 import { listProjects } from "@/lib/services/projects";
 import { listTasks } from "@/lib/services/tasks";
@@ -23,10 +25,11 @@ export default async function ActivitiesPage() {
     getServerLocale(),
   ]);
   const context = toAuthContext(session);
-  const [employees, projects, tasks, t] = await Promise.all([
+  const [employees, projects, tasks, unmappedFiles, t] = await Promise.all([
     listEmployees(context),
     listProjects(context),
     listTasks(context),
+    getUnmappedDwgFiles(context),
     getServerDictionary(locale),
   ]);
 
@@ -103,6 +106,19 @@ export default async function ActivitiesPage() {
           title={t.employees.emptyTitle}
         />
       )}
+      <UnmappedDwgTable
+        projects={projects.map(({ code, id, name }) => ({
+          code,
+          id,
+          name,
+        }))}
+        tasks={tasks.map(({ id, project, title }) => ({
+          id,
+          project: { id: project.id },
+          title,
+        }))}
+        unmappedFiles={unmappedFiles}
+      />
     </main>
   );
 }

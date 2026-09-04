@@ -11,6 +11,7 @@ from worklens_agent.config import AgentConfig
 from worklens_agent.main import main, process_observations
 from worklens_agent.models import Observation
 from worklens_agent.queue import ActivityQueue
+from worklens_agent.runtime import close_file_logging
 from worklens_agent.segmenter import SegmentBuilder
 
 
@@ -34,7 +35,10 @@ class MainLoopTests(unittest.TestCase):
                 patch.object(main_module, "is_packaged", return_value=True),
                 patch.object(main_module, "run_real") as run_real,
             ):
-                self.assertEqual(main(["--runtime-dir", str(runtime_dir)]), 0)
+                try:
+                    self.assertEqual(main(["--runtime-dir", str(runtime_dir)]), 0)
+                finally:
+                    close_file_logging(runtime_dir / "logs" / "agent.log")
 
         run_real.assert_called_once_with(config, runtime_dir / "activity.db")
 

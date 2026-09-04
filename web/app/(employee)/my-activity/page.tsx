@@ -1,6 +1,8 @@
 import { ActivityTimeline } from "@/components/activity/activity-timeline";
 import { ApplicationBreakdown } from "@/components/activity/application-breakdown";
 import { ActivityPoller } from "@/components/activity/activity-poller";
+import { DwgSummaryCard } from "@/components/activity/dwg-summary-card";
+import { HistoricalDateFilter } from "@/components/activity/historical-date-filter";
 import { PageHeading } from "@/components/manager/page-heading";
 import {
   Card,
@@ -16,15 +18,24 @@ import {
 } from "@/lib/formatters";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
+import { formatDayString, parseSafeDate } from "@/lib/services/dwg-reports";
 
-export default async function MyActivityPage() {
+export default async function MyActivityPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ day?: string }>;
+}) {
   const [session, locale] = await Promise.all([
     requireEmployee(),
     getServerLocale(),
   ]);
   const context = toAuthContext(session);
+  const resolvedSearchParams = await searchParams;
+  const selectedDate = parseSafeDate(resolvedSearchParams?.day);
+  const dayString = formatDayString(selectedDate);
+
   const [summary, t] = await Promise.all([
-    getEmployeeDaySummary(context, context.employeeId!),
+    getEmployeeDaySummary(context, context.employeeId!, selectedDate),
     getServerDictionary(locale),
   ]);
 
@@ -32,6 +43,7 @@ export default async function MyActivityPage() {
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeading
+        action={<HistoricalDateFilter selectedDate={dayString} />}
         description={t.myActivity.subtitle}
         title={t.myActivity.title}
       />
@@ -53,6 +65,7 @@ export default async function MyActivityPage() {
           value={formatActivityDifference(summary.differenceMinutes, locale)}
         />
       </section>
+      <DwgSummaryCard items={summary.dwgSummary} />
       <ApplicationBreakdown applications={summary.applications} />
       <ActivityTimeline activities={summary.timeline} />
     </main>

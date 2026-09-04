@@ -48,7 +48,7 @@ def load_packaged_default_api_url() -> str:
     return api_url.rstrip("/") if isinstance(api_url, str) else ""
 
 
-def configure_file_logging(log_path: Path) -> None:
+def configure_file_logging(log_path: Path) -> logging.FileHandler:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
@@ -58,9 +58,21 @@ def configure_file_logging(log_path: Path) -> None:
             isinstance(handler, logging.FileHandler)
             and Path(handler.baseFilename) == resolved_path
         ):
-            return
+            return handler
     handler = logging.FileHandler(log_path, encoding="utf-8")
     handler.setFormatter(
         logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
     )
     root_logger.addHandler(handler)
+    return handler
+
+
+def close_file_logging(log_path: Path | None = None) -> None:
+    root_logger = logging.getLogger()
+    resolved_path = log_path.resolve() if log_path is not None else None
+    for handler in list(root_logger.handlers):
+        if isinstance(handler, logging.FileHandler):
+            if resolved_path is None or Path(handler.baseFilename) == resolved_path:
+                handler.close()
+                root_logger.removeHandler(handler)
+
