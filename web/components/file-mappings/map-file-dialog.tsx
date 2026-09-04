@@ -82,7 +82,7 @@ export function MapFileDialog({
       <DialogTrigger
         render={
           trigger ? (
-            <>{trigger}</>
+            (trigger as React.ReactElement)
           ) : (
             <Button disabled={!projects.length}>
               <Link2 />
