@@ -3,13 +3,8 @@ import { ApplicationBreakdown } from "@/components/activity/application-breakdow
 import { ActivityPoller } from "@/components/activity/activity-poller";
 import { DwgSummaryCard } from "@/components/activity/dwg-summary-card";
 import { HistoricalDateFilter } from "@/components/activity/historical-date-filter";
-import { PageHeading } from "@/components/manager/page-heading";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
+import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 import { requireEmployee, toAuthContext } from "@/lib/auth";
 import {
   formatActivityDifference,
@@ -42,29 +37,33 @@ export default async function MyActivityPage({
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
-      <PageHeading
+      <PageHeader
         action={<HistoricalDateFilter selectedDate={dayString} />}
         description={t.myActivity.subtitle}
         title={t.myActivity.title}
       />
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric
+      <KpiGrid>
+        <KpiCard
           label={t.managerDashboard.active}
+          tone="emerald"
           value={formatDurationFromSeconds(summary.activeSeconds, locale)}
         />
-        <Metric
+        <KpiCard
           label={t.managerDashboard.idle}
+          tone="amber"
           value={formatDurationFromSeconds(summary.idleSeconds, locale)}
         />
-        <Metric
+        <KpiCard
           label={t.myTime.title}
+          tone="sky"
           value={formatDurationFromMinutes(summary.manualMinutes, locale)}
         />
-        <Metric
+        <KpiCard
           label={t.reports.manualVsTracked}
+          tone="violet"
           value={formatActivityDifference(summary.differenceMinutes, locale)}
         />
-      </section>
+      </KpiGrid>
       <DwgSummaryCard items={summary.dwgSummary} />
       <ApplicationBreakdown applications={summary.applications} />
       <ActivityTimeline activities={summary.timeline} />
@@ -72,14 +71,4 @@ export default async function MyActivityPage({
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-xl">{value}</CardTitle>
-      </CardHeader>
-    </Card>
-  );
-}
 

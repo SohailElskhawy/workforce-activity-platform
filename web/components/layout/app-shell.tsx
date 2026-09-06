@@ -4,16 +4,21 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   BarChart3,
+  Bell,
   BriefcaseBusiness,
+  Building2,
   Clock3,
   FolderKanban,
   Gauge,
+  Laptop,
   ListChecks,
   Menu,
+  Settings,
   ShieldCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
@@ -27,6 +32,11 @@ type NavigationItem = {
   label: string;
 };
 
+type NavigationGroup = {
+  heading?: string;
+  items: NavigationItem[];
+};
+
 export function AppShell({
   children,
   email,
@@ -37,26 +47,64 @@ export function AppShell({
   role: AppRole;
 }) {
   const { t } = useI18n();
+  const pathname = usePathname() ?? "";
   const isManager = role === "MANAGER";
-  
-  const managerNavigation: NavigationItem[] = [
-    { href: "/dashboard", icon: Gauge, label: t.common.navigation.dashboard },
-    { href: "/projects", icon: FolderKanban, label: t.common.navigation.projects },
-    { href: "/tasks", icon: ListChecks, label: t.common.navigation.tasks },
-    { href: "/employees", icon: Users, label: t.common.navigation.employees },
-    { href: "/activities", icon: Activity, label: t.common.navigation.activities },
-    { href: "/reports", icon: BarChart3, label: t.common.navigation.reports },
+
+  const managerGroups: NavigationGroup[] = [
+    {
+      items: [
+        { href: "/dashboard", icon: Gauge, label: t.common.navigation.dashboard },
+      ],
+    },
+    {
+      heading: t.common.navigation.workforce,
+      items: [
+        { href: "/employees", icon: Users, label: t.common.navigation.employees },
+        { href: "/departments", icon: Building2, label: t.common.navigation.departments },
+        { href: "/devices", icon: Laptop, label: t.common.navigation.devices },
+      ],
+    },
+    {
+      heading: t.common.navigation.work,
+      items: [
+        { href: "/projects", icon: FolderKanban, label: t.common.navigation.projects },
+        { href: "/tasks", icon: ListChecks, label: t.common.navigation.tasks },
+      ],
+    },
+    {
+      heading: t.common.navigation.tracking,
+      items: [
+        { href: "/activities", icon: Activity, label: t.common.navigation.activities },
+        { href: "/time-entries", icon: Clock3, label: t.common.navigation.timeEntries },
+      ],
+    },
+    {
+      heading: t.common.navigation.analytics,
+      items: [
+        { href: "/reports", icon: BarChart3, label: t.common.navigation.reports },
+      ],
+    },
+    {
+      heading: t.common.navigation.administration,
+      items: [
+        { href: "/settings", icon: Settings, label: t.common.navigation.settings },
+      ],
+    },
   ];
 
-  const employeeNavigation: NavigationItem[] = [
-    { href: "/my-dashboard", icon: Gauge, label: t.common.navigation.overview },
-    { href: "/my-projects", icon: BriefcaseBusiness, label: t.common.navigation.myProjects },
-    { href: "/my-tasks", icon: ListChecks, label: t.common.navigation.myTasks },
-    { href: "/my-time", icon: Clock3, label: t.common.navigation.manualTime },
-    { href: "/my-activity", icon: Activity, label: t.common.navigation.myActivity },
+  const employeeGroups: NavigationGroup[] = [
+    {
+      items: [
+        { href: "/my-dashboard", icon: Gauge, label: t.common.navigation.overview },
+        { href: "/my-tasks", icon: ListChecks, label: t.common.navigation.myTasks },
+        { href: "/my-projects", icon: BriefcaseBusiness, label: t.common.navigation.myProjects },
+        { href: "/my-time", icon: Clock3, label: t.common.navigation.manualTime },
+        { href: "/my-activity", icon: Activity, label: t.common.navigation.myActivity },
+      ],
+    },
   ];
 
-  const navigation = isManager ? managerNavigation : employeeNavigation;
+  const groups = isManager ? managerGroups : employeeGroups;
   const workspaceTitle = isManager ? t.common.managerWorkspace : t.common.employeeWorkspace;
   const navAriaLabel = isManager ? t.common.navigation.managerNavigation : t.common.navigation.employeeNavigation;
   const accountLabel = isManager ? t.common.managerAccount : t.common.employeeAccount;
@@ -67,10 +115,12 @@ export function AppShell({
     <div className="min-h-screen bg-slate-50 text-slate-950">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-slate-800 bg-slate-950 text-slate-100 lg:flex">
         <Brand href={homeHref} tagline={t.common.brandTagline} />
-        <div className="px-5 pb-3 pt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <div className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
           {workspaceTitle}
         </div>
-        <Navigation items={navigation} label={navAriaLabel} />
+        <div className="flex-1 overflow-y-auto px-2 py-1 scrollbar-thin">
+          <Navigation currentPath={pathname} groups={groups} label={navAriaLabel} />
+        </div>
         <div className="mt-auto space-y-4 border-t border-slate-800 p-5">
           <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
             <div className="mb-2 flex items-center gap-2 text-xs font-medium text-emerald-300">
@@ -96,9 +146,10 @@ export function AppShell({
                 </span>
                 <span>WorkLens</span>
               </summary>
-              <div className="absolute left-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/15">
+              <div className="absolute left-0 top-12 max-h-[calc(100vh-4rem)] w-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/15">
                 <Navigation
-                  items={navigation}
+                  currentPath={pathname}
+                  groups={groups}
                   label={navAriaLabel}
                   mobile
                 />
@@ -125,6 +176,13 @@ export function AppShell({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              aria-label={t.common.notifications}
+              className="relative inline-flex size-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              type="button"
+            >
+              <Bell className="size-4" />
+            </button>
             <LanguageSwitcher />
             <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:flex">
               <span className="size-1.5 rounded-full bg-emerald-500" />
@@ -162,35 +220,66 @@ function Brand({ href, tagline }: { href: string; tagline: string }) {
   );
 }
 
+function isItemActive(pathname: string, href: string) {
+  if (!pathname) return false;
+  if (href === "/dashboard" || href === "/my-dashboard") {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function Navigation({
-  items,
+  currentPath,
+  groups,
   label,
   mobile = false,
 }: {
-  items: NavigationItem[];
+  currentPath: string;
+  groups: NavigationGroup[];
   label: string;
   mobile?: boolean;
 }) {
   return (
-    <nav
-      aria-label={label}
-      className={mobile ? "space-y-1" : "space-y-1 px-4"}
-    >
-      {items.map(({ href, icon: Icon, label: itemLabel }) => (
-        <Link
-          className={
-            mobile
-              ? "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950"
-              : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
-          }
-          href={href}
-          key={href}
-        >
-          <Icon className="size-4" />
-          {itemLabel}
-        </Link>
+    <nav aria-label={label} className={mobile ? "space-y-4" : "space-y-4 px-2"}>
+      {groups.map((group, groupIndex) => (
+        <div className="space-y-1" key={group.heading ?? `group-${groupIndex}`}>
+          {group.heading ? (
+            <div
+              className={
+                mobile
+                  ? "px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
+                  : "px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500"
+              }
+            >
+              {group.heading}
+            </div>
+          ) : null}
+          {group.items.map(({ href, icon: Icon, label: itemLabel }) => {
+            const active = isItemActive(currentPath, href);
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={
+                  mobile
+                    ? active
+                      ? "flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-950"
+                      : "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+                    : active
+                      ? "flex items-center gap-3 rounded-xl bg-slate-800 px-3 py-2 text-sm font-semibold text-white shadow-sm"
+                      : "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-900/80 hover:text-slate-200"
+                }
+                href={href}
+                key={href}
+              >
+                <Icon className={active ? "size-4 text-emerald-400" : "size-4"} />
+                {itemLabel}
+              </Link>
+            );
+          })}
+        </div>
       ))}
     </nav>
   );
 }
+
 

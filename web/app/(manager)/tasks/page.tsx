@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { CreateTaskDialog } from "@/components/manager/create-task-dialog";
 import { EmptyState } from "@/components/states/empty-state";
-import { PageHeading } from "@/components/manager/page-heading";
-import { PriorityBadge } from "@/components/manager/priority-badge";
-import { StatusBadge } from "@/components/manager/status-badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
+import { PriorityBadge } from "@/components/ui/priority-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { DataTableCard } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -34,7 +34,7 @@ export default async function TasksPage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <PageHeading
+      <PageHeader
         action={
           <CreateTaskDialog
             projects={projects.map(({ code, id, name }) => ({
@@ -47,9 +47,8 @@ export default async function TasksPage() {
         description={t.tasks.subtitle}
         title={t.tasks.title}
       />
-      <Card>
-        <CardContent className="pt-0">
-          {tasks.length ? (
+      <DataTableCard>
+        {tasks.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -103,8 +102,7 @@ export default async function TasksPage() {
               title={t.tasks.emptyTitle}
             />
           )}
-        </CardContent>
-      </Card>
+      </DataTableCard>
     </main>
   );
 }

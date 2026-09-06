@@ -2,12 +2,12 @@ import Link from "next/link";
 
 import { ActivityPoller } from "@/components/activity/activity-poller";
 import { CreateEmployeeDialog } from "@/components/manager/create-employee-dialog";
-import { PageHeading } from "@/components/manager/page-heading";
+import { PageHeader } from "@/components/layout/page-header";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { EmptyState } from "@/components/states/empty-state";
-import { StatusBadge } from "@/components/manager/status-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataTableCard } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -35,14 +35,13 @@ export default async function EmployeesPage() {
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
-      <PageHeading
+      <PageHeader
         action={<CreateEmployeeDialog departments={departments} />}
         description={t.employees.subtitle}
         title={t.employees.title}
       />
-      <Card>
-        <CardContent className="pt-0">
-          {employees.length ? (
+      <DataTableCard>
+        {employees.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -115,8 +114,7 @@ export default async function EmployeesPage() {
               title={t.employees.emptyTitle}
             />
           )}
-        </CardContent>
-      </Card>
+      </DataTableCard>
     </main>
   );
 }

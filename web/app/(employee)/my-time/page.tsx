@@ -1,8 +1,9 @@
 import { AddTimeEntryDialog } from "@/components/employee/add-time-entry-dialog";
 import { DeleteTimeEntryButton } from "@/components/employee/delete-time-entry-button";
 import { EditTimeEntryDialog } from "@/components/employee/edit-time-entry-dialog";
+import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/states/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataTableCard } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -37,21 +38,18 @@ export default async function MyTimePage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t.myTime.title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t.myTime.subtitle}
-          </p>
-        </div>
-        <AddTimeEntryDialog
-          projects={projects.map(({ code, id, name }) => ({ code, id, name }))}
-          tasks={tasks}
-        />
-      </div>
-      <Card>
-        <CardContent className="pt-0">
-          {entries.length ? (
+      <PageHeader
+        action={
+          <AddTimeEntryDialog
+            projects={projects.map(({ code, id, name }) => ({ code, id, name }))}
+            tasks={tasks}
+          />
+        }
+        description={t.myTime.subtitle}
+        title={t.myTime.title}
+      />
+      <DataTableCard>
+        {entries.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -108,8 +106,7 @@ export default async function MyTimePage() {
               title={t.myTime.emptyTitle}
             />
           )}
-        </CardContent>
-      </Card>
+      </DataTableCard>
     </main>
   );
 }

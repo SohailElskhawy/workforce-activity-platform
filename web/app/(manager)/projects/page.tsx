@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { CreateProjectDialog } from "@/components/manager/create-project-dialog";
 import { EmptyState } from "@/components/states/empty-state";
-import { PageHeading } from "@/components/manager/page-heading";
-import { StatusBadge } from "@/components/manager/status-badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { DataTableCard } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -30,14 +30,13 @@ export default async function ProjectsPage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <PageHeading
+      <PageHeader
         action={<CreateProjectDialog />}
         description={t.projects.subtitle}
         title={t.projects.title}
       />
-      <Card>
-        <CardContent className="pt-0">
-          {projects.length ? (
+      <DataTableCard>
+        {projects.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -75,8 +74,7 @@ export default async function ProjectsPage() {
               title={t.projects.emptyTitle}
             />
           )}
-        </CardContent>
-      </Card>
+      </DataTableCard>
     </main>
   );
 }

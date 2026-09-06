@@ -9,6 +9,7 @@ import { EmployeeManualTimeCard } from "@/components/manager/employee-manual-tim
 import { PageHeading } from "@/components/manager/page-heading";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { Badge } from "@/components/ui/badge";
+import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 import {
   Card,
   CardContent,
@@ -56,6 +57,10 @@ export default async function EmployeeDetailPage({
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeading
+        breadcrumbs={[
+          { label: t.common.navigation.employees, href: "/employees" },
+          { label: summary.employee.name },
+        ]}
         description={`${summary.employee.department ?? t.tasks.unassigned} · ${summary.employee.position ?? t.common.employee} · ${summary.employee.email}`}
         title={summary.employee.name}
         action={
@@ -95,21 +100,28 @@ export default async function EmployeeDetailPage({
           </div>
         }
       />
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
+      <KpiGrid>
+        <KpiCard
           label={t.employees.activeTimeToday}
+          tone="emerald"
           value={formatDurationFromSeconds(summary.activeSeconds, locale)}
         />
-        <MetricCard
+        <KpiCard
           label={t.employees.idleTimeToday}
+          tone="amber"
           value={formatDurationFromSeconds(summary.idleSeconds, locale)}
         />
-        <MetricCard
+        <KpiCard
           label={t.myTime.title}
+          tone="sky"
           value={formatDurationFromMinutes(summary.manualMinutes, locale)}
         />
-        <MetricCard label={t.reports.manualVsTracked} value={difference} />
-      </section>
+        <KpiCard
+          label={t.reports.manualVsTracked}
+          tone="violet"
+          value={difference}
+        />
+      </KpiGrid>
       <DwgSummaryCard items={summary.dwgSummary} />
       <section className="grid gap-6 lg:grid-cols-2">
         <ApplicationBreakdown applications={summary.applications} />
@@ -147,15 +159,3 @@ export default async function EmployeeDetailPage({
     </main>
   );
 }
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-xl">{value}</CardTitle>
-      </CardHeader>
-    </Card>
-  );
-}
-

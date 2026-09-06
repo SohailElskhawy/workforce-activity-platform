@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToastContainer, ToastProvider } from "@/components/ui/toast";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getServerLocale } from "@/lib/i18n/server";
 import "./globals.css";
@@ -14,7 +15,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={locale} className="h-full antialiased">
       <body className="min-h-full flex flex-col">
-        <I18nProvider initialLocale={locale}>{children}</I18nProvider>
+        <I18nProvider initialLocale={locale}>
+          <ToastProvider>
+            {children}
+            <ToastContainer />
+          </ToastProvider>
+        </I18nProvider>
       </body>
     </html>
   );

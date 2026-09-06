@@ -1,7 +1,8 @@
 import { UpdateTaskStatus } from "@/components/employee/update-task-status";
+import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/states/empty-state";
-import { PriorityBadge } from "@/components/manager/priority-badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { PriorityBadge } from "@/components/ui/priority-badge";
+import { DataTableCard } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -27,15 +28,12 @@ export default async function MyTasksPage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t.myTasks.title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t.myTasks.subtitle}
-        </p>
-      </div>
-      <Card>
-        <CardContent className="pt-0">
-          {tasks.length ? (
+      <PageHeader
+        description={t.myTasks.subtitle}
+        title={t.myTasks.title}
+      />
+      <DataTableCard>
+        {tasks.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -77,8 +75,7 @@ export default async function MyTasksPage() {
               title={t.myTasks.emptyTitle}
             />
           )}
-        </CardContent>
-      </Card>
+      </DataTableCard>
     </main>
   );
 }

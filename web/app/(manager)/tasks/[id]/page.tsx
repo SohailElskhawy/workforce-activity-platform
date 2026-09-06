@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 
 import { AssignEmployeeDialog } from "@/components/manager/assign-employee-dialog";
 import { EditTaskDialog } from "@/components/manager/edit-task-dialog";
+import { PageHeader } from "@/components/layout/page-header";
 import { UnassignEmployeeButton } from "@/components/manager/unassign-employee-button";
 import { EmptyState } from "@/components/states/empty-state";
-import { PriorityBadge } from "@/components/manager/priority-badge";
-import { StatusBadge } from "@/components/manager/status-badge";
+import { PriorityBadge } from "@/components/ui/priority-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Card,
   CardContent,
@@ -48,51 +49,48 @@ export default async function TaskDetailPage({
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+      <PageHeader
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <EditTaskDialog
+              task={{
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                status: task.status,
+                priority: task.priority,
+                estimatedMinutes: task.estimatedMinutes,
+                dueDate: task.dueDate,
+              }}
+            />
+            <AssignEmployeeDialog
+              employees={employees.map(
+                ({ email, firstName, id: employeeId, lastName }) => ({
+                  email,
+                  firstName,
+                  id: employeeId,
+                  lastName,
+                }),
+              )}
+              taskId={task.id}
+            />
+          </div>
+        }
+        badge={<StatusBadge value={task.status} />}
+        breadcrumbs={[
+          { label: t.common.navigation.tasks, href: "/tasks" },
+          { label: task.title },
+        ]}
+        description={
           <Link
-            className="text-sm text-muted-foreground hover:text-foreground"
-            href="/tasks"
+            className="hover:underline text-muted-foreground hover:text-foreground"
+            href={`/projects/${task.project.id}`}
           >
-            ← {t.tasks.title}
+            {task.project.code} — {task.project.name}
           </Link>
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight">
-            {task.title}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            <Link
-              className="hover:underline"
-              href={`/projects/${task.project.id}`}
-            >
-              {task.project.code} — {task.project.name}
-            </Link>
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <EditTaskDialog
-            task={{
-              id: task.id,
-              title: task.title,
-              description: task.description,
-              status: task.status,
-              priority: task.priority,
-              estimatedMinutes: task.estimatedMinutes,
-              dueDate: task.dueDate,
-            }}
-          />
-          <AssignEmployeeDialog
-            employees={employees.map(
-              ({ email, firstName, id: employeeId, lastName }) => ({
-                email,
-                firstName,
-                id: employeeId,
-                lastName,
-              }),
-            )}
-            taskId={task.id}
-          />
-        </div>
-      </div>
+        }
+        title={task.title}
+      />
       <Card>
         <CardHeader>
           <CardTitle>{t.tasks.taskDetails}</CardTitle>

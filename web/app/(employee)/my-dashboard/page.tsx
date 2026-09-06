@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Activity, CheckSquare, Clock3, ListChecks } from "lucide-react";
 
-import { StatusBadge } from "@/components/manager/status-badge";
+import { PageHeader } from "@/components/layout/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/states/empty-state";
 import {
   Card,
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 import { requireEmployee, toAuthContext } from "@/lib/auth";
 import {
   formatDate,
@@ -33,45 +35,45 @@ export default async function MyDashboardPage() {
       label: t.employeeDashboard.todaysManualTime,
       value: formatDurationFromMinutes(dashboard.manualMinutes, locale),
       icon: Clock3,
+      tone: "sky" as const,
     },
     {
       label: t.employeeDashboard.assignedTasks,
       value: dashboard.assignedTaskCount,
       icon: ListChecks,
+      tone: "amber" as const,
     },
     {
       label: t.employeeDashboard.inProgress,
       value: dashboard.inProgressTaskCount,
       icon: CheckSquare,
+      tone: "violet" as const,
     },
     {
       label: t.employeeDashboard.todaysActivity,
       value: formatDurationFromSeconds(dashboard.activeSeconds, locale),
       icon: Activity,
+      tone: "emerald" as const,
     },
   ];
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t.employeeDashboard.title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t.employeeDashboard.subtitle}
-        </p>
-      </div>
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(({ icon: Icon, label, value }) => (
-          <Card key={label}>
-            <CardHeader className="flex-row items-start justify-between gap-4">
-              <div className="space-y-1">
-                <CardDescription>{label}</CardDescription>
-                <CardTitle className="text-2xl">{value}</CardTitle>
-              </div>
-              <Icon className="size-5 text-muted-foreground" />
-            </CardHeader>
-          </Card>
+      <PageHeader
+        description={t.employeeDashboard.subtitle}
+        title={t.employeeDashboard.title}
+      />
+      <KpiGrid>
+        {cards.map(({ icon, label, tone, value }) => (
+          <KpiCard
+            icon={icon}
+            key={label}
+            label={label}
+            tone={tone}
+            value={value}
+          />
         ))}
-      </section>
+      </KpiGrid>
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>

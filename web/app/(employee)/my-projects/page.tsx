@@ -1,6 +1,7 @@
-import { StatusBadge } from "@/components/manager/status-badge";
+import { PageHeader } from "@/components/layout/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/states/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataTableCard } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -26,15 +27,12 @@ export default async function MyProjectsPage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t.myProjects.title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t.myProjects.subtitle}
-        </p>
-      </div>
-      <Card>
-        <CardContent className="pt-0">
-          {projects.length ? (
+      <PageHeader
+        description={t.myProjects.subtitle}
+        title={t.myProjects.title}
+      />
+      <DataTableCard>
+        {projects.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -67,8 +65,7 @@ export default async function MyProjectsPage() {
               title={t.myProjects.emptyTitle}
             />
           )}
-        </CardContent>
-      </Card>
+      </DataTableCard>
     </main>
   );
 }

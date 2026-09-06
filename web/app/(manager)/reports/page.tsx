@@ -1,5 +1,5 @@
 import { ReportTabs } from "@/components/activity/report-tabs";
-import { PageHeading } from "@/components/manager/page-heading";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   Card,
   CardContent,
@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { formatDurationFromSeconds } from "@/lib/formatters";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
@@ -31,25 +32,32 @@ export default async function ReportsPage() {
 
   return (
     <main className="flex-1 space-y-6 p-6 md:p-10">
-      <PageHeading
+      <PageHeader
         description={t.reports.subtitle}
         title={t.reports.title}
       />
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label={t.employees.title} value={String(metrics.employeeCount)} />
-        <Metric
+      <KpiGrid>
+        <KpiCard
+          label={t.employees.title}
+          tone="sky"
+          value={String(metrics.employeeCount)}
+        />
+        <KpiCard
           label={t.employees.activeTimeToday}
+          tone="emerald"
           value={formatDurationFromSeconds(metrics.activeSeconds, locale)}
         />
-        <Metric
+        <KpiCard
           label={t.employees.idleTimeToday}
+          tone="amber"
           value={formatDurationFromSeconds(metrics.idleSeconds, locale)}
         />
-        <Metric
+        <KpiCard
           label={t.managerDashboard.openTasks}
+          tone="violet"
           value={String(metrics.overdueTaskCount)}
         />
-      </section>
+      </KpiGrid>
       <Card>
         <CardHeader>
           <CardTitle>{t.reports.title}</CardTitle>
@@ -81,14 +89,4 @@ export default async function ReportsPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-xl">{value}</CardTitle>
-      </CardHeader>
-    </Card>
-  );
-}
 

@@ -32,13 +32,32 @@ export interface TranslationDictionary {
     managerAccount: string;
     employeeAccount: string;
     signedInUser: string;
+    home: string;
+    confirm: string;
+    all: string;
+    clearFilters: string;
+    showing: string;
+    of: string;
+    previous: string;
+    next: string;
+    noResults: string;
+    notifications: string;
     navigation: {
       dashboard: string;
+      workforce: string;
+      employees: string;
+      departments: string;
+      devices: string;
+      work: string;
       projects: string;
       tasks: string;
-      employees: string;
+      tracking: string;
       activities: string;
+      timeEntries: string;
+      analytics: string;
       reports: string;
+      administration: string;
+      settings: string;
       overview: string;
       myProjects: string;
       myTasks: string;
@@ -74,6 +93,12 @@ export interface TranslationDictionary {
     ARCHIVED: string;
     BLOCKED: string;
     REVIEW: string;
+    SUSPENDED: string;
+    INACTIVE: string;
+    ONLINE: string;
+    OFFLINE: string;
+    OVERDUE: string;
+    DUE_SOON: string;
   };
   priority: {
     LOW: string;
