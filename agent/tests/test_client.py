@@ -12,12 +12,18 @@ from worklens_agent.queue import ActivityQueue
 
 
 class FakeResponse:
-    def __init__(self, status_code: int) -> None:
+    def __init__(self, status_code: int, json_data: object = None) -> None:
         self.status_code = status_code
+        self._json_data = json_data
 
     @property
     def is_success(self) -> bool:
         return 200 <= self.status_code < 300
+
+    def json(self) -> object:
+        if self._json_data is not None:
+            return self._json_data
+        return {}
 
 
 class FakeHttpClient:
@@ -26,7 +32,14 @@ class FakeHttpClient:
         self.calls: list[dict[str, object]] = []
 
     def post(self, url: str, **kwargs: object) -> FakeResponse:
-        self.calls.append({"url": url, **kwargs})
+        self.calls.append({"method": "POST", "url": url, **kwargs})
+        response = self.responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    def get(self, url: str, **kwargs: object) -> FakeResponse:
+        self.calls.append({"method": "GET", "url": url, **kwargs})
         response = self.responses.pop(0)
         if isinstance(response, Exception):
             raise response
@@ -131,6 +144,74 @@ class AgentClientTests(unittest.TestCase):
         self.assertEqual(heartbeat["agentVersion"], "0.1.0")
         self.assertIn("timestamp", heartbeat)
         datetime.fromisoformat(heartbeat["timestamp"])
+
+    def test_heartbeat_extracts_config_version_and_updates_connection_status(self) -> None:
+        http_client = FakeHttpClient(
+            [FakeResponse(200, {"data": {"configVersion": 7, "lastSeenAt": "2026-09-01T10:00:00Z"}})]
+        )
+        client = AgentClient(self.config, self.queue, http_client=http_client)
+
+        version = client.send_heartbeat()
+        self.assertEqual(version, 7)
+        self.assertEqual(client.last_server_config_version, 7)
+        self.assertEqual(client.connection_status, "Connected")
+
+    def test_heartbeat_401_sets_auth_rejected(self) -> None:
+        http_client = FakeHttpClient([FakeResponse(401)])
+        client = AgentClient(self.config, self.queue, http_client=http_client)
+
+        version = client.send_heartbeat()
+        self.assertIsNone(version)
+        self.assertEqual(client.connection_status, "Authentication rejected")
+
+    def test_fetch_tracking_config_returns_parsed_data(self) -> None:
+        http_client = FakeHttpClient(
+            [
+                FakeResponse(
+                    200,
+                    {
+                        "data": {
+                            "configVersion": 5,
+                            "idleThresholdSeconds": 600,
+                            "excludedProcesses": ["whatsapp.exe", "slack.exe"],
+                        }
+                    },
+                )
+            ]
+        )
+        client = AgentClient(self.config, self.queue, http_client=http_client)
+
+        config_data = client.fetch_tracking_config()
+        self.assertIsNotNone(config_data)
+        assert config_data is not None
+        self.assertEqual(config_data["configVersion"], 5)
+        self.assertEqual(config_data["idleThresholdSeconds"], 600)
+        self.assertEqual(
+            config_data["excludedProcesses"], ["whatsapp.exe", "slack.exe"]
+        )
+        self.assertEqual(
+            http_client.calls[0]["url"],
+            "https://demo.worklens.test/api/agent/config",
+        )
+        self.assertEqual(
+            http_client.calls[0]["headers"]["Authorization"],
+            "Bearer agent-token",
+        )
+
+    def test_fetch_tracking_config_handles_network_error_without_raising(self) -> None:
+        http_client = FakeHttpClient(
+            [
+                httpx.ConnectError(
+                    "failed",
+                    request=httpx.Request("GET", "https://demo.worklens.test"),
+                )
+            ]
+        )
+        client = AgentClient(self.config, self.queue, http_client=http_client)
+
+        config_data = client.fetch_tracking_config()
+        self.assertIsNone(config_data)
+        self.assertEqual(client.connection_status, "Offline / retrying")
 
 
 if __name__ == "__main__":

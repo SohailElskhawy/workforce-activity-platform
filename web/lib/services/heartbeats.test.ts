@@ -30,8 +30,25 @@ test("recordHeartbeat stores server time rather than the agent timestamp", async
     () => serverNow,
   );
 
-  assert.deepEqual(result, { lastSeenAt: serverNow });
+  assert.deepEqual(result, { lastSeenAt: serverNow, configVersion: 1 });
   assert.deepEqual(updates, [
     { agentVersion: "0.1.0", id: "device-record-1", lastSeenAt: serverNow },
   ]);
+});
+
+test("recordHeartbeat retrieves company-specific configVersion from store", async () => {
+  const store: HeartbeatStore = {
+    async updateDevice() {},
+    async getCompanyConfigVersion(companyId) {
+      return companyId === "company-1" ? 4 : 1;
+    },
+  };
+
+  const result = await recordHeartbeat(
+    device,
+    { agentVersion: "0.1.0", timestamp: new Date() },
+    store,
+  );
+
+  assert.equal(result.configVersion, 4);
 });

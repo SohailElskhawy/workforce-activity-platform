@@ -4,8 +4,12 @@ from typing import Literal
 from uuid import uuid4
 
 
-ObservationKind = Literal["APPLICATION", "IDLE", "SKIP"]
-ActivityType = Literal["APPLICATION", "IDLE"]
+ObservationKind = Literal[
+    "APPLICATION", "IDLE", "SKIP", "COMPUTER_LOCK", "COMPUTER_UNLOCK"
+]
+ActivityType = Literal[
+    "APPLICATION", "IDLE", "COMPUTER_LOCK", "COMPUTER_UNLOCK"
+]
 
 
 @dataclass(frozen=True)

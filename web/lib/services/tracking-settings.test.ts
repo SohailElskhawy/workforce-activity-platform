@@ -222,7 +222,7 @@ test("addExcludedApplication adds exclusion, increments configVersion, and rejec
   );
 });
 
-test("updateExcludedApplication updates display name and increments configVersion", async () => {
+test("updateExcludedApplication updates display name and does NOT increment configVersion", async () => {
   const { store, audits } = createMockTrackingStore({
     settings: {
       id: "settings-alpha",
@@ -248,11 +248,12 @@ test("updateExcludedApplication updates display name and increments configVersio
   );
 
   assert.equal(updated.displayName, "1Password Desktop");
-  assert.equal(updated.configVersion, 3);
+  // Only display name changed; tracking behavior is unaffected, so configVersion remains 2
+  assert.equal(updated.configVersion, 2);
 
   assert.equal(audits.length, 1);
   assert.equal(audits[0]?.action, "EXCLUDED_APPLICATION_UPDATED");
-  assert.equal(audits[0]?.metadata?.configVersion, 3);
+  assert.equal(audits[0]?.metadata?.configVersion, 2);
 });
 
 test("removeExcludedApplication removes exclusion, increments configVersion, and blocks cross-company deletion", async () => {

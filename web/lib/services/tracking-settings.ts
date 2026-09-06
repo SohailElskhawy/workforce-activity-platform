@@ -237,13 +237,8 @@ export async function updateExcludedApplicationWithStore(
     };
   }
 
-  const newVersion = settings.configVersion + 1;
-  await store.saveSettings({
-    id: settings.id,
-    companyId: context.companyId,
-    idleThresholdSeconds: settings.idleThresholdSeconds,
-    configVersion: newVersion,
-  });
+  // Display name update does NOT affect desktop tracking behavior, so configVersion is preserved.
+  const currentVersion = settings.configVersion;
 
   await store.writeAudit({
     action: "EXCLUDED_APPLICATION_UPDATED",
@@ -252,11 +247,11 @@ export async function updateExcludedApplicationWithStore(
     metadata: {
       processName: updated.processName,
       displayName: updated.displayName,
-      configVersion: newVersion,
+      configVersion: currentVersion,
     },
   });
 
-  return { ...updated, configVersion: newVersion };
+  return { ...updated, configVersion: currentVersion };
 }
 
 export async function removeExcludedApplicationWithStore(

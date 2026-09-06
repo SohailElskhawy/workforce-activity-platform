@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from worklens_agent.models import ActivitySegment, Observation
 
@@ -11,6 +11,20 @@ class SegmentBuilder:
     def observe(self, observation: Observation) -> list[ActivitySegment]:
         if observation.kind == "SKIP":
             return self._close_current(observation.at)
+
+        if observation.kind in ("COMPUTER_LOCK", "COMPUTER_UNLOCK"):
+            closed = self._close_current(observation.at)
+            event_segment = ActivitySegment(
+                start_at=observation.at,
+                end_at=observation.at + timedelta(seconds=1),
+                type=observation.kind,
+                application_name=None,
+                process_name=None,
+                window_title=None,
+                file_name=None,
+            )
+            self._current = None
+            return closed + [event_segment]
 
         if self._current is None:
             self._current = observation

@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 import json
 import os
@@ -17,6 +18,29 @@ class AgentConfig:
     agent_version: str
     idle_threshold_seconds: int
     excluded_processes: frozenset[str]
+    config_version: int = 1
+
+    def with_tracking_settings(
+        self,
+        *,
+        config_version: int,
+        idle_threshold_seconds: int,
+        excluded_processes: Iterable[str],
+    ) -> "AgentConfig":
+        excluded = frozenset(
+            process.strip().lower()
+            for process in excluded_processes
+            if isinstance(process, str) and process.strip()
+        )
+        return AgentConfig(
+            api_url=self.api_url,
+            device_id=self.device_id,
+            agent_token=self.agent_token,
+            agent_version=self.agent_version,
+            idle_threshold_seconds=int(idle_threshold_seconds),
+            excluded_processes=excluded,
+            config_version=int(config_version),
+        )
 
     @classmethod
     def from_environment(cls) -> "AgentConfig":
@@ -30,6 +54,7 @@ class AgentConfig:
                 "WORKLENS_IDLE_THRESHOLD_SECONDS", "300"
             ),
             excluded_processes=os.environ.get("WORKLENS_EXCLUDED_PROCESSES", ""),
+            config_version=os.environ.get("WORKLENS_CONFIG_VERSION", "1"),
         )
 
     @classmethod
@@ -66,6 +91,7 @@ class AgentConfig:
             agent_version=values.get("agentVersion", "0.1.0"),
             idle_threshold_seconds=values.get("idleThresholdSeconds", "300"),
             excluded_processes=values.get("excludedProcesses", ""),
+            config_version=values.get("configVersion", 1),
         )
 
         if should_migrate:
@@ -87,6 +113,7 @@ class AgentConfig:
                     "agentVersion": self.agent_version,
                     "idleThresholdSeconds": self.idle_threshold_seconds,
                     "excludedProcesses": sorted(self.excluded_processes),
+                    "configVersion": self.config_version,
                 },
                 indent=2,
             ),
@@ -104,6 +131,7 @@ class AgentConfig:
         agent_version: object,
         idle_threshold_seconds: object,
         excluded_processes: object,
+        config_version: object = 1,
     ) -> "AgentConfig":
         api_url = api_url.rstrip("/") if isinstance(api_url, str) else ""
         device_id = device_id if isinstance(device_id, str) else ""
@@ -123,6 +151,11 @@ class AgentConfig:
             for process in excluded_values
             if process.strip()
         )
+        try:
+            parsed_version = int(config_version) if config_version is not None else 1
+        except (ValueError, TypeError):
+            parsed_version = 1
+
         return cls(
             api_url=api_url,
             device_id=device_id,
@@ -130,4 +163,5 @@ class AgentConfig:
             agent_version=agent_version if isinstance(agent_version, str) else "0.1.0",
             idle_threshold_seconds=int(idle_threshold_seconds),
             excluded_processes=excluded,
+            config_version=parsed_version,
         )

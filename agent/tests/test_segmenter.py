@@ -143,6 +143,59 @@ class SegmentBuilderTests(unittest.TestCase):
             ],
         )
 
+    def test_computer_lock_closes_current_application_and_emits_lock_event(
+        self,
+    ) -> None:
+        builder = SegmentBuilder()
+
+        # Running AutoCAD for 60 seconds
+        builder.observe(observation(0, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg"))
+        builder.observe(observation(30, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg"))
+
+        # Lock event occurs at second 60
+        lock_segments = builder.observe(observation(60, "COMPUTER_LOCK"))
+
+        self.assertEqual(len(lock_segments), 2)
+        # First segment: closed application
+        self.assertEqual(lock_segments[0].type, "APPLICATION")
+        self.assertEqual(lock_segments[0].application_name, "AutoCAD")
+        self.assertEqual(lock_segments[0].duration_seconds, 60)
+
+        # Second segment: lock event
+        self.assertEqual(lock_segments[1].type, "COMPUTER_LOCK")
+        self.assertIsNone(lock_segments[1].application_name)
+        self.assertEqual(lock_segments[1].duration_seconds, 1)
+
+    def test_locked_duration_with_skip_does_not_count_as_activity_or_idle(
+        self,
+    ) -> None:
+        builder = SegmentBuilder()
+
+        # Lock at 0
+        lock_segments = builder.observe(observation(0, "COMPUTER_LOCK"))
+        self.assertEqual(len(lock_segments), 1)
+        self.assertEqual(lock_segments[0].type, "COMPUTER_LOCK")
+
+        # Computer remains locked for 900 seconds (15 minutes). Observations are SKIP.
+        self.assertEqual(builder.observe(observation(300, "SKIP")), [])
+        self.assertEqual(builder.observe(observation(600, "SKIP")), [])
+        self.assertEqual(builder.observe(observation(900, "SKIP")), [])
+
+        # Unlock at 900
+        unlock_segments = builder.observe(observation(900, "COMPUTER_UNLOCK"))
+        self.assertEqual(len(unlock_segments), 1)
+        self.assertEqual(unlock_segments[0].type, "COMPUTER_UNLOCK")
+
+        # Resumes AutoCAD at 902
+        builder.observe(observation(902, "APPLICATION", "AutoCAD", "ABC_A_Block.dwg"))
+        resumed = builder.finish(BASE_TIME + timedelta(seconds=930))
+
+        self.assertEqual(len(resumed), 1)
+        self.assertEqual(resumed[0].type, "APPLICATION")
+        self.assertEqual(resumed[0].application_name, "AutoCAD")
+        # Only the 28 seconds of AutoCAD work after unlock is counted
+        self.assertEqual(resumed[0].duration_seconds, 28)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 from pathlib import Path
 import sys
+import threading
 import time
 
 from worklens_agent.client import AgentClient
@@ -53,6 +54,9 @@ def print_agent_status(paths: RuntimePaths) -> int:
     print(f"Device ID:    {config.device_id}")
     print(f"API URL:      {config.api_url}")
     print(f"Version:      {config.agent_version}")
+    print(f"Config Ver:   v{config.config_version}")
+    print(f"Idle Thresh:  {config.idle_threshold_seconds}s ({config.idle_threshold_seconds // 60}m)")
+    print(f"Excluded:     {len(config.excluded_processes)} process(es)")
 
     queue = ActivityQueue(paths.database_path)
     pending_items = queue.pending()
@@ -60,9 +64,12 @@ def print_agent_status(paths: RuntimePaths) -> int:
 
     client = AgentClient(config, queue)
     try:
-        hb_success = client.send_heartbeat()
-        if hb_success:
-            print("Status:       CONNECTED (Online)")
+        hb_version = client.send_heartbeat()
+        if hb_version is not None:
+            if isinstance(hb_version, int) and not isinstance(hb_version, bool):
+                print(f"Status:       CONNECTED (Online) - config v{hb_version}")
+            else:
+                print("Status:       CONNECTED (Online)")
         else:
             print("Status:       OFFLINE / AUTHENTICATION REJECTED")
     except Exception as err:
@@ -75,18 +82,48 @@ def print_agent_status(paths: RuntimePaths) -> int:
     return 0
 
 
-def run_simulator(config: AgentConfig, database_path: Path | None = None) -> None:
+def run_simulator(
+    config: AgentConfig,
+    database_path: Path | None = None,
+    paths: RuntimePaths | None = None,
+) -> None:
+    if paths is None and database_path is not None:
+        paths = RuntimePaths(database_path.parent)
+
+    current_config = config
     queue = ActivityQueue(database_path or Path("data") / "activity.db")
-    client = AgentClient(config, queue)
+    client = AgentClient(current_config, queue)
     builder = SegmentBuilder()
     collector = SimulatorCollector()
     observations = list(collector.observations())
     last_upload = time.monotonic()
     last_heartbeat = last_upload
     last_observation: Observation | None = None
+
+    def sync_tracking_settings(server_version: int | None) -> None:
+        nonlocal current_config
+        if (
+            server_version is not None
+            and server_version != current_config.config_version
+        ):
+            latest = client.fetch_tracking_config()
+            if latest:
+                current_config = current_config.with_tracking_settings(
+                    config_version=latest["configVersion"],
+                    idle_threshold_seconds=latest["idleThresholdSeconds"],
+                    excluded_processes=latest["excludedProcesses"],
+                )
+                client.update_config(current_config)
+                if paths:
+                    try:
+                        current_config.write_runtime_file(paths.config_path)
+                    except Exception:
+                        pass
+
     try:
         try:
-            client.send_heartbeat()
+            initial_version = client.send_heartbeat()
+            sync_tracking_settings(initial_version)
         except Exception as error:
             logger.warning("Initial heartbeat error: %s", error)
         for observation in observations:
@@ -102,7 +139,8 @@ def run_simulator(config: AgentConfig, database_path: Path | None = None) -> Non
                 last_upload = now
             if now - last_heartbeat >= 30:
                 try:
-                    client.send_heartbeat()
+                    hb_version = client.send_heartbeat()
+                    sync_tracking_settings(hb_version)
                 except Exception as error:
                     logger.warning("Heartbeat error: %s", error)
                 last_heartbeat = now
@@ -123,25 +161,98 @@ def run_simulator(config: AgentConfig, database_path: Path | None = None) -> Non
         queue.close()
 
 
-def run_real(config: AgentConfig, database_path: Path | None = None) -> None:
+def run_real(
+    config: AgentConfig,
+    database_path: Path | None = None,
+    paths: RuntimePaths | None = None,
+    enable_tray: bool = True,
+) -> None:
+    from worklens_agent.tray import AgentState, SystemTray
     from worklens_agent.windows_collector import WindowsCollector
 
+    if paths is None and database_path is not None:
+        paths = RuntimePaths(database_path.parent)
+
+    current_config = config
     queue = ActivityQueue(database_path or Path("data") / "activity.db")
-    client = AgentClient(config, queue)
+    client = AgentClient(current_config, queue)
     builder = SegmentBuilder()
-    collector = WindowsCollector(config)
+    collector = WindowsCollector(current_config)
+
+    state = AgentState(
+        connection_status="Connected",
+        agent_version=current_config.agent_version,
+        config_version=current_config.config_version,
+        api_url=current_config.api_url,
+    )
+    stop_event = threading.Event()
+    tray: SystemTray | None = None
+    if enable_tray and sys.platform == "win32":
+        try:
+            tray = SystemTray(state, on_exit=lambda: stop_event.set())
+            tray.start()
+        except Exception as error:
+            logger.warning("Tray initialization skipped: %s", error)
+
+    def sync_tracking_settings(server_version: int | None) -> None:
+        nonlocal current_config
+        state.update(connection_status=client.connection_status)
+        if (
+            server_version is not None
+            and server_version != current_config.config_version
+        ):
+            logger.info(
+                "Tracking config version changed (v%s -> v%s). Syncing...",
+                current_config.config_version,
+                server_version,
+            )
+            latest = client.fetch_tracking_config()
+            if latest:
+                current_config = current_config.with_tracking_settings(
+                    config_version=latest["configVersion"],
+                    idle_threshold_seconds=latest["idleThresholdSeconds"],
+                    excluded_processes=latest["excludedProcesses"],
+                )
+                collector.update_config(current_config)
+                client.update_config(current_config)
+                state.update(config_version=current_config.config_version)
+                if paths:
+                    try:
+                        current_config.write_runtime_file(paths.config_path)
+                    except Exception as err:
+                        logger.warning("Failed to persist updated config: %s", err)
+
     last_upload = time.monotonic()
     last_heartbeat = last_upload
     try:
         try:
-            client.send_heartbeat()
+            initial_version = client.send_heartbeat()
+            sync_tracking_settings(initial_version)
         except Exception as error:
             logger.warning("Initial heartbeat error: %s", error)
-        while True:
+
+        while not stop_event.is_set():
             try:
                 observation = collector.observe()
+                if observation.kind == "APPLICATION":
+                    state.update(
+                        current_app=observation.application_name
+                        or observation.process_name
+                        or "—"
+                    )
+                elif observation.kind == "IDLE":
+                    state.update(current_app="Idle")
+                elif observation.kind == "COMPUTER_LOCK":
+                    state.update(current_app="Computer Locked")
+                elif observation.kind == "COMPUTER_UNLOCK":
+                    state.update(current_app="Resuming...")
+
                 for segment in builder.observe(observation):
                     queue.enqueue(segment)
+                    if segment.type == "APPLICATION":
+                        state.update(active_seconds_delta=segment.duration_seconds)
+                    elif segment.type == "IDLE":
+                        state.update(idle_seconds_delta=segment.duration_seconds)
             except Exception as error:
                 logger.error("Error collecting activity observation: %s", error)
 
@@ -149,16 +260,23 @@ def run_real(config: AgentConfig, database_path: Path | None = None) -> None:
             if now - last_upload >= 15:
                 try:
                     client.upload_pending()
+                    state.update(connection_status=client.connection_status)
                 except Exception as error:
                     logger.warning("Upload pending error: %s", error)
                 last_upload = now
+
             if now - last_heartbeat >= 30:
                 try:
-                    client.send_heartbeat()
+                    hb_version = client.send_heartbeat()
+                    sync_tracking_settings(hb_version)
                 except Exception as error:
                     logger.warning("Heartbeat error: %s", error)
                 last_heartbeat = now
-            time.sleep(2)
+
+            for _ in range(20):
+                if stop_event.is_set():
+                    break
+                time.sleep(0.1)
     finally:
         for segment in builder.finish(datetime.now(timezone.utc)):
             queue.enqueue(segment)
@@ -166,6 +284,8 @@ def run_real(config: AgentConfig, database_path: Path | None = None) -> None:
             client.upload_pending()
         except Exception:
             pass
+        if tray:
+            tray.stop()
         client.close()
         queue.close()
 

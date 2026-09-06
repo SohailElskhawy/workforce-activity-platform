@@ -7,6 +7,7 @@ export type HeartbeatStore = {
     agentVersion: string;
     lastSeenAt: Date;
   }): Promise<void>;
+  getCompanyConfigVersion?(companyId: string): Promise<number>;
 };
 
 async function createPrismaStore(): Promise<HeartbeatStore> {
@@ -21,6 +22,13 @@ async function createPrismaStore(): Promise<HeartbeatStore> {
           lastSeenAt: update.lastSeenAt,
         },
       });
+    },
+    async getCompanyConfigVersion(companyId: string) {
+      const settings = await prisma.companyTrackingSettings.findUnique({
+        where: { companyId },
+        select: { configVersion: true },
+      });
+      return settings?.configVersion ?? 1;
     },
   };
 }
@@ -38,5 +46,8 @@ export async function recordHeartbeat(
     id: device.databaseId,
     lastSeenAt,
   });
-  return { lastSeenAt };
+  const configVersion = heartbeatStore.getCompanyConfigVersion
+    ? await heartbeatStore.getCompanyConfigVersion(device.companyId)
+    : 1;
+  return { lastSeenAt, configVersion };
 }

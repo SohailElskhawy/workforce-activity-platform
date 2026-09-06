@@ -26,9 +26,25 @@ class WindowsCollector:
         self._psutil = psutil
         self._win32gui = win32gui
         self._win32process = win32process
+        self._is_locked = False
+
+    def update_config(self, config: AgentConfig) -> None:
+        self._config = config
 
     def observe(self) -> Observation:
         observed_at = datetime.now(timezone.utc)
+
+        # Computer Lock / Unlock session detection
+        locked = self._is_screen_locked()
+        if locked:
+            if not self._is_locked:
+                self._is_locked = True
+                return Observation(observed_at, "COMPUTER_LOCK", None, None, None, None)
+            return Observation(observed_at, "SKIP", None, None, None, None)
+        elif self._is_locked:
+            self._is_locked = False
+            return Observation(observed_at, "COMPUTER_UNLOCK", None, None, None, None)
+
         if self._idle_seconds() >= self._config.idle_threshold_seconds:
             return Observation(observed_at, "IDLE", None, None, None, None)
 
@@ -72,3 +88,21 @@ class WindowsCollector:
             return 0.0
         current_tick = ctypes.windll.kernel32.GetTickCount()
         return ((current_tick - last_input.dwTime) & 0xFFFFFFFF) / 1_000
+
+    @staticmethod
+    def _is_screen_locked() -> bool:
+        if sys.platform != "win32":
+            return False
+        DESKTOP_SWITCHDESKTOP = 0x0100
+        try:
+            hdesk = ctypes.windll.user32.OpenInputDesktop(0, False, DESKTOP_SWITCHDESKTOP)
+            if not hdesk:
+                return True
+            try:
+                result = ctypes.windll.user32.SwitchDesktop(hdesk)
+                return not bool(result)
+            finally:
+                ctypes.windll.user32.CloseDesktop(hdesk)
+        except Exception:
+            return False
+
