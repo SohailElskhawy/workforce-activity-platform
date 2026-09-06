@@ -8,13 +8,13 @@ Current target: **finish the full remaining project scope in 4 days**.
 ## Source of Truth
 Use the release docs and the original requirements as the implementation basis:
 
-- `docs/releases/v1-completion/00-release-overview.md`
-- `docs/releases/v1-completion/01-requirements-and-scope.md`
-- `docs/releases/v1-completion/02-ui-ux-specification.md`
-- `docs/releases/v1-completion/03-technical-design.md`
-- `docs/releases/v1-completion/04-implementation-plan.md`
-- `docs/releases/v1-completion/05-testing-and-acceptance.md`
-- Original `SODA MANAGEMENT.pdf`
+- `docs/00-release-overview.md`
+- `docs/01-requirements-and-scope.md`
+- `docs/02-ui-ux-specification.md`
+- `docs/03-technical-design.md`
+- `docs/04-implementation-plan.md`
+- `docs/05-testing-and-acceptance.md`
+- Original `docs/SODA MANAGEMENT.pdf`
 
 Do not re-plan the whole project for every task. Implement the requested vertical slice.
 

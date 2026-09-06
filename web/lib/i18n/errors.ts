@@ -119,6 +119,21 @@ export function formatErrorMessage(
   if (trimmed.includes("Password must be at least 8 characters") || trimmed.includes("shorter than 8 characters") || trimmed.includes("shorter than eight characters")) {
     return t.errors.passwordMin;
   }
+  if (trimmed.includes("valid executable name ending in .exe") || trimmed.includes("Process name must be a valid executable")) {
+    return t.errors.invalidProcessName;
+  }
+  if (trimmed.includes("Idle threshold must be at least 30 seconds")) {
+    return t.errors.idleThresholdMin;
+  }
+  if (trimmed.includes("cannot exceed 14400 seconds") || trimmed.includes("cannot exceed 14,400 seconds")) {
+    return t.errors.idleThresholdMax;
+  }
+  if (trimmed.includes("already excluded for your company") || trimmed.includes("already in your excluded applications list")) {
+    return t.errors.applicationAlreadyExcluded;
+  }
+  if (trimmed.includes("Excluded application not found")) {
+    return t.errors.exclusionNotFound;
+  }
 
   // Actions failure fallbacks
   if (trimmed.includes("Unable to add the time entry")) {

@@ -110,7 +110,45 @@ test("formatErrorMessage localizes backend and validation errors correctly", asy
     formatErrorMessage("Project not found.", en),
     "Project not found.",
   );
+
+  assert.equal(
+    formatErrorMessage("Process name must be a valid executable name ending in .exe", tr),
+    "İşlem adı .exe ile biten geçerli bir çalıştırılabilir dosya adı olmalıdır.",
+  );
+  assert.equal(
+    formatErrorMessage("Process name must be a valid executable name ending in .exe", en),
+    "Executable name must be a valid process ending in .exe.",
+  );
+
+  assert.equal(
+    formatErrorMessage("Idle threshold must be at least 30 seconds", tr),
+    "Boşta kalma süresi eşiği en az 30 saniye olmalıdır.",
+  );
+  assert.equal(
+    formatErrorMessage("Idle threshold must be at least 30 seconds", en),
+    "Idle threshold must be at least 30 seconds.",
+  );
+
+  assert.equal(
+    formatErrorMessage("This application is already excluded for your company.", tr),
+    "Bu uygulama zaten hariç tutulan uygulamalar listenizde yer alıyor.",
+  );
+  assert.equal(
+    formatErrorMessage("This application is already excluded for your company.", en),
+    "This application is already in your excluded applications list.",
+  );
 });
 
+test("server dictionaries provide tracking settings translations for both locales", async () => {
+  const tr = await getServerDictionary("tr");
+  const en = await getServerDictionary("en");
 
-
+  assert.equal(tr.settings.title, "Şirket Takip Ayarları");
+  assert.equal(en.settings.title, "Company Tracking Settings");
+  assert.equal(tr.settings.idleThresholdCard.title, "Boşta Kalma (Idle) Tespiti");
+  assert.equal(en.settings.idleThresholdCard.title, "Idle Time Detection");
+  assert.equal(tr.settings.excludedAppsCard.title, "Hariç Tutulan Uygulamalar ve Gizlilik");
+  assert.equal(en.settings.excludedAppsCard.title, "Excluded Applications & Privacy");
+  assert.equal(tr.settings.agentConfigCard.title, "İstemci Yapılandırma Senkronizasyonu");
+  assert.equal(en.settings.agentConfigCard.title, "Agent Configuration Synchronization");
+});

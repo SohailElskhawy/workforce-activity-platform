@@ -20,6 +20,8 @@ export interface TranslationDictionary {
     filter: string;
     retry: string;
     open: string;
+    view: string;
+    created: string;
     actions: string;
     liveData: string;
     workspaceConnected: string;
@@ -210,6 +212,34 @@ export interface TranslationDictionary {
     emptyDesc: string;
     recentActivities: string;
   };
+  departments: {
+    title: string;
+    subtitle: string;
+    newDepartment: string;
+    createDepartmentTitle: string;
+    createDepartmentDesc: string;
+    editDepartmentTitle: string;
+    editDepartmentDesc: string;
+    name: string;
+    namePlaceholder: string;
+    manager: string;
+    noManager: string;
+    selectManager: string;
+    totalDepartments: string;
+    totalMembers: string;
+    withoutManager: string;
+    membersCount: string;
+    assignedEmployees: string;
+    assignedEmployeesDesc: string;
+    noEmployees: string;
+    emptyTitle: string;
+    emptyDesc: string;
+    deleteTitle: string;
+    deleteDesc: string;
+    createdSuccess: string;
+    updatedSuccess: string;
+    deletedSuccess: string;
+  };
   activities: {
     title: string;
     subtitle: string;
@@ -299,6 +329,61 @@ export interface TranslationDictionary {
     emptyTitle: string;
     emptyDesc: string;
   };
+  settings: {
+    title: string;
+    subtitle: string;
+    idleThresholdCard: {
+      title: string;
+      desc: string;
+      idleThresholdLabel: string;
+      idleThresholdHelp: string;
+      secondsLabel: string;
+      minutesLabel: string;
+      saveButton: string;
+      saveSuccess: string;
+      presets: string;
+      preset1m: string;
+      preset2m: string;
+      preset5m: string;
+      preset10m: string;
+      preset15m: string;
+      preset30m: string;
+    };
+    excludedAppsCard: {
+      title: string;
+      desc: string;
+      addAppButton: string;
+      processNameHeader: string;
+      displayNameHeader: string;
+      dateAddedHeader: string;
+      actionsHeader: string;
+      emptyTitle: string;
+      emptyDesc: string;
+      privacyNoticeTitle: string;
+      privacyNoticeDesc: string;
+      addModalTitle: string;
+      addModalDesc: string;
+      processNameLabel: string;
+      processNamePlaceholder: string;
+      processNameHelp: string;
+      displayNameLabel: string;
+      displayNamePlaceholder: string;
+      displayNameHelp: string;
+      addSuccess: string;
+      deleteModalTitle: string;
+      deleteModalDesc: (name: string) => string;
+      deleteSuccess: string;
+    };
+    agentConfigCard: {
+      title: string;
+      desc: string;
+      configVersionLabel: string;
+      configVersionHelp: string;
+      lastUpdatedLabel: string;
+      syncNoticeTitle: string;
+      syncNoticeDesc: string;
+    };
+  };
   states: {
     errorTitle: string;
     errorDesc: string;
@@ -346,6 +431,11 @@ export interface TranslationDictionary {
     lastNameRequired: string;
     invalidEmail: string;
     passwordMin: string;
+    invalidProcessName: string;
+    idleThresholdMin: string;
+    idleThresholdMax: string;
+    applicationAlreadyExcluded: string;
+    exclusionNotFound: string;
     generic: string;
   };
 }

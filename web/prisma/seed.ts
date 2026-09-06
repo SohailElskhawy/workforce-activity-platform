@@ -51,6 +51,30 @@ async function main() {
     data: { name: COMPANY_NAME },
   });
 
+  // -------------------------------------------------------- tracking settings
+  await prisma.companyTrackingSettings.create({
+    data: {
+      companyId: company.id,
+      idleThresholdSeconds: 300,
+      configVersion: 1,
+    },
+  });
+
+  await prisma.excludedApplication.createMany({
+    data: [
+      {
+        companyId: company.id,
+        processName: "whatsapp.exe",
+        displayName: "WhatsApp",
+      },
+      {
+        companyId: company.id,
+        processName: "1password.exe",
+        displayName: "1Password",
+      },
+    ],
+  });
+
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
 
   // ------------------------------------------------------------- departments

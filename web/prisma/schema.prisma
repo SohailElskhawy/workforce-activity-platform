@@ -69,6 +69,8 @@ model Company {
     activities   Activity[]
     fileMappings FileMapping[]
     auditLogs    AuditLog[]
+    trackingSettings     CompanyTrackingSettings?
+    excludedApplications ExcludedApplication[]
 }
 
 model User {
@@ -340,3 +342,29 @@ model AuditLog {
     @@index([actorUserId])
     @@index([createdAt])
 }
+
+model CompanyTrackingSettings {
+    id                   String   @id @default(uuid())
+    companyId            String   @unique
+    idleThresholdSeconds Int      @default(300)
+    configVersion        Int      @default(1)
+    createdAt            DateTime @default(now())
+    updatedAt            DateTime @updatedAt
+
+    company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model ExcludedApplication {
+    id          String   @id @default(uuid())
+    companyId   String
+    processName String
+    displayName String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+    @@unique([companyId, processName])
+    @@index([companyId])
+}
+
