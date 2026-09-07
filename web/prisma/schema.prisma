@@ -71,6 +71,9 @@ model Company {
     auditLogs    AuditLog[]
     trackingSettings     CompanyTrackingSettings?
     excludedApplications ExcludedApplication[]
+    integrations         Integration[]
+    integrationMappings  IntegrationMapping[]
+    employeeLeaves       EmployeeLeave[]
 }
 
 model User {
@@ -139,6 +142,7 @@ model Employee {
     timeEntries TimeEntry[]
     devices     Device[]
     activities  Activity[]
+    leaves      EmployeeLeave[]
 
     @@unique([companyId, email])
     @@index([companyId])
@@ -236,6 +240,8 @@ model TimeEntry {
     endAt           DateTime
     durationMinutes Int
     notes           String?
+    source          String?  @default("MANUAL")
+    externalId      String?
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
 
@@ -248,6 +254,7 @@ model TimeEntry {
     @@index([employeeId, startAt])
     @@index([projectId])
     @@index([taskId])
+    @@index([companyId, source, externalId])
 }
 
 model Device {
@@ -366,5 +373,77 @@ model ExcludedApplication {
 
     @@unique([companyId, processName])
     @@index([companyId])
+}
+
+enum IntegrationProvider {
+    CLICKUP
+    KOLAY_IK
+    CLOCKIFY
+}
+
+enum IntegrationStatus {
+    NOT_CONFIGURED
+    CONNECTED
+    ERROR
+    SYNCING
+    DISABLED
+}
+
+model Integration {
+    id                   String              @id @default(uuid())
+    companyId            String
+    provider             IntegrationProvider
+    status               IntegrationStatus   @default(NOT_CONFIGURED)
+    encryptedCredentials String?
+    config               Json?
+    lastSyncAt           DateTime?
+    lastError            String?
+    createdAt            DateTime            @default(now())
+    updatedAt            DateTime            @updatedAt
+
+    company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+    @@unique([companyId, provider])
+    @@index([companyId])
+}
+
+model IntegrationMapping {
+    id                 String              @id @default(uuid())
+    companyId          String
+    provider           IntegrationProvider
+    externalEntityType String
+    externalId         String
+    internalEntityType String
+    internalId         String
+    metadata           Json?
+    createdAt          DateTime            @default(now())
+    updatedAt          DateTime            @updatedAt
+
+    company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+    @@unique([companyId, provider, externalEntityType, externalId])
+    @@index([companyId, provider, internalEntityType, internalId])
+}
+
+model EmployeeLeave {
+    id         String   @id @default(uuid())
+    companyId  String
+    employeeId String
+    leaveType  String
+    startDate  DateTime
+    endDate    DateTime
+    days       Float?
+    status     String   @default("APPROVED")
+    notes      String?
+    externalId String?
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+    @@index([companyId, employeeId])
+    @@index([companyId, startDate, endDate])
+    @@index([companyId, externalId])
 }
 

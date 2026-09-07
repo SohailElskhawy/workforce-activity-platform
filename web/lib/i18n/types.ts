@@ -100,6 +100,8 @@ export interface TranslationDictionary {
     next: string;
     noResults: string;
     notifications: string;
+    success: string;
+    error: string;
     navigation: {
       dashboard: string;
       workforce: string;
@@ -116,6 +118,7 @@ export interface TranslationDictionary {
       reports: string;
       administration: string;
       settings: string;
+      integrations: string;
       overview: string;
       myProjects: string;
       myTasks: string;
@@ -478,6 +481,44 @@ export interface TranslationDictionary {
       syncNoticeTitle: string;
       syncNoticeDesc: string;
     };
+  };
+  integrationsSection: {
+    title: string;
+    subtitle: string;
+    providerClickUp: string;
+    providerClickUpDesc: string;
+    providerClockify: string;
+    providerClockifyDesc: string;
+    providerKolayIk: string;
+    providerKolayIkDesc: string;
+    statusConnected: string;
+    statusNotConfigured: string;
+    statusError: string;
+    statusSyncing: string;
+    statusDisabled: string;
+    configureButton: string;
+    testButton: string;
+    syncButton: string;
+    disconnectButton: string;
+    lastSyncLabel: string;
+    neverSynced: string;
+    apiTokenLabel: string;
+    apiKeyLabel: string;
+    webhookSecretLabel: string;
+    workspaceLabel: string;
+    listIdLabel: string;
+    syncDirectionLabel: string;
+    startDateLabel: string;
+    endDateLabel: string;
+    saveConfig: string;
+    testingConnection: string;
+    syncingData: string;
+    disconnectConfirm: string;
+    importResults: string;
+    imported: string;
+    skippedDuplicate: string;
+    unmapped: string;
+    failed: string;
   };
   states: {
     errorTitle: string;

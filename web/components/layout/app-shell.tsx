@@ -11,6 +11,7 @@ import {
   FolderKanban,
   Gauge,
   Laptop,
+  Layers,
   ListChecks,
   Menu,
   Settings,
@@ -88,6 +89,7 @@ export function AppShell({
     {
       heading: t.common.navigation.administration,
       items: [
+        { href: "/integrations", icon: Layers, label: t.common.navigation.integrations },
         { href: "/settings", icon: Settings, label: t.common.navigation.settings },
       ],
     },
