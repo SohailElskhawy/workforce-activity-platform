@@ -1,12 +1,15 @@
 import "server-only";
 
 import bcrypt from "bcryptjs";
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/security/session-settings";
+import { resolveSuperAdmin } from "@/lib/admin/security";
 import { getServerSession } from "next-auth";
 import type { NextAuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 
 import {
+  getRoleHomeRoute,
   EMPLOYEE_HOME_ROUTE,
   LOGIN_ROUTE,
   MANAGER_HOME_ROUTE,
@@ -23,7 +26,11 @@ import type { UserRole } from "@/src/generated/prisma/enums";
 import { EmployeeStatus } from "@/src/generated/prisma/enums";
 import { loginSchema } from "@/lib/validation/auth";
 
-const DEMO_ROLES: ReadonlySet<UserRole> = new Set(["MANAGER", "EMPLOYEE"]);
+const LOGIN_ROLES: ReadonlySet<UserRole> = new Set([
+  "MANAGER",
+  "EMPLOYEE",
+  "SUPER_ADMIN",
+]);
 
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
@@ -61,7 +68,7 @@ async function authenticateCredentials(
       },
     });
 
-    if (!user || !DEMO_ROLES.has(user.role)) {
+    if (!user || !LOGIN_ROLES.has(user.role)) {
       return null;
     }
 
@@ -98,7 +105,11 @@ async function authenticateCredentials(
 
 export const authOptions = {
   secret: authSecret,
-  session: { strategy: "jwt", maxAge: 60 * 60 * 8, updateAge: 60 * 60 },
+  session: {
+    strategy: "jwt",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+    updateAge: 60 * 60,
+  },
   pages: { signIn: "/login" },
   providers: [
     CredentialsProvider({
@@ -168,7 +179,13 @@ export async function requireEmployee(): Promise<Session> {
       id: session.user.employeeId,
       companyId: session.user.companyId,
       status: EmployeeStatus.ACTIVE,
-      user: { is: { id: session.user.id } },
+      user: {
+        is: {
+          id: session.user.id,
+          role: "EMPLOYEE",
+          companyId: session.user.companyId,
+        },
+      },
     },
     select: { id: true },
   });
@@ -229,7 +246,13 @@ export async function requireEmployeeContext(): Promise<AuthContext> {
       id: context.employeeId,
       companyId: context.companyId,
       status: EmployeeStatus.ACTIVE,
-      user: { is: { id: context.userId } },
+      user: {
+        is: {
+          id: context.userId,
+          role: "EMPLOYEE",
+          companyId: context.companyId,
+        },
+      },
     },
     select: { companyId: true, id: true },
   });
@@ -278,4 +301,69 @@ async function getActiveManagerContext(
 
 export function tenantResourceWhere(session: Session, id: string) {
   return tenantWhere(session.user.companyId, { id });
+}
+
+export async function requireSuperAdminContext(): Promise<AuthContext> {
+  const session = await getAuthSession();
+  return resolveSuperAdmin(
+    session?.user ? toAuthContext(session) : null,
+    async (id) => {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          companyId: true,
+          employeeId: true,
+          role: true,
+          employee: { select: { companyId: true, status: true } },
+        },
+      });
+      if (!user) return null;
+      return {
+        userId: user.id,
+        companyId: user.companyId,
+        employeeId: user.employeeId,
+        role: user.role,
+        active:
+          !user.employee ||
+          (user.employee.status === "ACTIVE" &&
+            user.employee.companyId === user.companyId),
+      };
+    },
+  );
+}
+export async function requireSuperAdmin() {
+  try {
+    return await requireSuperAdminContext();
+  } catch (error) {
+    if (error instanceof ApiError) redirect(LOGIN_ROUTE);
+    throw error;
+  }
+}
+
+/** A stale JWT must not redirect the login screen back into a protected-route loop. */
+export async function getActiveLoginDestination(session: Session | null) {
+  if (!session?.user) return null;
+  const user = await prisma.user.findFirst({
+    where: {
+      id: session.user.id,
+      role: session.user.role,
+      companyId: session.user.companyId,
+      employeeId: session.user.employeeId,
+    },
+    select: {
+      role: true,
+      companyId: true,
+      employeeId: true,
+      employee: { select: { companyId: true, status: true } },
+    },
+  });
+  if (!user || (user.role === "EMPLOYEE" && !user.employeeId)) return null;
+  if (
+    user.employee &&
+    (user.employee.status !== "ACTIVE" ||
+      user.employee.companyId !== user.companyId)
+  )
+    return null;
+  return getRoleHomeRoute(user.role);
 }

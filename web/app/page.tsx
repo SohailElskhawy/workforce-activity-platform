@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { getRoleHomeRoute, LOGIN_ROUTE } from "@/lib/auth-routes";
-import { getAuthSession } from "@/lib/auth";
+import { LOGIN_ROUTE } from "@/lib/auth-routes";
+import { getAuthSession, getActiveLoginDestination } from "@/lib/auth";
 
 export default async function Home() {
   const session = await getAuthSession();
 
-  redirect(getRoleHomeRoute(session?.user.role) ?? LOGIN_ROUTE);
+  redirect((await getActiveLoginDestination(session)) ?? LOGIN_ROUTE);
 }

@@ -10,13 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getAuthSession } from "@/lib/auth";
-import { getRoleHomeRoute } from "@/lib/auth-routes";
+import { getAuthSession, getActiveLoginDestination } from "@/lib/auth";
 import { getServerDictionary } from "@/lib/i18n/server";
 
 export default async function LoginPage() {
   const session = await getAuthSession();
-  const destination = getRoleHomeRoute(session?.user.role);
+  const destination = await getActiveLoginDestination(session);
   if (destination) redirect(destination);
 
   const t = await getServerDictionary();
@@ -41,4 +40,3 @@ export default async function LoginPage() {
     </main>
   );
 }
-

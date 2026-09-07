@@ -1,6 +1,71 @@
 import type { TranslationDictionary } from "../types";
 
 export const tr: TranslationDictionary = {
+  admin: {
+    workspace: "Sistem yönetimi",
+    overview: "Genel Bakış",
+    companies: "Şirketler",
+    users: "Kullanıcılar",
+    logs: "Sistem Kayıtları",
+    integrations: "Entegrasyonlar",
+    settings: "Sistem Ayarları",
+    subtitle: "Tüm şirketler için platform genelinde yönetim.",
+    newCompany: "Şirket oluştur",
+    newUser: "Kullanıcı oluştur",
+    company: "Şirket",
+    name: "Ad",
+    role: "Rol",
+    superAdmin: "Süper Yönetici",
+    createdAt: "Oluşturulma",
+    updatedAt: "Güncellenme",
+    activeDevices: "Son 24 saatte etkin cihazlar",
+    activeCompanies: "Son 24 saatte etkin şirketler",
+    recent: "Son denetim işlemleri",
+    actor: "İşlemi yapan e-posta veya kimlik",
+    action: "İşlem",
+    entityType: "Varlık türü",
+    entityId: "Varlık kimliği",
+    details: "Güvenli ayrıntılar",
+    from: "Başlangıç (UTC)",
+    to: "Bitiş (UTC)",
+    saved: "Değişiklikler kaydedildi.",
+    invalid: "Zorunlu alanları ve girilen değerleri kontrol edin.",
+    conflict:
+      "Bu e-posta zaten mevcut veya değişiklik çalışan ya da sahiplik ilişkisini bozacak. Kendi rolünüzü veya şirketinizi değiştiremezsiniz.",
+    unauthorized:
+      "Erişim süresi doldu veya erişim reddedildi. Yeniden giriş yapın.",
+    notFound: "İstenen şirket veya kullanıcı bulunamadı.",
+    empty: "Eşleşen kayıt yok",
+    emptyDesc: "Filtreleri değiştirin veya mümkünse bir kayıt oluşturun.",
+    companyHelp:
+      "Bir şirket seçin. Gerekirse sonuçlarda arama yapın ve sayfalar arasında gezinin.",
+    userHelp:
+      "Çalışan hesapları ad ve soyad gerektirir. Bağlı çalışanı veya oluşturduğu şirket kayıtları olan kullanıcılar başka şirkete taşınamaz. Rol değişiklikleri yeniden giriş gerektirir.",
+    companyNameHelp:
+      "Şirket adları 2–160 karakter olmalıdır. Mevcut veri modeli aynı ada izin verir; şirketler kimlikleriyle ayırt edilir.",
+    passwordHelp: "En az 8 karakter ve en fazla 72 UTF-8 bayt kullanın.",
+    noIntegrations:
+      "Entegrasyon yapılandırması henüz uygulanmadı. Yönetilecek kayıtlı bağlantı yok. ClickUp, Kolay İK ve Clockify ayrı entegrasyon görevlerinde uygulanacak.",
+    noSettings:
+      "Şu anda düzenlenebilir genel ayarlar tanımlı değil. Takip ayarları şirketlere aittir; mevcut değerler şirket ayrıntılarında incelenebilir.",
+    auth: "Kimlik doğrulama",
+    credentials: "E-posta ve parola",
+    session: "Oturum süresi",
+    hours: "saat",
+    tracking: "Takip ayarları",
+    exclusions: "Hariç tutulan uygulamalar",
+    defaultTracking:
+      "Şirket ayarları kaydedilene kadar varsayılan takip yapılandırması uygulanır.",
+    readonly: "Salt okunur yapılandırma bilgisi",
+    logHelp:
+      "Tarihler UTC kullanır. İşlem ve varlık filtreleri olay kimlikleriyle tam eşleşir. Ayrıntılarda yalnızca bilinen güvenli operasyonel değerler gösterilir; geçmiş serbest metin verileri gösterilmez.",
+    allCompanies: "Tüm şirketler",
+    chooseCompany: "Şirket seçin",
+    selectedCompany: "Seçilen şirket",
+    total: "Toplam",
+    viewUsers: "Şirket kullanıcılarını görüntüle",
+    filterCompany: "Şirkete göre filtrele",
+  },
   common: {
     brandName: "WorkLens",
     brandTagline: "İş gücü analitiği",

@@ -1,4 +1,60 @@
 export interface TranslationDictionary {
+  admin: {
+    workspace: string;
+    overview: string;
+    companies: string;
+    users: string;
+    logs: string;
+    integrations: string;
+    settings: string;
+    subtitle: string;
+    newCompany: string;
+    newUser: string;
+    company: string;
+    name: string;
+    role: string;
+    superAdmin: string;
+    createdAt: string;
+    updatedAt: string;
+    activeDevices: string;
+    activeCompanies: string;
+    recent: string;
+    actor: string;
+    action: string;
+    entityType: string;
+    entityId: string;
+    details: string;
+    from: string;
+    to: string;
+    saved: string;
+    invalid: string;
+    conflict: string;
+    unauthorized: string;
+    notFound: string;
+    empty: string;
+    emptyDesc: string;
+    companyHelp: string;
+    userHelp: string;
+    companyNameHelp: string;
+    passwordHelp: string;
+    noIntegrations: string;
+    noSettings: string;
+    auth: string;
+    credentials: string;
+    session: string;
+    hours: string;
+    tracking: string;
+    exclusions: string;
+    defaultTracking: string;
+    readonly: string;
+    logHelp: string;
+    allCompanies: string;
+    chooseCompany: string;
+    selectedCompany: string;
+    total: string;
+    viewUsers: string;
+    filterCompany: string;
+  };
   common: {
     brandName: string;
     brandTagline: string;
@@ -439,4 +495,3 @@ export interface TranslationDictionary {
     generic: string;
   };
 }
-

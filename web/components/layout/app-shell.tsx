@@ -24,7 +24,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useI18n } from "@/lib/i18n";
 
-type AppRole = "MANAGER" | "EMPLOYEE";
+type AppRole = "MANAGER" | "EMPLOYEE" | "SUPER_ADMIN";
 
 type NavigationItem = {
   href: string;
@@ -104,11 +104,49 @@ export function AppShell({
     },
   ];
 
-  const groups = isManager ? managerGroups : employeeGroups;
-  const workspaceTitle = isManager ? t.common.managerWorkspace : t.common.employeeWorkspace;
-  const navAriaLabel = isManager ? t.common.navigation.managerNavigation : t.common.navigation.employeeNavigation;
-  const accountLabel = isManager ? t.common.managerAccount : t.common.employeeAccount;
-  const homeHref = isManager ? "/dashboard" : "/my-dashboard";
+  const isAdmin = role === "SUPER_ADMIN";
+  const adminGroups: NavigationGroup[] = [
+    {
+      heading: t.admin.workspace,
+      items: [
+        { href: "/admin", icon: Gauge, label: t.admin.overview },
+        { href: "/admin/companies", icon: Building2, label: t.admin.companies },
+        { href: "/admin/users", icon: Users, label: t.admin.users },
+        { href: "/admin/system-logs", icon: ListChecks, label: t.admin.logs },
+        {
+          href: "/admin/integrations",
+          icon: Activity,
+          label: t.admin.integrations,
+        },
+        { href: "/admin/settings", icon: Settings, label: t.admin.settings },
+      ],
+    },
+  ];
+  const groups = isAdmin
+    ? adminGroups
+    : isManager
+      ? managerGroups
+      : employeeGroups;
+  const workspaceTitle = isAdmin
+    ? t.admin.workspace
+    : isManager
+      ? t.common.managerWorkspace
+      : t.common.employeeWorkspace;
+  const navAriaLabel = isAdmin
+    ? t.admin.workspace
+    : isManager
+      ? t.common.navigation.managerNavigation
+      : t.common.navigation.employeeNavigation;
+  const accountLabel = isAdmin
+    ? t.admin.workspace
+    : isManager
+      ? t.common.managerAccount
+      : t.common.employeeAccount;
+  const homeHref = isAdmin
+    ? "/admin"
+    : isManager
+      ? "/dashboard"
+      : "/my-dashboard";
   const safeEmail = email ?? t.common.signedInUser;
 
   return (
@@ -168,10 +206,10 @@ export function AppShell({
 
           <div className="hidden lg:block">
             <p className="text-sm font-semibold text-slate-900">
-              {t.common.operationalWorkspace}
+              {isAdmin ? t.admin.workspace : t.common.operationalWorkspace}
             </p>
             <p className="text-xs text-slate-500">
-              {t.common.operationalWorkspaceDesc}
+              {isAdmin ? t.admin.subtitle : t.common.operationalWorkspaceDesc}
             </p>
           </div>
 
@@ -222,7 +260,7 @@ function Brand({ href, tagline }: { href: string; tagline: string }) {
 
 function isItemActive(pathname: string, href: string) {
   if (!pathname) return false;
-  if (href === "/dashboard" || href === "/my-dashboard") {
+  if (href === "/admin" || href === "/dashboard" || href === "/my-dashboard") {
     return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);
