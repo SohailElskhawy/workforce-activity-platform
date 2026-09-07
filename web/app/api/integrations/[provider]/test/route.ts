@@ -6,7 +6,9 @@ import { ClickUpClient } from "@/lib/integrations/clickup/client";
 import { ClockifyClient } from "@/lib/integrations/clockify/client";
 import { KolayIkClient } from "@/lib/integrations/kolayik/client";
 import { prisma } from "@/lib/prisma";
-import { getDecryptedCredentialsWithStore } from "@/lib/services/integrations";
+import type { AuthContext } from "@/lib/auth-context";
+import { defaultIntegrationStore, getDecryptedCredentialsWithStore } from "@/lib/services/integrations";
+import type { IntegrationProvider } from "@/src/generated/prisma/client";
 import { integrationProviderSchema } from "@/lib/validation/integrations";
 import { z } from "zod";
 
@@ -22,11 +24,13 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ provider: string }> }
 ) {
+  let context: AuthContext | null = null;
+  let validatedProvider: IntegrationProvider | null = null;
   try {
     assertSameOrigin(request);
-    const context = await requireManagerContext();
+    context = await requireManagerContext();
     const { provider } = await params;
-    const validatedProvider = integrationProviderSchema.parse(
+    validatedProvider = integrationProviderSchema.parse(
       provider.toUpperCase()
     );
 
@@ -86,6 +90,22 @@ export async function POST(
       message = res.message;
     }
 
+    // On success: update integration status to CONNECTED if already configured
+    const existing = await defaultIntegrationStore.findIntegration(
+      context.companyId,
+      validatedProvider
+    );
+    if (existing && existing.encryptedCredentials) {
+      await defaultIntegrationStore.upsertIntegration(
+        context.companyId,
+        validatedProvider,
+        {
+          status: "CONNECTED",
+          lastError: null,
+        }
+      );
+    }
+
     await writeAudit(prisma, {
       companyId: context.companyId,
       actorUserId: context.userId,
@@ -100,6 +120,40 @@ export async function POST(
 
     return ok({ success: true, message });
   } catch (error) {
+    if (context && validatedProvider) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Connection test failed";
+      try {
+        const existing = await defaultIntegrationStore.findIntegration(
+          context.companyId,
+          validatedProvider
+        );
+        if (existing && existing.encryptedCredentials) {
+          await defaultIntegrationStore.upsertIntegration(
+            context.companyId,
+            validatedProvider,
+            {
+              status: "ERROR",
+              lastError: errorMessage,
+            }
+          );
+        }
+        await writeAudit(prisma, {
+          companyId: context.companyId,
+          actorUserId: context.userId,
+          action: "INTEGRATION_CONNECTION_TESTED",
+          entityType: "Integration",
+          entityId: validatedProvider,
+          metadata: {
+            provider: validatedProvider,
+            success: false,
+            error: errorMessage,
+          },
+        });
+      } catch {
+        // preserve original error
+      }
+    }
     return handleRouteError(error);
   }
 }

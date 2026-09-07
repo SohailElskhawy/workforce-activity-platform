@@ -1,7 +1,6 @@
 import { assertRole, type AuthContext } from "@/lib/auth-context";
 import { writeAudit, type AuditEntry } from "@/lib/audit/log";
 import { decryptJson, encryptJson } from "@/lib/crypto/secret";
-import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
 import type {
   IntegrationProvider,
@@ -299,27 +298,52 @@ export async function getDecryptedCredentialsWithStore<T = Record<string, unknow
       credentials,
       config: (record.config as Record<string, unknown>) ?? null,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
+
+export type IntegrationTester = (
+  provider: IntegrationProvider,
+  credentials: Record<string, unknown>,
+  config?: Record<string, unknown>
+) => Promise<{ success: boolean; message?: string }>;
 
 export async function configureIntegrationWithStore(
   context: AuthContext,
   provider: IntegrationProvider,
   credentials: Record<string, unknown>,
   config: Record<string, unknown> | undefined,
-  store: IntegrationStore = defaultIntegrationStore
+  store: IntegrationStore = defaultIntegrationStore,
+  tester?: IntegrationTester
 ): Promise<PublicIntegrationView> {
   assertRole(context, ["MANAGER", "SUPER_ADMIN"]);
 
   const encryptedCredentials = encryptJson(credentials);
 
+  let initialStatus: IntegrationStatus = "CONFIGURED";
+  let lastError: string | null = null;
+
+  if (tester) {
+    try {
+      const res = await tester(provider, credentials, config);
+      if (res.success) {
+        initialStatus = "CONNECTED";
+      } else {
+        initialStatus = "ERROR";
+        lastError = res.message || "Connection test failed";
+      }
+    } catch (err) {
+      initialStatus = "ERROR";
+      lastError = err instanceof Error ? err.message : "Connection test failed";
+    }
+  }
+
   const updated = await store.upsertIntegration(context.companyId, provider, {
-    status: "CONNECTED",
+    status: initialStatus,
     encryptedCredentials,
     config: (config ?? {}) as Prisma.InputJsonValue,
-    lastError: null,
+    lastError,
   });
 
   // Audit event - explicitly NEVER include credentials
@@ -331,6 +355,7 @@ export async function configureIntegrationWithStore(
     entityId: updated.id,
     metadata: {
       provider,
+      status: updated.status,
       hasConfig: Boolean(config && Object.keys(config).length > 0),
     },
   });

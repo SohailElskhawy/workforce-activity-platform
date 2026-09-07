@@ -23,6 +23,12 @@ import {
   createAdminUser,
   updateAdminUser,
   listAdminLogs,
+  listAdminIntegrations,
+  adminTestIntegration,
+  adminConfigureIntegration,
+  adminDisconnectIntegration,
+  adminSyncIntegration,
+  updateAdminSettings,
   type AdminDatabase,
 } from "./service";
 
@@ -121,6 +127,40 @@ function fakeDatabase() {
     },
     project: { count: async () => 3 },
     device: { count: async () => 4 },
+    integration: {
+      findMany: async (args: unknown) => {
+        writes.push({ integrationQuery: args });
+        return [
+          {
+            id: a,
+            companyId: a,
+            provider: "CLICKUP",
+            status: "CONNECTED",
+            config: { listId: "list_1" },
+            lastSyncAt: new Date("2026-09-07T00:00:00Z"),
+            lastError: null,
+            createdAt: new Date("2026-09-01T00:00:00Z"),
+            updatedAt: new Date("2026-09-07T00:00:00Z"),
+            company: { id: a, name: "Alpha" },
+            encryptedCredentials: "v1:encrypted",
+          },
+        ];
+      },
+      count: async () => 1,
+      findUnique: async () => ({ id: a, companyId: a, provider: "CLICKUP" }),
+      update: async ({ where, data }: any) => {
+        writes.push({ integrationUpdate: { where, data } });
+        return { ...where, ...data };
+      },
+      upsert: async ({ where, create, update }: any) => {
+        writes.push({ integrationUpsert: { where, create, update } });
+        return { id: a, ...create, ...update };
+      },
+      deleteMany: async (args: any) => {
+        writes.push({ integrationDeleteMany: args });
+        return { count: 1 };
+      },
+    },
     auditLog: {
       create: async ({ data }: { data: Record<string, unknown> }) => {
         audits.push(data);
@@ -277,6 +317,12 @@ test("all explicit admin services reject normal roles independently of routes", 
     (c: AuthContext) => adminOverview(c),
     (c: AuthContext) => adminSettings(c),
     (c: AuthContext) => adminIntegrations(c),
+    (c: AuthContext) => listAdminIntegrations(c, query),
+    (c: AuthContext) => adminTestIntegration(c, a, "CLICKUP"),
+    (c: AuthContext) => adminConfigureIntegration(c, a, "CLICKUP", {}),
+    (c: AuthContext) => adminDisconnectIntegration(c, a, "CLICKUP"),
+    (c: AuthContext) => adminSyncIntegration(c, a, "CLICKUP"),
+    (c: AuthContext) => updateAdminSettings(c, {}),
   ];
   for (const role of ["MANAGER", "EMPLOYEE"] as const)
     for (const call of calls)
@@ -570,14 +616,16 @@ test("query validation rejects invalid dates, huge pages, invalid companies and 
   assert.deepEqual(parseAdminQuery(new URLSearchParams()), query);
 });
 
-test("overview uses real counts and settings/integrations report only existing capabilities", async () => {
+test("overview uses real counts and settings report functional capabilities", async () => {
   const f = fakeDatabase();
   const result = await adminOverview(admin, f.db);
   assert.equal(result.companies, 2);
   assert.equal(result.projects, 3);
   assert.equal(result.devices, 4);
-  assert.deepEqual(adminIntegrations(admin), { available: false, items: [] });
-  assert.equal(adminSettings(admin).globalSettingsAvailable, false);
+  const settings = await adminSettings(admin, f.db);
+  assert.equal(settings.globalSettingsAvailable, true);
+  assert.equal(typeof settings.notificationDueSoonHours, "number");
+  assert.equal(typeof settings.defaultIdleThresholdSeconds, "number");
 });
 
 test("normal tenant helpers retain scope and admin role does not bypass manager/employee authorization", () => {
@@ -612,4 +660,30 @@ test("initial operator bootstrap is create-only, refuses an existing admin and a
     JSON.stringify(f.audits).includes(newUser.temporaryPassword),
     false,
   );
+});
+
+test("admin integrations: lists cross-company integrations and strips secrets", async () => {
+  const f = fakeDatabase();
+  const res = await listAdminIntegrations(admin, query, f.db);
+  assert.equal(res.items.length, 1);
+  const item = res.items[0];
+  assert.equal(item.companyId, a);
+  assert.equal(item.companyName, "Alpha");
+  assert.equal(item.provider, "CLICKUP");
+  assert.equal(item.status, "CONNECTED");
+  assert.equal(item.isConfigured, true);
+  assert.equal((item as any).encryptedCredentials, undefined);
+  assert.equal((item as any).apiToken, undefined);
+});
+
+test("admin integrations: disconnects integration with proper database call", async () => {
+  const f = fakeDatabase();
+  f.db.company.findUnique = (async ({ where }: { where: { id: string } }) => ({
+    id: where.id,
+    name: "Alpha",
+  })) as any;
+
+  const disconnected = await adminDisconnectIntegration(admin, a, "CLICKUP", f.db);
+  assert.equal(disconnected.success, true);
+  assert.ok(f.writes.some((w) => w.integrationDeleteMany));
 });

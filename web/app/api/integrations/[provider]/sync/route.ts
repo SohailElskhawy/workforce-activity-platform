@@ -6,6 +6,9 @@ import { syncClickUpInbound } from "@/lib/integrations/clickup/sync";
 import { importClockifyHistoricalTime } from "@/lib/integrations/clockify/import";
 import { syncKolayIkInbound } from "@/lib/integrations/kolayik/sync";
 import { prisma } from "@/lib/prisma";
+import type { AuthContext } from "@/lib/auth-context";
+import { recordIntegrationSyncStatusWithStore } from "@/lib/services/integrations";
+import type { IntegrationProvider } from "@/src/generated/prisma/client";
 import {
   clickUpSyncSchema,
   clockifyImportSchema,
@@ -19,11 +22,13 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ provider: string }> }
 ) {
+  let context: AuthContext | null = null;
+  let validatedProvider: IntegrationProvider | null = null;
   try {
     assertSameOrigin(request);
-    const context = await requireManagerContext();
+    context = await requireManagerContext();
     const { provider } = await params;
-    const validatedProvider = integrationProviderSchema.parse(
+    validatedProvider = integrationProviderSchema.parse(
       provider.toUpperCase()
     );
 
@@ -60,6 +65,13 @@ export async function POST(
       syncSummary = result as unknown as Record<string, unknown>;
     }
 
+    await recordIntegrationSyncStatusWithStore(
+      context.companyId,
+      validatedProvider,
+      "CONNECTED",
+      null
+    );
+
     await writeAudit(prisma, {
       companyId: context.companyId,
       actorUserId: context.userId,
@@ -74,6 +86,31 @@ export async function POST(
 
     return ok(syncSummary);
   } catch (error) {
+    if (context && validatedProvider) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Integration sync failed";
+      try {
+        await recordIntegrationSyncStatusWithStore(
+          context.companyId,
+          validatedProvider,
+          "ERROR",
+          errorMessage
+        );
+        await writeAudit(prisma, {
+          companyId: context.companyId,
+          actorUserId: context.userId,
+          action: "INTEGRATION_SYNC_FAILED",
+          entityType: "Integration",
+          entityId: validatedProvider,
+          metadata: {
+            provider: validatedProvider,
+            error: errorMessage,
+          },
+        });
+      } catch {
+        // preserve original error
+      }
+    }
     return handleRouteError(error);
   }
 }

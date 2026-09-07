@@ -88,6 +88,7 @@ export type TrackingSettingsStore = {
 export async function getCompanyTrackingSettingsWithStore(
   context: AuthContext,
   store: TrackingSettingsStore,
+  defaultIdleThresholdSeconds = 300,
 ) {
   assertRole(context, ["MANAGER", "SUPER_ADMIN"]);
 
@@ -96,7 +97,7 @@ export async function getCompanyTrackingSettingsWithStore(
     settings = await store.saveSettings({
       id: `settings-${context.companyId}`,
       companyId: context.companyId,
-      idleThresholdSeconds: 300,
+      idleThresholdSeconds: defaultIdleThresholdSeconds,
       configVersion: 1,
     });
   }
@@ -379,7 +380,19 @@ function createPrismaStore(context: AuthContext): TrackingSettingsStore {
 }
 
 export async function getCompanyTrackingSettings(context: AuthContext) {
-  return getCompanyTrackingSettingsWithStore(context, createPrismaStore(context));
+  let defaultThreshold = 300;
+  try {
+    const { getSystemSettingsWithStore } = await import("@/lib/services/system-settings");
+    const sys = await getSystemSettingsWithStore();
+    defaultThreshold = sys.defaultIdleThresholdSeconds;
+  } catch {
+    // fallback to 300
+  }
+  return getCompanyTrackingSettingsWithStore(
+    context,
+    createPrismaStore(context),
+    defaultThreshold
+  );
 }
 
 export async function updateIdleThreshold(

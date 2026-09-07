@@ -35,8 +35,11 @@ export function NotificationBell({ isEmployee = false }: { isEmployee?: boolean 
   useEffect(() => {
     void fetchNotifications();
     const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
       void fetchNotifications();
-    }, 60_000);
+    }, 180_000);
     return () => clearInterval(interval);
   }, []);
 

@@ -383,6 +383,7 @@ enum IntegrationProvider {
 
 enum IntegrationStatus {
     NOT_CONFIGURED
+    CONFIGURED
     CONNECTED
     ERROR
     SYNCING
@@ -445,5 +446,13 @@ model EmployeeLeave {
     @@index([companyId, employeeId])
     @@index([companyId, startDate, endDate])
     @@index([companyId, externalId])
+}
+
+model SystemSettings {
+    id                          String   @id @default("system")
+    notificationDueSoonHours    Int      @default(24)
+    defaultIdleThresholdSeconds Int      @default(300)
+    createdAt                   DateTime @default(now())
+    updatedAt                   DateTime @updatedAt
 }
 

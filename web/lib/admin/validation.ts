@@ -23,6 +23,43 @@ export const updateUserSchema = z
   .object({ companyId: z.string().uuid(), role: roleSchema })
   .strict();
 export const idSchema = z.string().uuid();
+export const integrationProviderEnum = z.enum(["CLICKUP", "KOLAY_IK", "CLOCKIFY"]);
+export const integrationStatusEnum = z.enum([
+  "NOT_CONFIGURED",
+  "CONFIGURED",
+  "CONNECTED",
+  "ERROR",
+  "SYNCING",
+  "DISABLED",
+]);
+
+export const adminIntegrationActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("TEST"),
+    companyId: z.string().uuid(),
+    provider: integrationProviderEnum,
+  }),
+  z.object({
+    action: z.literal("DISCONNECT"),
+    companyId: z.string().uuid(),
+    provider: integrationProviderEnum,
+  }),
+  z.object({
+    action: z.literal("SYNC"),
+    companyId: z.string().uuid(),
+    provider: integrationProviderEnum,
+    payload: z.record(z.string(), z.unknown()).optional(),
+  }),
+  z.object({
+    action: z.literal("CONFIGURE"),
+    companyId: z.string().uuid(),
+    provider: integrationProviderEnum,
+    credentials: z.record(z.string(), z.unknown()),
+    config: z.record(z.string(), z.unknown()).optional(),
+  }),
+]);
+export type AdminIntegrationAction = z.infer<typeof adminIntegrationActionSchema>;
+
 const querySchema = z
   .object({
     page: z.coerce.number().int().min(1).max(100000).default(1),
@@ -30,6 +67,8 @@ const querySchema = z
     q: z.string().trim().max(160).optional(),
     companyId: z.string().uuid().optional(),
     role: roleSchema.optional(),
+    provider: integrationProviderEnum.optional(),
+    status: integrationStatusEnum.optional(),
     actor: z.string().trim().max(160).optional(),
     action: z.string().trim().max(100).optional(),
     entityType: z.string().trim().max(100).optional(),

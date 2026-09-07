@@ -20,14 +20,27 @@ export type TaskNotification = {
   createdAt: string;
 };
 
+import { getSystemSettingsWithStore } from "@/lib/services/system-settings";
+
 export async function getTaskNotifications(
   context: AuthContext,
   now: Date = new Date(),
+  dueSoonHours?: number,
 ): Promise<TaskNotification[]> {
   if (!context.companyId) return [];
 
+  let windowHours = dueSoonHours;
+  if (windowHours === undefined) {
+    try {
+      const settings = await getSystemSettingsWithStore();
+      windowHours = settings.notificationDueSoonHours;
+    } catch {
+      windowHours = 24;
+    }
+  }
+
   const nowTime = now.getTime();
-  const window24HoursLater = new Date(nowTime + 24 * 60 * 60 * 1000);
+  const windowDueSoon = new Date(nowTime + windowHours * 60 * 60 * 1000);
 
   const whereBase: Record<string, unknown> = {
     status: {
@@ -35,7 +48,7 @@ export async function getTaskNotifications(
     },
     dueDate: {
       not: null,
-      lte: window24HoursLater,
+      lte: windowDueSoon,
     },
   };
 

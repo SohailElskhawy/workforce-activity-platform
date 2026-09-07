@@ -18,6 +18,8 @@ export type ClockifyImportResult = {
   imported: number;
   skippedDuplicate: number;
   unmapped: number;
+  unmappedUser: number;
+  unmappedProject: number;
   failed: number;
   errors: string[];
 };
@@ -45,9 +47,6 @@ export type ClockifyImportDatabase = {
     companyId: string,
     name: string
   ): Promise<{ id: string; name: string } | null>;
-  findOrCreateDefaultProject(
-    companyId: string
-  ): Promise<{ id: string; name: string }>;
   findTimeEntryByExternalId(
     companyId: string,
     externalId: string
@@ -119,30 +118,6 @@ export const defaultClockifyDatabase: ClockifyImportDatabase = {
       select: { id: true, name: true },
     });
   },
-  async findOrCreateDefaultProject(companyId) {
-    const existing = await prisma.project.findFirst({
-      where: { companyId },
-      orderBy: { createdAt: "asc" },
-      select: { id: true, name: true },
-    });
-    if (existing) return existing;
-
-    const user = await prisma.user.findFirst({
-      where: { companyId, role: { in: ["MANAGER", "SUPER_ADMIN"] } },
-      select: { id: true },
-    });
-    if (!user) throw new Error("No admin user found to create default project");
-
-    return prisma.project.create({
-      data: {
-        companyId,
-        name: "Clockify Imported Project",
-        code: "CLK-1",
-        createdById: user.id,
-      },
-      select: { id: true, name: true },
-    });
-  },
   async findTimeEntryByExternalId(companyId, externalId) {
     return prisma.timeEntry.findFirst({
       where: {
@@ -208,6 +183,8 @@ export async function importClockifyHistoricalTime(
     imported: 0,
     skippedDuplicate: 0,
     unmapped: 0,
+    unmappedUser: 0,
+    unmappedProject: 0,
     failed: 0,
     errors: [],
   };
@@ -275,8 +252,6 @@ export async function importClockifyHistoricalTime(
     }
   }
 
-  const defaultProject = await db.findOrCreateDefaultProject(context.companyId);
-
   // 3. Fetch time entries with pagination
   let page = 1;
   let hasMore = true;
@@ -326,16 +301,23 @@ export async function importClockifyHistoricalTime(
         const employeeId = userMap.get(entry.userId);
         if (!employeeId) {
           result.unmapped++;
+          result.unmappedUser++;
           result.errors.push(
             `Entry ${entry.id}: Clockify user ${entry.userId} is not mapped to any WorkLens employee`
           );
           continue;
         }
 
-        // Map project
-        const projectId =
-          (entry.projectId ? projectMap.get(entry.projectId) : undefined) ||
-          defaultProject.id;
+        // Map project - do NOT silently attribute to unrelated/default project!
+        const projectId = entry.projectId ? projectMap.get(entry.projectId) : undefined;
+        if (!projectId) {
+          result.unmapped++;
+          result.unmappedProject++;
+          result.errors.push(
+            `Entry ${entry.id}: Clockify project ${entry.projectId || "unspecified"} is not mapped to any WorkLens project`
+          );
+          continue;
+        }
 
         const startAt = new Date(entry.timeInterval.start);
         const endAt = new Date(entry.timeInterval.end);

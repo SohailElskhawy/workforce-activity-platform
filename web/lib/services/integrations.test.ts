@@ -8,6 +8,7 @@ import {
   getDecryptedCredentialsWithStore,
   getIntegrationWithStore,
   listCompanyIntegrationsWithStore,
+  recordIntegrationSyncStatusWithStore,
   type IntegrationMappingRecord,
   type IntegrationRecord,
   type IntegrationStore,
@@ -168,7 +169,7 @@ test("Security: Configured secrets are encrypted at rest and never exposed to th
   assert.equal((publicView as any).apiToken, undefined);
   assert.equal((publicView as any).encryptedCredentials, undefined);
   assert.equal(publicView.isConfigured, true);
-  assert.equal(publicView.status, "CONNECTED");
+  assert.equal(publicView.status, "CONFIGURED");
   assert.equal(publicView.config?.listId, "list-456");
 
   // 2. Storage must have encrypted credentials (not plaintext)
@@ -212,3 +213,72 @@ test("Tenant isolation: Company A manager cannot access Company B integration cr
   assert.equal(clockifyA?.status, "NOT_CONFIGURED");
   assert.equal(clockifyA?.isConfigured, false);
 });
+
+test("Integration lifecycle: Status transitions NOT_CONFIGURED -> CONFIGURED -> CONNECTED / ERROR", async () => {
+  const { store } = createMockIntegrationStore();
+
+  // 1. Initial state is NOT_CONFIGURED
+  const initial = await getIntegrationWithStore(managerA, "CLICKUP", store);
+  assert.equal(initial.status, "NOT_CONFIGURED");
+
+  // 2. Configuration without testing transitions to CONFIGURED
+  const configured = await configureIntegrationWithStore(
+    managerA,
+    "CLICKUP",
+    { apiToken: "token_123" },
+    { listId: "list_abc" },
+    store
+  );
+  assert.equal(configured.status, "CONFIGURED");
+
+  // 3. Successful connection test transitions to CONNECTED
+  const connected = await configureIntegrationWithStore(
+    managerA,
+    "CLICKUP",
+    { apiToken: "token_123" },
+    { listId: "list_abc" },
+    store,
+    async () => ({ success: true })
+  );
+  assert.equal(connected.status, "CONNECTED");
+
+  // 4. Failed connection test transitions to ERROR with error message
+  const failed = await configureIntegrationWithStore(
+    managerA,
+    "CLICKUP",
+    { apiToken: "bad_token" },
+    { listId: "list_abc" },
+    store,
+    async () => ({ success: false, message: "Invalid API token" })
+  );
+  assert.equal(failed.status, "ERROR");
+  assert.equal(failed.lastError, "Invalid API token");
+});
+
+test("Integration sync status: records CONNECTED with new sync timestamp, and ERROR preserves previous lastSyncAt", async () => {
+  const { store } = createMockIntegrationStore();
+
+  // Configure first
+  await configureIntegrationWithStore(
+    managerA,
+    "KOLAY_IK",
+    { apiToken: "tok_123" },
+    {},
+    store
+  );
+
+  // 1. Initial sync success: sets CONNECTED and records lastSyncAt
+  await recordIntegrationSyncStatusWithStore("comp-a", "KOLAY_IK", "CONNECTED", null, store);
+  const synced = await getIntegrationWithStore(managerA, "KOLAY_IK", store);
+  assert.equal(synced.status, "CONNECTED");
+  assert.ok(synced.lastSyncAt);
+  const initialSyncAt = synced.lastSyncAt;
+
+  // 2. Subsequent sync failure: sets ERROR, records error message, retains initialSyncAt
+  await recordIntegrationSyncStatusWithStore("comp-a", "KOLAY_IK", "ERROR", "Network connection timeout", store);
+  const failed = await getIntegrationWithStore(managerA, "KOLAY_IK", store);
+  assert.equal(failed.status, "ERROR");
+  assert.equal(failed.lastError, "Network connection timeout");
+  assert.equal(failed.lastSyncAt, initialSyncAt);
+});
+

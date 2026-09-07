@@ -54,6 +54,20 @@ export interface TranslationDictionary {
     total: string;
     viewUsers: string;
     filterCompany: string;
+    notificationDueSoonLabel: string;
+    defaultIdleThresholdLabel: string;
+    saveSettings: string;
+    systemSettings: string;
+    testConnection: string;
+    disconnect: string;
+    sync: string;
+    manage: string;
+    filterByCompany: string;
+    filterByProvider: string;
+    filterByStatus: string;
+    noIntegrationsConfigured: string;
+    noIntegrationsMatch: string;
+    configureIntegration: string;
   };
   common: {
     brandName: string;

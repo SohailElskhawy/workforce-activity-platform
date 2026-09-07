@@ -9,6 +9,7 @@ export type IntegrationProviderType = z.infer<typeof integrationProviderSchema>;
 
 export const integrationStatusSchema = z.enum([
   "NOT_CONFIGURED",
+  "CONFIGURED",
   "CONNECTED",
   "ERROR",
   "SYNCING",

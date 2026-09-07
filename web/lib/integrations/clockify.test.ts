@@ -95,16 +95,6 @@ function createMockClockifyDatabase() {
       }
       return null;
     },
-    async findOrCreateDefaultProject(companyId) {
-      for (const proj of projects.values()) {
-        if (proj.companyId === companyId) {
-          return { id: proj.id, name: proj.name };
-        }
-      }
-      const p = { id: `default-proj-${companyId}`, name: "Default Clockify Project", companyId };
-      projects.set(p.id, p);
-      return { id: p.id, name: p.name };
-    },
     async findTimeEntryByExternalId(companyId, externalId) {
       for (const te of timeEntries.values()) {
         if (te.companyId === companyId && te.source === "CLOCKIFY" && te.externalId === externalId) {
@@ -334,3 +324,71 @@ test("Clockify tenant isolation: Company A manager cannot import into Company B"
     /Clockify integration is not configured/
   );
 });
+
+test("Clockify project safety: unmapped project is skipped and never assigned to arbitrary/default project", async () => {
+  const { db, integrations, employees, timeEntries } = createMockClockifyDatabase();
+
+  integrations.set("comp-alpha", {
+    id: "integ-clk",
+    companyId: "comp-alpha",
+    provider: "CLOCKIFY",
+    status: "CONNECTED",
+    encryptedCredentials: encryptJson({ apiKey: "clk_api_key_test" }),
+    config: { workspaceId: "ws-1" },
+    lastSyncAt: null,
+    lastError: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  // User is mapped
+  employees.set("emp-1", { id: "emp-1", email: "selim@soda.com", companyId: "comp-alpha" });
+
+  const mockUsers: ClockifyUser[] = [
+    { id: "clk-u1", name: "Selim Yilmaz", email: "selim@soda.com" },
+  ];
+
+  // But project is unmapped / unknown
+  const mockEntries: ClockifyTimeEntry[] = [
+    {
+      id: "entry-unmapped-proj",
+      description: "Mysterious project work",
+      userId: "clk-u1",
+      projectId: "clk-proj-unknown-999",
+      taskId: null,
+      timeInterval: {
+        start: "2026-09-01T09:00:00.000Z",
+        end: "2026-09-01T11:00:00.000Z",
+      },
+    },
+  ];
+
+  const mockClient = {
+    async getUsers() {
+      return mockUsers;
+    },
+    async getProjects() {
+      return []; // No projects returned
+    },
+    async getTimeEntries() {
+      return mockEntries;
+    },
+  } as unknown as ClockifyClient;
+
+  const result = await importClockifyHistoricalTime(managerAlpha, {
+    workspaceId: "ws-1",
+    startDate: "2026-09-01T00:00:00.000Z",
+    endDate: "2026-09-02T00:00:00.000Z",
+    client: mockClient,
+    db,
+  });
+
+  assert.equal(result.totalFound, 1);
+  assert.equal(result.imported, 0);
+  assert.equal(result.unmappedProject, 1);
+  assert.equal(result.unmapped, 1);
+  // Strictly 0 time entries created - never assigned to a default project!
+  assert.equal(timeEntries.size, 0);
+  assert.ok(result.errors.some((e) => e.includes("is not mapped to any WorkLens project")));
+});
+

@@ -1,4 +1,5 @@
-import { AdminInformation } from "@/components/admin/admin-ui";
+import { AdminSettings } from "@/components/admin/admin-ui";
+
 export default function Page() {
-  return <AdminInformation section="settings" />;
+  return <AdminSettings />;
 }
