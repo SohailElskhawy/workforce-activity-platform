@@ -17,6 +17,7 @@ import {
   Menu,
   Settings,
   ShieldCheck,
+  Sparkles,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -85,6 +86,7 @@ export function AppShell({
       heading: t.common.navigation.analytics,
       items: [
         { href: "/reports", icon: BarChart3, label: t.common.navigation.reports },
+        { href: "/intelligence", icon: Sparkles, label: t.common.navigation.intelligence },
         { href: "/anomalies", icon: AlertTriangle, label: t.common.navigation.anomalies },
       ],
     },
