@@ -236,6 +236,20 @@ export async function updateTask(
       },
     });
 
+    if (input.status && input.status !== existing.status) {
+      await writeAudit(transaction, {
+        companyId: context.companyId,
+        actorUserId: context.userId,
+        action: "TASK_STATUS_CHANGED",
+        entityType: "Task",
+        entityId: updated.id,
+        metadata: {
+          previousStatus: existing.status,
+          newStatus: updated.status,
+        },
+      });
+    }
+
     return updated;
   });
 }

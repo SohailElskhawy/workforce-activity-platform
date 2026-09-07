@@ -32,18 +32,33 @@ export async function registerDevice(
   }
 
   const token = createAgentToken();
-  const device = await prisma.device.create({
-    data: {
-      agentTokenHash: hashAgentToken(token),
-      companyId: context.companyId,
-      deviceId: createPublicDeviceId(),
-      employeeId: employee.id,
-      name: input.name,
-    },
-    select: { deviceId: true },
-  });
+  return prisma.$transaction(async (transaction) => {
+    const device = await transaction.device.create({
+      data: {
+        agentTokenHash: hashAgentToken(token),
+        companyId: context.companyId,
+        deviceId: createPublicDeviceId(),
+        employeeId: employee.id,
+        name: input.name,
+      },
+      select: { id: true, deviceId: true },
+    });
 
-  return { deviceId: device.deviceId, token };
+    await writeAudit(transaction, {
+      companyId: context.companyId,
+      actorUserId: context.userId,
+      action: "DEVICE_REGISTERED",
+      entityType: "Device",
+      entityId: device.id,
+      metadata: {
+        devicePublicId: device.deviceId,
+        employeeId: employee.id,
+        name: input.name,
+      },
+    });
+
+    return { deviceId: device.deviceId, token };
+  });
 }
 
 export async function revokeDevice(context: AuthContext, deviceId: string) {

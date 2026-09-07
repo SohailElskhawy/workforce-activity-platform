@@ -22,6 +22,7 @@ import { usePathname } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useI18n } from "@/lib/i18n";
 
 type AppRole = "MANAGER" | "EMPLOYEE" | "SUPER_ADMIN";
@@ -214,13 +215,7 @@ export function AppShell({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              aria-label={t.common.notifications}
-              className="relative inline-flex size-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-              type="button"
-            >
-              <Bell className="size-4" />
-            </button>
+            <NotificationBell isEmployee={!isManager && !isAdmin} />
             <LanguageSwitcher />
             <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:flex">
               <span className="size-1.5 rounded-full bg-emerald-500" />

@@ -23,13 +23,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { patchJson } from "@/lib/client/api";
 import { useI18n } from "@/lib/i18n";
 import {
-  createTimeEntrySchema,
-  type CreateTimeEntryInput,
+  updateTimeEntrySchema,
+  type UpdateTimeEntryInput,
 } from "@/lib/validation/time-entries";
 
 type ProjectOption = { id: string; code: string; name: string };
 type TaskOption = { id: string; projectId: string; title: string };
-type TimeEntryForm = z.input<typeof createTimeEntrySchema>;
+type TimeEntryForm = z.input<typeof updateTimeEntrySchema>;
 
 export type TimeEntryEditableProps = {
   id: string;
@@ -72,21 +72,22 @@ export function EditTimeEntryDialog({
     handleSubmit,
     register,
     reset,
-  } = useForm<TimeEntryForm, unknown, CreateTimeEntryInput>({
+  } = useForm<TimeEntryForm, unknown, UpdateTimeEntryInput>({
     defaultValues: {
       projectId: entry.projectId,
       taskId: entry.taskId ?? "",
       startAt: toDatetimeLocalString(entry.startAt),
       endAt: toDatetimeLocalString(entry.endAt),
       notes: entry.notes ?? "",
+      reason: "",
     },
-    resolver: zodResolver(createTimeEntrySchema),
+    resolver: zodResolver(updateTimeEntrySchema),
   });
 
   const projectId = useWatch({ control, name: "projectId" });
   const availableTasks = tasks.filter((task) => task.projectId === projectId);
 
-  async function onSubmit(values: CreateTimeEntryInput) {
+  async function onSubmit(values: UpdateTimeEntryInput) {
     setRequestError(null);
     try {
       await patchJson(`/api/my/time-entries/${entry.id}`, values);
@@ -105,6 +106,7 @@ export function EditTimeEntryDialog({
         startAt: toDatetimeLocalString(entry.startAt),
         endAt: toDatetimeLocalString(entry.endAt),
         notes: entry.notes ?? "",
+        reason: "",
       });
       setRequestError(null);
     }
@@ -123,9 +125,9 @@ export function EditTimeEntryDialog({
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="min-w-0">
-          <DialogTitle className="truncate">{t.common.edit} Time Entry</DialogTitle>
+          <DialogTitle className="truncate">{t.myTime.editTimeEntryTitle}</DialogTitle>
           <DialogDescription className="break-words">
-            Update project, task, or time duration for this log.
+            {t.myTime.editTimeEntryDesc}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -227,6 +229,21 @@ export function EditTimeEntryDialog({
             />
             {errors.notes ? (
               <p className="text-xs text-destructive">{errors.notes.message}</p>
+            ) : null}
+          </div>
+          <div className="grid gap-2 min-w-0">
+            <Label htmlFor={`edit-time-reason-${entry.id}`}>
+              {t.myTime.editReason}
+            </Label>
+            <Input
+              aria-invalid={Boolean(errors.reason)}
+              className="w-full min-w-0"
+              id={`edit-time-reason-${entry.id}`}
+              placeholder={t.myTime.editReasonPlaceholder}
+              {...register("reason")}
+            />
+            {errors.reason ? (
+              <p className="text-xs text-destructive">{errors.reason.message}</p>
             ) : null}
           </div>
           {requestError ? (

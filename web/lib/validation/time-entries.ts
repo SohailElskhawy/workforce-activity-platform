@@ -23,5 +23,15 @@ export const createTimeEntrySchema = z
   .strict();
 
 export type CreateTimeEntryInput = z.output<typeof createTimeEntrySchema>;
-export const updateTimeEntrySchema = createTimeEntrySchema;
-export type UpdateTimeEntryInput = CreateTimeEntryInput;
+
+const optionalReason = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().max(500).optional(),
+);
+
+export const updateTimeEntrySchema = createTimeEntrySchema.extend({
+  reason: optionalReason,
+});
+
+export type UpdateTimeEntryInput = z.output<typeof updateTimeEntrySchema>;

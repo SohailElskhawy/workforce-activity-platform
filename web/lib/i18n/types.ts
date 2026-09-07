@@ -318,6 +318,10 @@ export interface TranslationDictionary {
     title: string;
     subtitle: string;
     exportCsv: string;
+    exportExcel: string;
+    exporting: string;
+    exportSuccess: string;
+    exportFailed: string;
     timeRange: string;
     last7Days: string;
     last30Days: string;
@@ -331,6 +335,37 @@ export interface TranslationDictionary {
     match: string;
     moreManual: (amount: string) => string;
     moreActivity: (amount: string) => string;
+  };
+  timeEntries: {
+    title: string;
+    subtitle: string;
+    employee: string;
+    department: string;
+    project: string;
+    task: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    duration: string;
+    notes: string;
+    lastModified: string;
+    allEmployees: string;
+    allDepartments: string;
+    allProjects: string;
+    allTasks: string;
+    filterByDate: string;
+    emptyTitle: string;
+    emptyDesc: string;
+  };
+  notifications: {
+    title: string;
+    noNotifications: string;
+    deadlineApproaching: string;
+    overdue: string;
+    dueIn: (hours: number) => string;
+    overdueBy: (hours: number) => string;
+    viewTask: string;
+    unreadCount: (count: number) => string;
   };
   employeeDashboard: {
     title: string;
@@ -370,6 +405,10 @@ export interface TranslationDictionary {
     addTimeEntry: string;
     addTimeEntryTitle: string;
     addTimeEntryDesc: string;
+    editTimeEntryTitle: string;
+    editTimeEntryDesc: string;
+    editReason: string;
+    editReasonPlaceholder: string;
     date: string;
     startTime: string;
     endTime: string;

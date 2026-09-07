@@ -71,7 +71,7 @@ export async function updateOwnAssignedTaskStatus(
   return prisma.$transaction(async (transaction) => {
     const assignment = await transaction.taskAssignment.findFirst({
       where: tenantWhere(context.companyId, { employeeId, taskId }),
-      select: { taskId: true },
+      select: { taskId: true, task: { select: { status: true } } },
     });
 
     if (!assignment) {
@@ -93,7 +93,10 @@ export async function updateOwnAssignedTaskStatus(
       action: "TASK_STATUS_UPDATED_BY_EMPLOYEE",
       entityType: "Task",
       entityId: task.id,
-      metadata: { status: task.status },
+      metadata: {
+        previousStatus: assignment.task.status,
+        status: task.status,
+      },
     });
 
     return task;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link2 } from "lucide-react";
+import { Download, FileSpreadsheet, Link2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -106,6 +106,42 @@ function ReportMessage({
   );
 }
 
+function ExportControls({
+  type,
+  params = {},
+}: {
+  type: "employee" | "project" | "task" | "application" | "time-comparison";
+  params?: Record<string, string>;
+}) {
+  const { t } = useI18n();
+
+  const getExportUrl = (format: "csv" | "xlsx") => {
+    const search = new URLSearchParams({ type, format, ...params });
+    return `/api/reports/export?${search.toString()}`;
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <a
+        className="inline-flex h-8 items-center justify-center rounded-lg border border-input bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+        download
+        href={getExportUrl("csv")}
+      >
+        <Download className="mr-1.5 size-3.5" />
+        {t.reports.exportCsv}
+      </a>
+      <a
+        className="inline-flex h-8 items-center justify-center rounded-lg border border-input bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+        download
+        href={getExportUrl("xlsx")}
+      >
+        <FileSpreadsheet className="mr-1.5 size-3.5" />
+        {t.reports.exportExcel}
+      </a>
+    </div>
+  );
+}
+
 export function ReportTabs({
   employees,
   projects,
@@ -159,13 +195,27 @@ export function ReportTabs({
         <TabsTrigger value="autocad">AutoCAD / DWG</TabsTrigger>
       </TabsList>
       <TabsContent value="employee">
-        <EmployeePicker
-          day={day}
-          employeeId={employeeId}
-          employees={employees}
-          onDayChange={setDay}
-          onEmployeeChange={setEmployeeId}
-        />
+        <div className="flex flex-wrap items-end justify-between gap-3 pt-4">
+          <EmployeePicker
+            day={day}
+            employeeId={employeeId}
+            employees={employees}
+            onDayChange={setDay}
+            onEmployeeChange={setEmployeeId}
+          />
+          {employeeId ? (
+            <div className="flex flex-wrap items-center gap-2 pb-1">
+              <ExportControls
+                params={{ day, employeeId }}
+                type="employee"
+              />
+              <ExportControls
+                params={{ day, employeeId }}
+                type="application"
+              />
+            </div>
+          ) : null}
+        </div>
         {employeeReport.data ? (
           <EmployeeMetrics summary={employeeReport.data} />
         ) : (
@@ -177,21 +227,29 @@ export function ReportTabs({
         )}
       </TabsContent>
       <TabsContent value="project">
-        <label className="grid gap-1 pt-4 text-sm">
-          {t.tasks.project}
-          <select
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5"
-            onChange={(event) => setProjectId(event.target.value)}
-            value={projectId}
-          >
-            <option value="">{t.tasks.selectProject}</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.code} — {project.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-wrap items-end justify-between gap-3 pt-4">
+          <label className="grid gap-1 text-sm">
+            {t.tasks.project}
+            <select
+              className="h-8 rounded-lg border border-input bg-transparent px-2.5"
+              onChange={(event) => setProjectId(event.target.value)}
+              value={projectId}
+            >
+              <option value="">{t.tasks.selectProject}</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.code} — {project.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="pb-1">
+            <ExportControls
+              params={projectId ? { projectId } : {}}
+              type="project"
+            />
+          </div>
+        </div>
         {projectReport.data ? (
           <ProjectMetrics summary={projectReport.data} />
         ) : (
@@ -203,21 +261,29 @@ export function ReportTabs({
         )}
       </TabsContent>
       <TabsContent value="task">
-        <label className="grid gap-1 pt-4 text-sm">
-          {t.tasks.taskTitle}
-          <select
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5"
-            onChange={(event) => setTaskId(event.target.value)}
-            value={taskId}
-          >
-            <option value="">{t.tasks.newTask}</option>
-            {tasks.map((task) => (
-              <option key={task.id} value={task.id}>
-                {task.project.code} — {task.title}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-wrap items-end justify-between gap-3 pt-4">
+          <label className="grid gap-1 text-sm">
+            {t.tasks.taskTitle}
+            <select
+              className="h-8 rounded-lg border border-input bg-transparent px-2.5"
+              onChange={(event) => setTaskId(event.target.value)}
+              value={taskId}
+            >
+              <option value="">{t.tasks.newTask}</option>
+              {tasks.map((task) => (
+                <option key={task.id} value={task.id}>
+                  {task.project.code} — {task.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="pb-1">
+            <ExportControls
+              params={taskId ? { taskId } : {}}
+              type="task"
+            />
+          </div>
+        </div>
         {taskReport.data ? (
           <TaskMetrics summary={taskReport.data} />
         ) : (
@@ -229,13 +295,21 @@ export function ReportTabs({
         )}
       </TabsContent>
       <TabsContent value="difference">
-        <EmployeePicker
-          day={day}
-          employeeId={employeeId}
-          employees={employees}
-          onDayChange={setDay}
-          onEmployeeChange={setEmployeeId}
-        />
+        <div className="flex flex-wrap items-end justify-between gap-3 pt-4">
+          <EmployeePicker
+            day={day}
+            employeeId={employeeId}
+            employees={employees}
+            onDayChange={setDay}
+            onEmployeeChange={setEmployeeId}
+          />
+          <div className="pb-1">
+            <ExportControls
+              params={{ day }}
+              type="time-comparison"
+            />
+          </div>
+        </div>
         {employeeReport.data ? (
           <DifferenceMetrics summary={employeeReport.data} />
         ) : (

@@ -1,14 +1,14 @@
 import "server-only";
 
-import type { AuthContext } from "@/lib/auth-context";
+import { assertRole, tenantWhere, type AuthContext } from "@/lib/auth-context";
 import { writeAudit } from "@/lib/audit/log";
-import { tenantWhere } from "@/lib/auth-context";
 import { ApiError } from "@/lib/http/errors";
 import { prisma } from "@/lib/prisma";
 import {
   durationInMinutes,
   validateTimeEntryWindow,
 } from "@/lib/services/time-rules";
+import { getZonedDayBounds } from "@/lib/time/timezone";
 import type {
   CreateTimeEntryInput,
   UpdateTimeEntryInput,
@@ -110,10 +110,16 @@ export async function createOwnTimeEntry(
     await writeAudit(transaction, {
       companyId: context.companyId,
       actorUserId: context.userId,
-      action: "TIME_ENTRY_CREATED_BY_EMPLOYEE",
+      action: "TIME_ENTRY_CREATED",
       entityType: "TimeEntry",
       entityId: entry.id,
-      metadata: { projectId: project.id, taskId: input.taskId ?? null },
+      metadata: {
+        projectId: project.id,
+        taskId: input.taskId ?? null,
+        durationMinutes: entry.durationMinutes,
+        startAt: entry.startAt.toISOString(),
+        endAt: entry.endAt.toISOString(),
+      },
     });
 
     return entry;
@@ -131,7 +137,14 @@ export async function updateOwnTimeEntry(
   return prisma.$transaction(async (transaction) => {
     const existing = await transaction.timeEntry.findFirst({
       where: tenantWhere(context.companyId, { id, employeeId }),
-      select: { id: true },
+      select: {
+        id: true,
+        projectId: true,
+        taskId: true,
+        startAt: true,
+        endAt: true,
+        durationMinutes: true,
+      },
     });
     if (!existing) {
       throw new ApiError("NOT_FOUND", "Time entry not found.", 404);
@@ -180,6 +193,7 @@ export async function updateOwnTimeEntry(
       );
     }
 
+    const duration = durationInMinutes(input.startAt, input.endAt);
     const updated = await transaction.timeEntry.update({
       where: { id },
       data: {
@@ -187,19 +201,43 @@ export async function updateOwnTimeEntry(
         taskId: input.taskId ?? null,
         startAt: input.startAt,
         endAt: input.endAt,
-        durationMinutes: durationInMinutes(input.startAt, input.endAt),
+        durationMinutes: duration,
         notes: input.notes,
       },
-      select: { id: true, durationMinutes: true, endAt: true, startAt: true },
+      select: {
+        id: true,
+        projectId: true,
+        taskId: true,
+        durationMinutes: true,
+        endAt: true,
+        startAt: true,
+        notes: true,
+      },
     });
 
     await writeAudit(transaction, {
       companyId: context.companyId,
       actorUserId: context.userId,
-      action: "TIME_ENTRY_UPDATED_BY_EMPLOYEE",
+      action: "TIME_ENTRY_UPDATED",
       entityType: "TimeEntry",
       entityId: updated.id,
-      metadata: { projectId: project.id, taskId: input.taskId ?? null },
+      metadata: {
+        before: {
+          startAt: existing.startAt.toISOString(),
+          endAt: existing.endAt.toISOString(),
+          durationMinutes: existing.durationMinutes,
+          projectId: existing.projectId,
+          taskId: existing.taskId,
+        },
+        after: {
+          startAt: updated.startAt.toISOString(),
+          endAt: updated.endAt.toISOString(),
+          durationMinutes: updated.durationMinutes,
+          projectId: updated.projectId,
+          taskId: updated.taskId,
+        },
+        ...(input.reason ? { reason: input.reason } : {}),
+      },
     });
 
     return updated;
@@ -212,7 +250,14 @@ export async function deleteOwnTimeEntry(context: AuthContext, id: string) {
   return prisma.$transaction(async (transaction) => {
     const existing = await transaction.timeEntry.findFirst({
       where: tenantWhere(context.companyId, { id, employeeId }),
-      select: { id: true, projectId: true, taskId: true },
+      select: {
+        id: true,
+        projectId: true,
+        taskId: true,
+        startAt: true,
+        endAt: true,
+        durationMinutes: true,
+      },
     });
     if (!existing) {
       throw new ApiError("NOT_FOUND", "Time entry not found.", 404);
@@ -225,12 +270,97 @@ export async function deleteOwnTimeEntry(context: AuthContext, id: string) {
     await writeAudit(transaction, {
       companyId: context.companyId,
       actorUserId: context.userId,
-      action: "TIME_ENTRY_DELETED_BY_EMPLOYEE",
+      action: "TIME_ENTRY_DELETED",
       entityType: "TimeEntry",
       entityId: id,
-      metadata: { projectId: existing.projectId, taskId: existing.taskId },
+      metadata: {
+        projectId: existing.projectId,
+        taskId: existing.taskId,
+        durationMinutes: existing.durationMinutes,
+        startAt: existing.startAt.toISOString(),
+        endAt: existing.endAt.toISOString(),
+      },
     });
 
     return { success: true };
+  });
+}
+
+export type CompanyTimeEntryFilters = {
+  date?: string;
+  from?: string;
+  to?: string;
+  employeeId?: string;
+  departmentId?: string;
+  projectId?: string;
+  taskId?: string;
+};
+
+export async function listCompanyTimeEntries(
+  context: AuthContext,
+  filters: CompanyTimeEntryFilters = {},
+) {
+  assertRole(context, ["MANAGER", "SUPER_ADMIN"]);
+
+  const whereConditions: Record<string, unknown> = {};
+
+  if (filters.employeeId) {
+    whereConditions.employeeId = filters.employeeId;
+  }
+
+  if (filters.departmentId) {
+    whereConditions.employee = { departmentId: filters.departmentId };
+  }
+
+  if (filters.projectId) {
+    whereConditions.projectId = filters.projectId;
+  }
+
+  if (filters.taskId) {
+    whereConditions.taskId = filters.taskId;
+  }
+
+  if (filters.date) {
+    const { startAt, endAt } = getZonedDayBounds(filters.date);
+    whereConditions.startAt = { gte: startAt, lt: endAt };
+  } else if (filters.from || filters.to) {
+    const dateRange: { gte?: Date; lt?: Date } = {};
+    if (filters.from) {
+      dateRange.gte = getZonedDayBounds(filters.from).startAt;
+    }
+    if (filters.to) {
+      dateRange.lt = getZonedDayBounds(filters.to).endAt;
+    }
+    whereConditions.startAt = dateRange;
+  }
+
+  return prisma.timeEntry.findMany({
+    where: tenantWhere(context.companyId, whereConditions),
+    select: {
+      id: true,
+      projectId: true,
+      taskId: true,
+      employeeId: true,
+      startAt: true,
+      endAt: true,
+      durationMinutes: true,
+      notes: true,
+      createdAt: true,
+      updatedAt: true,
+      employee: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          departmentId: true,
+          department: { select: { id: true, name: true } },
+        },
+      },
+      project: { select: { id: true, code: true, name: true } },
+      task: { select: { id: true, title: true } },
+    },
+    orderBy: { startAt: "desc" },
+    take: 200,
   });
 }
