@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Bell,
   BriefcaseBusiness,
@@ -84,6 +85,7 @@ export function AppShell({
       heading: t.common.navigation.analytics,
       items: [
         { href: "/reports", icon: BarChart3, label: t.common.navigation.reports },
+        { href: "/anomalies", icon: AlertTriangle, label: t.common.navigation.anomalies },
       ],
     },
     {

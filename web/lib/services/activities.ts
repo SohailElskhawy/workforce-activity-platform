@@ -2,6 +2,7 @@ import type { AuthenticatedDevice } from "@/lib/agent/authenticate";
 import { normalizeFileName } from "@/lib/agent/file-name";
 import type { AgentActivityInput } from "@/lib/agent/schemas";
 import { ApiError } from "@/lib/http/errors";
+import { matchDwgFile, type ProjectCandidate } from "./dwg-matcher";
 
 type ActivityCreateInput = {
   eventId: string;
@@ -26,6 +27,15 @@ export type AgentActivityStore = {
     normalizedFileName: string,
   ): Promise<{ projectId: string; taskId: string | null } | null>;
   createActivity(data: ActivityCreateInput): Promise<"created" | "duplicate">;
+  findCandidateProjects?(companyId: string): Promise<ProjectCandidate[]>;
+  createAutoFileMapping?(data: {
+    companyId: string;
+    normalizedFileName: string;
+    originalFileName: string;
+    projectId: string;
+    taskId: string | null;
+    source: "AUTO";
+  }): Promise<void>;
 };
 
 type ActivityPrismaClient = {
@@ -45,6 +55,34 @@ type ActivityPrismaClient = {
       };
       select: { projectId: true; taskId: true };
     }): Promise<{ projectId: string; taskId: string | null } | null>;
+    upsert?(input: {
+      where: {
+        companyId_normalizedFileName: {
+          companyId: string;
+          normalizedFileName: string;
+        };
+      };
+      create: {
+        companyId: string;
+        normalizedFileName: string;
+        originalFileName: string;
+        projectId: string;
+        taskId: string | null;
+        source: "AUTO";
+      };
+      update: Record<string, unknown>;
+    }): Promise<unknown>;
+  };
+  project?: {
+    findMany(input: {
+      where: { companyId: string; status: { not: string } };
+      select: {
+        id: true;
+        code: true;
+        name: true;
+        tasks: { select: { id: true; title: true } };
+      };
+    }): Promise<ProjectCandidate[]>;
   };
 };
 
@@ -67,14 +105,49 @@ async function ingestWithStore(
   activities: AgentActivityInput[],
   store: AgentActivityStore,
 ) {
+  let candidatesCache: ProjectCandidate[] | null = null;
+
   for (const event of activities) {
     const durationSeconds = validateDuration(event.startAt, event.endAt);
     const normalizedFileName = event.fileName
       ? normalizeFileName(event.fileName)
       : null;
-    const mapping = normalizedFileName
+    let mapping = normalizedFileName
       ? await store.findFileMapping(device.companyId, normalizedFileName)
       : null;
+
+    // Requirement 8: Ingestion-time matching for safe exact unique match (confidence >= 0.95)
+    if (
+      !mapping &&
+      event.fileName &&
+      normalizedFileName?.endsWith(".dwg") &&
+      store.findCandidateProjects &&
+      store.createAutoFileMapping
+    ) {
+      if (candidatesCache === null) {
+        candidatesCache = await store.findCandidateProjects(device.companyId);
+      }
+      const match = matchDwgFile(event.fileName, candidatesCache);
+      if (
+        match.autoAppliable &&
+        match.confidence >= 0.95 &&
+        !match.ambiguous &&
+        match.matchedProject
+      ) {
+        mapping = {
+          projectId: match.matchedProject.id,
+          taskId: match.matchedTask?.id ?? null,
+        };
+        await store.createAutoFileMapping({
+          companyId: device.companyId,
+          normalizedFileName,
+          originalFileName: event.fileName,
+          projectId: match.matchedProject.id,
+          taskId: match.matchedTask?.id ?? null,
+          source: "AUTO",
+        });
+      }
+    }
 
     await store.createActivity({
       applicationName: event.applicationName ?? null,
@@ -116,6 +189,31 @@ export function createConflictSafeActivityStore(
         select: { projectId: true, taskId: true },
       });
     },
+    async findCandidateProjects(companyId) {
+      if (!client.project?.findMany) return [];
+      return client.project.findMany({
+        where: { companyId, status: { not: "ARCHIVED" } },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          tasks: { select: { id: true, title: true } },
+        },
+      });
+    },
+    async createAutoFileMapping(data) {
+      if (!client.fileMapping?.upsert) return;
+      await client.fileMapping.upsert({
+        where: {
+          companyId_normalizedFileName: {
+            companyId: data.companyId,
+            normalizedFileName: data.normalizedFileName,
+          },
+        },
+        create: data,
+        update: {}, // Never overwrite existing mapping on race condition
+      });
+    },
   };
 }
 
@@ -133,6 +231,8 @@ async function createPrismaStore(): Promise<{
               transaction.activity as unknown as ActivityPrismaClient["activity"],
             fileMapping:
               transaction.fileMapping as unknown as ActivityPrismaClient["fileMapping"],
+            project:
+              transaction.project as unknown as ActivityPrismaClient["project"],
           }),
         ),
       );

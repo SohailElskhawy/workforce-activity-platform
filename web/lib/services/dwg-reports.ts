@@ -293,11 +293,11 @@ export async function getManagerDwgReport(
   };
 }
 
-export async function getUnmappedDwgFiles(context: AuthContext) {
-  const { prisma } = await import("@/lib/prisma");
+export async function getUnmappedDwgFiles(context: AuthContext, db?: any) {
+  const prismaClient = db ?? (await import("@/lib/prisma")).prisma;
 
   const [activities, existingMappings] = await Promise.all([
-    prisma.activity.findMany({
+    prismaClient.activity.findMany({
       where: {
         companyId: context.companyId,
         type: "APPLICATION",
@@ -324,15 +324,26 @@ export async function getUnmappedDwgFiles(context: AuthContext) {
       },
       orderBy: { startAt: "asc" },
     }),
-    prisma.fileMapping.findMany({
+    prismaClient.fileMapping.findMany({
       where: { companyId: context.companyId },
       select: { normalizedFileName: true },
     }),
   ]);
 
-  const mappedSet = new Set(existingMappings.map((m) => m.normalizedFileName));
+  const mappedSet = new Set<string>(
+    existingMappings.map((m: { normalizedFileName: string }) => m.normalizedFileName),
+  );
 
-  const flatActivities = activities.map((act) => ({
+  const flatActivities = activities.map((act: {
+    employeeId: string;
+    employee: { firstName: string; lastName: string };
+    type: any;
+    fileName: string | null;
+    durationSeconds: number;
+    projectId: string | null;
+    startAt: Date;
+    endAt: Date;
+  }) => ({
     employeeId: act.employeeId,
     employeeName: `${act.employee.firstName} ${act.employee.lastName}`.trim(),
     type: act.type,
