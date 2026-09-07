@@ -68,7 +68,7 @@ class AgentClientTests(unittest.TestCase):
             api_url="https://demo.worklens.test/",
             device_id="PC-001",
             agent_token="agent-token",
-            agent_version="0.1.0",
+            agent_version="1.0.0",
             idle_threshold_seconds=300,
             excluded_processes=frozenset(),
         )
@@ -141,7 +141,7 @@ class AgentClientTests(unittest.TestCase):
             "https://demo.worklens.test/api/agent/heartbeat",
         )
         heartbeat = http_client.calls[0]["json"]
-        self.assertEqual(heartbeat["agentVersion"], "0.1.0")
+        self.assertEqual(heartbeat["agentVersion"], "1.0.0")
         self.assertIn("timestamp", heartbeat)
         datetime.fromisoformat(heartbeat["timestamp"])
 

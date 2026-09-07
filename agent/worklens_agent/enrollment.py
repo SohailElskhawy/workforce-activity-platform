@@ -24,7 +24,7 @@ def save_verified_enrollment(
         api_url=values.api_url,
         device_id=values.device_id,
         agent_token=values.agent_token,
-        agent_version="0.1.0",
+        agent_version="1.0.0",
         idle_threshold_seconds=300,
         excluded_processes="",
     )

@@ -5,7 +5,7 @@ from worklens_agent.tray import AgentState, SystemTray
 
 class AgentStateTests(unittest.TestCase):
     def test_default_agent_state(self) -> None:
-        state = AgentState(agent_version="0.1.0", config_version=1)
+        state = AgentState(agent_version="1.0.0", config_version=1)
         self.assertEqual(state.connection_status, "Connected")
         self.assertEqual(state.current_app, "—")
         self.assertEqual(state.current_project, "—")
@@ -14,7 +14,7 @@ class AgentStateTests(unittest.TestCase):
         self.assertEqual(state.format_today_idle(), "0m")
 
     def test_state_updates_and_time_formatting(self) -> None:
-        state = AgentState(agent_version="0.1.0", config_version=1)
+        state = AgentState(agent_version="1.0.0", config_version=1)
 
         state.update(
             connection_status="Offline / retrying",

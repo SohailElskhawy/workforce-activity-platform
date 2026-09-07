@@ -49,7 +49,7 @@ class AgentConfig:
             api_url=os.environ.get("WORKLENS_API_URL", ""),
             device_id=os.environ.get("WORKLENS_DEVICE_ID", ""),
             agent_token=os.environ.get("WORKLENS_AGENT_TOKEN", ""),
-            agent_version=os.environ.get("WORKLENS_AGENT_VERSION", "0.1.0"),
+            agent_version=os.environ.get("WORKLENS_AGENT_VERSION", "1.0.0"),
             idle_threshold_seconds=os.environ.get(
                 "WORKLENS_IDLE_THRESHOLD_SECONDS", "300"
             ),
@@ -88,7 +88,7 @@ class AgentConfig:
             api_url=values.get("apiUrl", default_api_url),
             device_id=values.get("deviceId", ""),
             agent_token=agent_token,
-            agent_version=values.get("agentVersion", "0.1.0"),
+            agent_version=values.get("agentVersion", "1.0.0"),
             idle_threshold_seconds=values.get("idleThresholdSeconds", "300"),
             excluded_processes=values.get("excludedProcesses", ""),
             config_version=values.get("configVersion", 1),
@@ -160,7 +160,7 @@ class AgentConfig:
             api_url=api_url,
             device_id=device_id,
             agent_token=agent_token,
-            agent_version=agent_version if isinstance(agent_version, str) else "0.1.0",
+            agent_version=agent_version if isinstance(agent_version, str) else "1.0.0",
             idle_threshold_seconds=int(idle_threshold_seconds),
             excluded_processes=excluded,
             config_version=parsed_version,

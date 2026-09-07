@@ -47,7 +47,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/lib/i18n";
 import type {
-  ActivityCategory,
   ClassificationSummary,
   ExecutiveBriefing,
   ManagementRecommendation,
@@ -55,7 +54,10 @@ import type {
   QueryAnswer,
   WorkloadSummary,
 } from "@/lib/services/analytics-engine";
-import { CATEGORY_LABELS } from "@/lib/services/analytics-engine";
+import {
+  type ActivityCategory,
+  CATEGORY_LABELS,
+} from "@/lib/services/analytics-constants";
 
 export type IntelligenceDashboardProps = {
   initialBriefing: ExecutiveBriefing;

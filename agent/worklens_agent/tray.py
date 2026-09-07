@@ -16,7 +16,7 @@ class AgentState:
     current_task: str = "—"
     active_seconds_today: int = 0
     idle_seconds_today: int = 0
-    agent_version: str = "0.1.0"
+    agent_version: str = "1.0.0"
     config_version: int = 1
     api_url: str = ""
     _lock: threading.RLock = field(default_factory=threading.RLock, repr=False)

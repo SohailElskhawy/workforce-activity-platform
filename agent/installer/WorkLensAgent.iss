@@ -5,7 +5,7 @@
 [Setup]
 AppId={{50C7A339-9BE1-4C4B-A44E-653CB8087679}
 AppName=WorkLens Agent
-AppVersion=0.1.0
+AppVersion=1.0.0
 AppPublisher=WorkLens
 DefaultDirName={autopf}\WorkLens Agent
 DefaultGroupName=WorkLens Agent

@@ -23,7 +23,7 @@ class MainLoopTests(unittest.TestCase):
             api_url="https://host.example",
             device_id="PC-1",
             agent_token="issued-token",
-            agent_version="0.1.0",
+            agent_version="1.0.0",
             idle_threshold_seconds=300,
             excluded_processes=frozenset(),
         )
@@ -47,7 +47,7 @@ class MainLoopTests(unittest.TestCase):
             api_url="https://host.example",
             device_id="PC-1",
             agent_token="issued-token",
-            agent_version="0.1.0",
+            agent_version="1.0.0",
             idle_threshold_seconds=300,
             excluded_processes=frozenset(),
         )

@@ -26,7 +26,7 @@ class EnrollmentTests(unittest.TestCase):
             api_url="https://host.example",
             device_id="old-device",
             agent_token="old-token",
-            agent_version="0.1.0",
+            agent_version="1.0.0",
             idle_threshold_seconds=300,
             excluded_processes=frozenset(),
         )
