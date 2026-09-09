@@ -580,6 +580,16 @@ export interface TranslationDictionary {
     skippedDuplicate: string;
     unmapped: string;
     failed: string;
+    setupGuide: string;
+    setupGuideDescription: string;
+    openProvider: string;
+    readyToConfigure: string;
+    setupGuideSecurity: string;
+    setupGuides: {
+      clickUp: { intro: string; steps: string[] };
+      clockify: { intro: string; steps: string[] };
+      kolayIk: { intro: string; steps: string[] };
+    };
   };
   intelligence: {
     title: string;

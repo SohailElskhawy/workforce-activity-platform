@@ -598,6 +598,42 @@ export const en: TranslationDictionary = {
     skippedDuplicate: "Skipped (Duplicate)",
     unmapped: "Unmapped",
     failed: "Failed",
+    setupGuide: "Setup guide",
+    setupGuideDescription:
+      "Follow these short steps, then return here to paste your key.",
+    openProvider: "Open {provider}",
+    readyToConfigure: "I have my key — Configure",
+    setupGuideSecurity:
+      "For your security, paste the key only on the next screen. WorkLens encrypts it and never shows it again.",
+    setupGuides: {
+      clickUp: {
+        intro:
+          "Use a ClickUp account that can access the Workspace you want to connect.",
+        steps: [
+          "Open ClickUp and sign in to the Workspace you want to connect.",
+          "Click your profile picture, choose Settings, then open Apps.",
+          "Choose Generate API Token, copy it, then return here.",
+        ],
+      },
+      clockify: {
+        intro:
+          "Use the Clockify account that can access the workspace you want to import.",
+        steps: [
+          "Open Clockify and sign in to the workspace you want to import.",
+          "Click your profile picture, open Profile settings, and find API key.",
+          "Generate or copy the API key, then return here.",
+        ],
+      },
+      kolayIk: {
+        intro:
+          "Ask your HR administrator to create a token with employee and department access.",
+        steps: [
+          "Open Kolay İK and sign in with an administrator account.",
+          "Open Settings, then choose Developer Settings.",
+          "Create a token named WorkLens, copy it, then return here.",
+        ],
+      },
+    },
   },
   intelligence: {
     title: "AI & Workforce Intelligence",

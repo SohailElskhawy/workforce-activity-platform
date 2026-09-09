@@ -600,6 +600,42 @@ export const tr: TranslationDictionary = {
     skippedDuplicate: "Atlanan (Mevcut)",
     unmapped: "Eşleşmeyen",
     failed: "Hatalı",
+    setupGuide: "Kurulum rehberi",
+    setupGuideDescription:
+      "Bu kısa adımları izleyin, ardından anahtarınızı yapıştırmak için buraya geri dönün.",
+    openProvider: "{provider}'ı aç",
+    readyToConfigure: "Anahtarım hazır — Yapılandır",
+    setupGuideSecurity:
+      "Güvenliğiniz için anahtarı yalnızca sonraki ekrana yapıştırın. WorkLens anahtarı şifreler ve bir daha göstermez.",
+    setupGuides: {
+      clickUp: {
+        intro:
+          "Bağlamak istediğiniz çalışma alanına erişimi olan bir ClickUp hesabı kullanın.",
+        steps: [
+          "ClickUp'ı açın ve bağlamak istediğiniz çalışma alanında oturum açın.",
+          "Profil resminize tıklayın, Ayarlar'ı seçin, ardından Uygulamalar'ı açın.",
+          "API Token Oluştur'u seçin, anahtarı kopyalayın ve buraya geri dönün.",
+        ],
+      },
+      clockify: {
+        intro:
+          "Aktarmak istediğiniz çalışma alanına erişimi olan Clockify hesabını kullanın.",
+        steps: [
+          "Clockify'ı açın ve aktarmak istediğiniz çalışma alanında oturum açın.",
+          "Profil resminize tıklayın, Profil ayarlarını açın ve API anahtarını bulun.",
+          "API anahtarını oluşturun veya kopyalayın, ardından buraya geri dönün.",
+        ],
+      },
+      kolayIk: {
+        intro:
+          "Çalışan ve departman erişimi olan bir token oluşturması için İK yöneticinizden yardım isteyin.",
+        steps: [
+          "Kolay İK'yı açın ve yönetici hesabıyla oturum açın.",
+          "Ayarlar'ı açın, ardından Geliştirici Ayarları'nı seçin.",
+          "WorkLens adlı bir token oluşturun, anahtarı kopyalayın ve buraya geri dönün.",
+        ],
+      },
+    },
   },
   intelligence: {
     title: "Yapay Zeka & İş Gücü Analitiği",

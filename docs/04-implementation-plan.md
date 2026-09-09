@@ -26,48 +26,48 @@ Create the shared UI foundation first, then use it for the new V1 administration
 ### 2.1 Shared UI foundation
 
 - [ ] Review current manager and employee navigation
-- [ ] Implement/standardize AppShell
-- [ ] Standardize PageHeader
-- [ ] Standardize breadcrumbs
-- [ ] Standardize KPI cards
-- [ ] Standardize DataTable pattern
-- [ ] Standardize FilterBar pattern
-- [ ] Standardize status and priority badges
-- [ ] Standardize loading skeletons
-- [ ] Standardize empty states
-- [ ] Standardize error states
-- [ ] Standardize form/dialog behavior
-- [ ] Standardize toast feedback
+- [x] Implement/standardize AppShell
+- [x] Standardize PageHeader
+- [x] Standardize breadcrumbs
+- [x] Standardize KPI cards
+- [x] Standardize DataTable pattern
+- [x] Standardize FilterBar pattern
+- [x] Standardize status and priority badges
+- [x] Standardize loading skeletons
+- [x] Standardize empty states
+- [x] Standardize error states
+- [x] Standardize form/dialog behavior
+- [x] Standardize toast feedback
 - [ ] Verify responsive behavior on main existing routes
 
 ### 2.2 Department management
 
-- [ ] Confirm existing Department schema
-- [ ] Add/fix department API endpoints
-- [ ] Add manager authorization and tenant scoping
-- [ ] Add department list page
-- [ ] Add create department flow
-- [ ] Add edit department flow
-- [ ] Add department manager assignment
-- [ ] Add department detail/member view
-- [ ] Ensure employee forms use department data consistently
-- [ ] Add audit events for department mutations
-- [ ] Add validation/error/empty states
-- [ ] Add tests
+- [x] Confirm existing Department schema
+- [x] Add/fix department API endpoints
+- [x] Add manager authorization and tenant scoping
+- [x] Add department list page
+- [x] Add create department flow
+- [x] Add edit department flow
+- [x] Add department manager assignment
+- [x] Add department detail/member view
+- [x] Ensure employee forms use department data consistently
+- [x] Add audit events for department mutations
+- [x] Add validation/error/empty states
+- [x] Add tests
 
 ### 2.3 Tracking settings
 
-- [ ] Add `CompanyTrackingSettings` model if missing
-- [ ] Add `ExcludedApplication` model if using normalized table
-- [ ] Add migration
-- [ ] Add manager settings API
-- [ ] Add tenant authorization
-- [ ] Add tracking settings page
-- [ ] Add idle-threshold validation
-- [ ] Add excluded-app CRUD
-- [ ] Increment `configVersion` on relevant setting changes
-- [ ] Audit setting changes
-- [ ] Add tests
+- [x] Add `CompanyTrackingSettings` model if missing
+- [x] Add `ExcludedApplication` model if using normalized table
+- [x] Add migration
+- [x] Add manager settings API
+- [x] Add tenant authorization
+- [x] Add tracking settings page
+- [x] Add idle-threshold validation
+- [x] Add excluded-app CRUD
+- [x] Increment `configVersion` on relevant setting changes
+- [x] Audit setting changes
+- [x] Add tests
 
 ### Day 1 acceptance
 
@@ -85,71 +85,71 @@ Complete remaining web-side V1 administration and audit requirements.
 
 ### 3.1 Super Admin shell and authorization
 
-- [ ] Add/verify SUPER_ADMIN authorization helper
-- [ ] Create admin route group/layout
-- [ ] Ensure manager routes remain company-scoped
-- [ ] Add admin overview
+- [x] Add/verify SUPER_ADMIN authorization helper
+- [x] Create admin route group/layout
+- [x] Ensure manager routes remain company-scoped
+- [x] Add admin overview
 
 ### 3.2 Company management
 
-- [ ] Company list
-- [ ] Company detail
-- [ ] Create company
-- [ ] Edit company
-- [ ] Activate/deactivate company
-- [ ] Company-level summary statistics
-- [ ] Validation
-- [ ] Audit events
-- [ ] Tests
+- [x] Company list
+- [x] Company detail
+- [x] Create company
+- [x] Edit company
+- [x] Activate/deactivate company
+- [x] Company-level summary statistics
+- [x] Validation
+- [x] Audit events
+- [x] Tests
 
 ### 3.3 User management
 
-- [ ] User list
-- [ ] Create user
-- [ ] Edit role
-- [ ] Assign company
-- [ ] Activate/deactivate user
-- [ ] Prevent invalid role/company combinations
-- [ ] Audit events
-- [ ] Tests
+- [x] User list
+- [x] Create user
+- [x] Edit role
+- [x] Assign company
+- [x] Activate/deactivate user
+- [x] Prevent invalid role/company combinations
+- [x] Audit events
+- [x] Tests
 
 ### 3.4 System logs
 
-- [ ] Add Super Admin system-log page
-- [ ] Reuse AuditLog source
-- [ ] Add filters by date/company/user/action/entity
-- [ ] Add readable detail view
-- [ ] Avoid exposing secrets/tokens in metadata
+- [x] Add Super Admin system-log page
+- [x] Reuse AuditLog source
+- [x] Add filters by date/company/user/action/entity
+- [x] Add readable detail view
+- [x] Avoid exposing secrets/tokens in metadata
 
 ### 3.5 Integration management placeholder/status UI
 
-- [ ] Add integrations admin/settings screen
-- [ ] List ClickUp
-- [ ] List Kolay İK
-- [ ] List Clockify
+- [x] Add integrations admin/settings screen
+- [x] List ClickUp
+- [x] List Kolay İK
+- [x] List Clockify
 - [ ] Clearly label as not configured/future integration where applicable
 - [ ] Do not implement synchronization
 
 ### 3.6 Manual time editing
 
-- [ ] Add edit action to eligible manual entries
-- [ ] Add PATCH endpoint if missing
-- [ ] Validate ownership/authorization
-- [ ] Recalculate duration server-side
-- [ ] Reject future values
-- [ ] Reject invalid overlaps
-- [ ] Validate project/task relationship
-- [ ] Add optional reason
-- [ ] Write before/after audit metadata
-- [ ] Update UI after edit
-- [ ] Add tests
+- [x] Add edit action to eligible manual entries
+- [x] Add PATCH endpoint if missing
+- [x] Validate ownership/authorization
+- [x] Recalculate duration server-side
+- [x] Reject future values
+- [x] Reject invalid overlaps
+- [x] Validate project/task relationship
+- [x] Add optional reason
+- [x] Write before/after audit metadata
+- [x] Update UI after edit
+- [x] Add tests
 
 ### 3.7 Audit pass
 
-- [ ] Review all required V1 mutations
-- [ ] Add missing audit events
-- [ ] Confirm tenant/company metadata
-- [ ] Confirm sensitive values are not stored
+- [x] Review all required V1 mutations
+- [x] Add missing audit events
+- [x] Confirm tenant/company metadata
+- [x] Confirm sensitive values are not stored
 
 ### Day 2 acceptance
 
@@ -168,79 +168,79 @@ Complete desktop-agent V1 gaps and broad usability/reporting requirements.
 
 ### 4.1 Agent configuration refresh
 
-- [ ] Extend heartbeat response with `configVersion`
-- [ ] Add authenticated agent-config endpoint
-- [ ] Add local cached config
-- [ ] Fetch config only when version changes
-- [ ] Apply idle threshold dynamically
-- [ ] Apply excluded process list dynamically
-- [ ] Ensure malformed config does not crash agent
-- [ ] Add tests
+- [x] Extend heartbeat response with `configVersion`
+- [x] Add authenticated agent-config endpoint
+- [x] Add local cached config
+- [x] Fetch config only when version changes
+- [x] Apply idle threshold dynamically
+- [x] Apply excluded process list dynamically
+- [x] Ensure malformed config does not crash agent
+- [x] Add tests
 
 ### 4.2 Excluded applications
 
-- [ ] Normalize process names
-- [ ] Ensure excluded apps do not expose titles/files
-- [ ] Ensure changes apply after config refresh
-- [ ] Verify no stale sensitive metadata is reused
-- [ ] Add agent tests
+- [x] Normalize process names
+- [x] Ensure excluded apps do not expose titles/files
+- [x] Ensure changes apply after config refresh
+- [x] Verify no stale sensitive metadata is reused
+- [x] Add agent tests
 
 ### 4.3 Computer lock/unlock
 
-- [ ] Add Windows lock detection
-- [ ] Add Windows unlock detection
-- [ ] Close active segment on lock
-- [ ] Emit COMPUTER_LOCK once per transition
-- [ ] Emit COMPUTER_UNLOCK once per transition
-- [ ] Do not count locked duration as active application time
-- [ ] Queue events offline normally
-- [ ] Upload through existing batch contract
-- [ ] Display events in activity timeline
-- [ ] Add tests
+- [x] Add Windows lock detection
+- [x] Add Windows unlock detection
+- [x] Close active segment on lock
+- [x] Emit COMPUTER_LOCK once per transition
+- [x] Emit COMPUTER_UNLOCK once per transition
+- [x] Do not count locked duration as active application time
+- [x] Queue events offline normally
+- [x] Upload through existing batch contract
+- [x] Display events in activity timeline
+- [x] Add tests
 
 ### 4.4 Tray UI
 
-- [ ] Add system tray icon
-- [ ] Show connected/disconnected state
-- [ ] Show current application
-- [ ] Show project/task if available
-- [ ] Show today's active time
-- [ ] Show today's idle time
-- [ ] Show agent version
-- [ ] Add Open WorkLens action
-- [ ] Add View Today's Activity action if practical
-- [ ] Avoid new high-frequency API calls
+- [x] Add system tray icon
+- [x] Show connected/disconnected state
+- [x] Show current application
+- [x] Show project/task if available
+- [x] Show today's active time
+- [x] Show today's idle time
+- [x] Show agent version
+- [x] Add Open WorkLens action
+- [x] Add View Today's Activity action if practical
+- [x] Avoid new high-frequency API calls
 - [ ] Confirm startup behavior
 
 ### 4.5 Filtering framework
 
-- [ ] Add reusable filter parsing/validation
-- [ ] Add date filtering
-- [ ] Add employee filtering
-- [ ] Add department filtering
-- [ ] Add project filtering
-- [ ] Add task filtering where applicable
-- [ ] Add application filtering
-- [ ] Add activity-type filtering
-- [ ] Add status filtering
-- [ ] Add pagination bounds
-- [ ] Add relevant filters to Activity
-- [ ] Add relevant filters to Tasks
-- [ ] Add relevant filters to Projects
-- [ ] Add broad filters to Reports
-- [ ] Preserve filters in URL where practical
-- [ ] Add tests
+- [x] Add reusable filter parsing/validation
+- [x] Add date filtering
+- [x] Add employee filtering
+- [x] Add department filtering
+- [x] Add project filtering
+- [x] Add task filtering where applicable
+- [x] Add application filtering
+- [x] Add activity-type filtering
+- [x] Add status filtering
+- [x] Add pagination bounds
+- [x] Add relevant filters to Activity
+- [x] Add relevant filters to Tasks
+- [x] Add relevant filters to Projects
+- [x] Add broad filters to Reports
+- [x] Preserve filters in URL where practical
+- [x] Add tests
 
 ### 4.6 Basic notifications
 
-- [ ] Add notification bell/panel
-- [ ] Derive due-soon tasks
-- [ ] Derive overdue tasks
-- [ ] Exclude completed/cancelled tasks
-- [ ] Scope results by role/company
-- [ ] Add employee-specific notifications where appropriate
-- [ ] Add empty state
-- [ ] Add tests
+- [x] Add notification bell/panel
+- [x] Derive due-soon tasks
+- [x] Derive overdue tasks
+- [x] Exclude completed/cancelled tasks
+- [x] Scope results by role/company
+- [x] Add employee-specific notifications where appropriate
+- [x] Add empty state
+- [x] Add tests
 
 ### Day 3 acceptance
 
@@ -323,7 +323,7 @@ For each:
 
 ### 5.4 Installer
 
-- [ ] Bump agent version
+- [x] Bump agent version
 - [ ] Build installer
 - [ ] Verify production API URL
 - [ ] Test clean install
@@ -348,12 +348,12 @@ For each:
 
 ### 5.6 Documentation and handoff
 
-- [ ] Update README
-- [ ] Update agent install instructions
-- [ ] Document Super Admin usage
-- [ ] Document tracking settings
-- [ ] Document exclusions/privacy behavior
-- [ ] Document known limitations
+- [x] Update README
+- [x] Update agent install instructions
+- [x] Document Super Admin usage
+- [x] Document tracking settings
+- [x] Document exclusions/privacy behavior
+- [x] Document known limitations
 - [ ] Document V2/V3 backlog
 - [ ] Update screenshots/demo material if required
 

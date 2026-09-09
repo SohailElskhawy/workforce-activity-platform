@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -36,6 +36,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
+import { formatTemplate } from "@/lib/i18n/format";
+import { getIntegrationSetupGuide } from "@/lib/integrations/setup-guide";
 import type { TranslationDictionary } from "@/lib/i18n/types";
 import type { PublicIntegrationView } from "@/lib/services/integrations";
 import type { IntegrationProvider } from "@/src/generated/prisma/client";
@@ -55,6 +57,8 @@ export function IntegrationsView({
 
   // Dialog states
   const [configModalProvider, setConfigModalProvider] =
+    useState<IntegrationProvider | null>(null);
+  const [guideProvider, setGuideProvider] =
     useState<IntegrationProvider | null>(null);
   const [clockifyImportModalOpen, setClockifyImportModalOpen] = useState(false);
 
@@ -330,6 +334,9 @@ export function IntegrationsView({
   const clickUp = getIntegration("CLICKUP");
   const kolayIk = getIntegration("KOLAY_IK");
   const clockify = getIntegration("CLOCKIFY");
+  const activeGuide = guideProvider
+    ? getIntegrationSetupGuide(guideProvider, t.integrationsSection.setupGuides)
+    : null;
 
   const renderStatusBadge = (integ: PublicIntegrationView) => {
     if (!integ.isConfigured || integ.status === "NOT_CONFIGURED") {
@@ -414,6 +421,13 @@ export function IntegrationsView({
           </div>
 
           <CardFooter className="flex flex-wrap gap-2 pt-4 border-t border-slate-100 bg-slate-50/50">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setGuideProvider("CLICKUP")}
+            >
+              {t.integrationsSection.setupGuide}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -504,6 +518,13 @@ export function IntegrationsView({
           </div>
 
           <CardFooter className="flex flex-wrap gap-2 pt-4 border-t border-slate-100 bg-slate-50/50">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setGuideProvider("KOLAY_IK")}
+            >
+              {t.integrationsSection.setupGuide}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -608,6 +629,13 @@ export function IntegrationsView({
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setGuideProvider("CLOCKIFY")}
+            >
+              {t.integrationsSection.setupGuide}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => openConfigModal("CLOCKIFY")}
             >
               <Settings2 className="mr-1.5 h-4 w-4" />
@@ -657,6 +685,84 @@ export function IntegrationsView({
           </CardFooter>
         </Card>
       </div>
+
+      <Dialog
+        open={Boolean(guideProvider)}
+        onOpenChange={(open) => !open && setGuideProvider(null)}
+      >
+        <DialogContent className="sm:max-w-[520px]">
+          {guideProvider && activeGuide ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>
+                  {guideProvider === "CLICKUP"
+                    ? t.integrationsSection.providerClickUp
+                    : guideProvider === "CLOCKIFY"
+                      ? t.integrationsSection.providerClockify
+                      : t.integrationsSection.providerKolayIk}{" "}
+                  {t.integrationsSection.setupGuide}
+                </DialogTitle>
+                <DialogDescription>
+                  {t.integrationsSection.setupGuideDescription}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <p className="rounded-lg border border-sky-100 bg-sky-50 p-3 text-sm leading-6 text-sky-900">
+                  {activeGuide.intro}
+                </p>
+
+                <ol className="space-y-3">
+                  {activeGuide.steps.map((step, index) => (
+                    <li className="flex items-start gap-3" key={step}>
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+                        {index + 1}
+                      </span>
+                      <span className="pt-0.5 text-sm leading-5 text-slate-700">
+                        {step}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+
+                <p className="text-xs leading-5 text-slate-500">
+                  {t.integrationsSection.setupGuideSecurity}
+                </p>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <a
+                  className={buttonVariants({ variant: "outline" })}
+                  href={activeGuide.openUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {formatTemplate(t.integrationsSection.openProvider, {
+                    provider:
+                      guideProvider === "CLICKUP"
+                        ? t.integrationsSection.providerClickUp
+                        : guideProvider === "CLOCKIFY"
+                          ? t.integrationsSection.providerClockify
+                          : t.integrationsSection.providerKolayIk,
+                  })}
+                  <ExternalLink className="ml-1.5 h-4 w-4" />
+                </a>
+                <Button
+                  onClick={() => {
+                    const provider = guideProvider;
+                    setGuideProvider(null);
+                    openConfigModal(provider);
+                  }}
+                  type="button"
+                >
+                  <Settings2 className="mr-1.5 h-4 w-4" />
+                  {t.integrationsSection.readyToConfigure}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* CONFIGURATION DIALOG */}
       <Dialog
