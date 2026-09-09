@@ -24,6 +24,7 @@ import {
   formatDate,
   formatDurationFromSeconds,
 } from "@/lib/formatters";
+import { formatPlural, formatTemplate } from "@/lib/i18n/format";
 import { useI18n } from "@/lib/i18n";
 
 type DashboardMetrics = {
@@ -92,21 +93,28 @@ export function ManagerDashboard({
     {
       label: t.managerDashboard.teamMembers,
       value: String(metrics.employeeCount),
-      detail: t.managerDashboard.agentsOnline(metrics.onlineDeviceCount),
+      detail: formatPlural(
+        t.managerDashboard.agentsOnline,
+        metrics.onlineDeviceCount,
+      ),
       icon: Users,
       tone: "bg-sky-50 text-sky-700",
     },
     {
       label: t.managerDashboard.activeProjects,
       value: String(activeProjectCount),
-      detail: t.managerDashboard.projectsInPortfolio(projects.length),
+      detail: formatTemplate(t.managerDashboard.projectsInPortfolio, {
+        count: projects.length,
+      }),
       icon: BriefcaseBusiness,
       tone: "bg-violet-50 text-violet-700",
     },
     {
       label: t.managerDashboard.openTasks,
       value: String(openTaskCount),
-      detail: t.managerDashboard.overdue(metrics.overdueTaskCount),
+      detail: formatTemplate(t.managerDashboard.overdue, {
+        count: metrics.overdueTaskCount,
+      }),
       icon: ListChecks,
       tone: "bg-amber-50 text-amber-700",
     },
@@ -372,5 +380,4 @@ function Signal({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
 

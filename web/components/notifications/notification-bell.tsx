@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import { formatPlural, formatTemplate } from "@/lib/i18n/format";
 import type { TaskNotification } from "@/lib/services/notifications";
 
 export function NotificationBell({ isEmployee = false }: { isEmployee?: boolean }) {
@@ -109,7 +110,7 @@ export function NotificationBell({ isEmployee = false }: { isEmployee?: boolean 
             </div>
             {count > 0 ? (
               <span className="text-xs text-slate-500">
-                {t.notifications.unreadCount(count)}
+                {formatPlural(t.notifications.unreadCount, count)}
               </span>
             ) : null}
           </div>
@@ -149,8 +150,12 @@ export function NotificationBell({ isEmployee = false }: { isEmployee?: boolean 
                           }`}
                         >
                           {isOverdue
-                            ? t.notifications.overdueBy(notification.hoursDifference)
-                            : t.notifications.dueIn(notification.hoursDifference)}
+                            ? formatTemplate(t.notifications.overdueBy, {
+                                hours: notification.hoursDifference,
+                              })
+                            : formatTemplate(t.notifications.dueIn, {
+                                hours: notification.hoursDifference,
+                              })}
                         </span>
                       </span>
                       <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200">

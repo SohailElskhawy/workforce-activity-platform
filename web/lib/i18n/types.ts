@@ -235,11 +235,11 @@ export interface TranslationDictionary {
     viewReports: string;
     openProjects: string;
     teamMembers: string;
-    agentsOnline: (count: number) => string;
+    agentsOnline: { one: string; other: string };
     activeProjects: string;
-    projectsInPortfolio: (count: number) => string;
+    projectsInPortfolio: string;
     openTasks: string;
-    overdue: (count: number) => string;
+    overdue: string;
     sevenDayActivity: string;
     foregroundAppTime: string;
     portfolioOverview: string;
@@ -397,8 +397,8 @@ export interface TranslationDictionary {
     byApplication: string;
     manualVsTracked: string;
     match: string;
-    moreManual: (amount: string) => string;
-    moreActivity: (amount: string) => string;
+    moreManual: string;
+    moreActivity: string;
   };
   timeEntries: {
     title: string;
@@ -426,10 +426,10 @@ export interface TranslationDictionary {
     noNotifications: string;
     deadlineApproaching: string;
     overdue: string;
-    dueIn: (hours: number) => string;
-    overdueBy: (hours: number) => string;
+    dueIn: string;
+    overdueBy: string;
     viewTask: string;
-    unreadCount: (count: number) => string;
+    unreadCount: { one: string; other: string };
   };
   employeeDashboard: {
     title: string;
@@ -530,7 +530,7 @@ export interface TranslationDictionary {
       displayNameHelp: string;
       addSuccess: string;
       deleteModalTitle: string;
-      deleteModalDesc: (name: string) => string;
+      deleteModalDesc: string;
       deleteSuccess: string;
     };
     agentConfigCard: {

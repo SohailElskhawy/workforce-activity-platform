@@ -244,12 +244,14 @@ export const en: TranslationDictionary = {
     viewReports: "View reports",
     openProjects: "Open projects",
     teamMembers: "Team members",
-    agentsOnline: (count: number) =>
-      `${count} agent${count === 1 ? "" : "s"} online`,
+    agentsOnline: {
+      one: "{count} agent online",
+      other: "{count} agents online",
+    },
     activeProjects: "Active projects",
-    projectsInPortfolio: (count: number) => `${count} projects in portfolio`,
+    projectsInPortfolio: "{count} projects in portfolio",
     openTasks: "Open tasks",
-    overdue: (count: number) => `${count} overdue`,
+    overdue: "{count} overdue",
     sevenDayActivity: "7-day activity",
     foregroundAppTime: "Foreground application time",
     portfolioOverview: "Portfolio overview",
@@ -408,10 +410,8 @@ export const en: TranslationDictionary = {
     byApplication: "By Application",
     manualVsTracked: "Manual vs Tracked Time",
     match: "Manual and activity time match",
-    moreManual: (amount: string) =>
-      `${amount} more manual time than activity time`,
-    moreActivity: (amount: string) =>
-      `${amount} more activity time than manual time`,
+    moreManual: "{amount} more manual time than activity time",
+    moreActivity: "{amount} more activity time than manual time",
   },
   timeEntries: {
     title: "Manual Time Entries",
@@ -439,10 +439,13 @@ export const en: TranslationDictionary = {
     noNotifications: "No current notifications",
     deadlineApproaching: "Deadline Approaching",
     overdue: "Overdue Task",
-    dueIn: (hours: number) => `Due in ${hours}h`,
-    overdueBy: (hours: number) => `Overdue by ${hours}h`,
+    dueIn: "Due in {hours}h",
+    overdueBy: "Overdue by {hours}h",
     viewTask: "View task",
-    unreadCount: (count: number) => `${count} actionable alert${count === 1 ? "" : "s"}`,
+    unreadCount: {
+      one: "{count} actionable alert",
+      other: "{count} actionable alerts",
+    },
   },
   employeeDashboard: {
     title: "My Dashboard",
@@ -544,8 +547,8 @@ export const en: TranslationDictionary = {
       displayNameHelp: "A recognizable human-friendly label for management reference.",
       addSuccess: "Application excluded successfully.",
       deleteModalTitle: "Remove Application Exclusion",
-      deleteModalDesc: (name: string) =>
-        `Are you sure you want to remove "${name}" from the excluded applications list? Desktop agents will resume normal activity tracking for this application upon next sync.`,
+      deleteModalDesc:
+        "Are you sure you want to remove \"{name}\" from the excluded applications list? Desktop agents will resume normal activity tracking for this application upon next sync.",
       deleteSuccess: "Application exclusion removed successfully.",
     },
     agentConfigCard: {

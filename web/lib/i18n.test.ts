@@ -12,6 +12,7 @@ import {
   SUPPORTED_LOCALES,
   isLocale,
 } from "@/lib/i18n/config";
+import { formatPlural, formatTemplate } from "@/lib/i18n/format";
 import { getServerDictionary } from "@/lib/i18n/server";
 
 test("i18n configuration supports turkish and english with turkish as default", () => {
@@ -35,6 +36,37 @@ test("server dictionaries provide complete translations for both locales", async
   assert.equal(en.status.IN_PROGRESS, "In Progress");
   assert.equal(tr.priority.URGENT, "Acil");
   assert.equal(en.priority.URGENT, "Urgent");
+});
+
+test("server dictionaries are serializable for the client i18n provider", async () => {
+  const [tr, en] = await Promise.all([
+    getServerDictionary("tr"),
+    getServerDictionary("en"),
+  ]);
+
+  assert.doesNotThrow(() => structuredClone(tr));
+  assert.doesNotThrow(() => structuredClone(en));
+});
+
+test("translation templates interpolate values and preserve singular wording", () => {
+  assert.equal(
+    formatTemplate("Due in {hours}h", { hours: 4 }),
+    "Due in 4h",
+  );
+  assert.equal(
+    formatPlural(
+      { one: "{count} agent online", other: "{count} agents online" },
+      1,
+    ),
+    "1 agent online",
+  );
+  assert.equal(
+    formatPlural(
+      { one: "{count} agent online", other: "{count} agents online" },
+      2,
+    ),
+    "2 agents online",
+  );
 });
 
 test("formatters adapt correctly to turkish and english locales", () => {

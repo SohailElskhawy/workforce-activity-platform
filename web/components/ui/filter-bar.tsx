@@ -100,6 +100,10 @@ export function FilterSelect({
   return (
     <Select
       aria-label={ariaLabel ?? placeholder}
+      items={[
+        { label: allLabel ?? t.common.all, value: "__ALL__" },
+        ...options,
+      ]}
       onValueChange={(val) => {
         onValueChange(val === "__ALL__" ? "" : (val ?? ""));
       }}

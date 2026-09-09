@@ -246,12 +246,14 @@ export const tr: TranslationDictionary = {
     viewReports: "Raporları görüntüle",
     openProjects: "Projeleri aç",
     teamMembers: "Ekip üyeleri",
-    agentsOnline: (count: number) =>
-      `${count} ajan çevrim içi`,
+    agentsOnline: {
+      one: "{count} ajan çevrim içi",
+      other: "{count} ajan çevrim içi",
+    },
     activeProjects: "Aktif projeler",
-    projectsInPortfolio: (count: number) => `Portföyde ${count} proje`,
+    projectsInPortfolio: "Portföyde {count} proje",
     openTasks: "Açık görevler",
-    overdue: (count: number) => `${count} gecikmiş`,
+    overdue: "{count} gecikmiş",
     sevenDayActivity: "7 günlük aktivite",
     foregroundAppTime: "Ön plan uygulama süresi",
     portfolioOverview: "Portföy genel bakışı",
@@ -410,10 +412,8 @@ export const tr: TranslationDictionary = {
     byApplication: "Uygulamaya Göre",
     manualVsTracked: "Manuel vs Otomatik Süre",
     match: "Manuel ve aktivite süresi eşleşiyor",
-    moreManual: (amount: string) =>
-      `Aktivite süresine göre ${amount} daha fazla manuel süre`,
-    moreActivity: (amount: string) =>
-      `Manuel süreye göre ${amount} daha fazla aktivite süresi`,
+    moreManual: "Aktivite süresine göre {amount} daha fazla manuel süre",
+    moreActivity: "Manuel süreye göre {amount} daha fazla aktivite süresi",
   },
   timeEntries: {
     title: "Manuel Süre Kayıtları",
@@ -441,10 +441,13 @@ export const tr: TranslationDictionary = {
     noNotifications: "Mevcut bildirim yok",
     deadlineApproaching: "Teslim Tarihi Yaklaşıyor",
     overdue: "Gecikmiş Görev",
-    dueIn: (hours: number) => `${hours} saat kaldı`,
-    overdueBy: (hours: number) => `${hours} saat gecikti`,
+    dueIn: "{hours} saat kaldı",
+    overdueBy: "{hours} saat gecikti",
     viewTask: "Görevi incele",
-    unreadCount: (count: number) => `${count} aksiyon gerektiren bildirim`,
+    unreadCount: {
+      one: "{count} aksiyon gerektiren bildirim",
+      other: "{count} aksiyon gerektiren bildirim",
+    },
   },
   employeeDashboard: {
     title: "Çalışan Paneli",
@@ -546,8 +549,8 @@ export const tr: TranslationDictionary = {
       displayNameHelp: "Yöneticiler için kolay anlaşılır açıklayıcı bir isim.",
       addSuccess: "Uygulama başarıyla hariç tutuldu.",
       deleteModalTitle: "Uygulama İstisnasını Kaldır",
-      deleteModalDesc: (name: string) =>
-        `"${name}" uygulamasını hariç tutulanlar listesinden kaldırmak istediğinizden emin misiniz? Masaüstü istemcileri bir sonraki senkronizasyonda bu uygulama için normal takibe devam edecektir.`,
+      deleteModalDesc:
+        "\"{name}\" uygulamasını hariç tutulanlar listesinden kaldırmak istediğinizden emin misiniz? Masaüstü istemcileri bir sonraki senkronizasyonda bu uygulama için normal takibe devam edecektir.",
       deleteSuccess: "Uygulama istisnası başarıyla kaldırıldı.",
     },
     agentConfigCard: {

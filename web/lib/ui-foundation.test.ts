@@ -6,7 +6,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { PageHeader } from "@/components/layout/page-header";
 import { DataTable, TablePagination } from "@/components/ui/data-table";
-import { FilterBar, FilterReset, FilterSearch } from "@/components/ui/filter-bar";
+import {
+  FilterBar,
+  FilterReset,
+  FilterSearch,
+  FilterSelect,
+} from "@/components/ui/filter-bar";
 import { FormAlert, FormField } from "@/components/ui/form-dialog";
 import { KpiCard, KpiGrid } from "@/components/ui/kpi-card";
 import { PriorityBadge } from "@/components/ui/priority-badge";
@@ -143,6 +148,22 @@ test("FilterBar and FilterSearch render search with accessible controls", () => 
   assert.match(markup, /role="search"/);
   assert.match(markup, /drawing\.dwg/);
   assert.match(markup, /Clear filters/);
+});
+
+test("FilterSelect renders the selected option label instead of its stored value", () => {
+  const markup = renderWithI18n(
+    createElement(FilterSelect, {
+      ariaLabel: "Project",
+      onValueChange: () => undefined,
+      options: [
+        { value: "project_8b0f", label: "ARC-101 — North Tower" },
+      ],
+      value: "project_8b0f",
+    }),
+  );
+
+  assert.match(markup, /ARC-101 — North Tower/);
+  assert.doesNotMatch(markup, />project_8b0f</);
 });
 
 test("Form helpers render accessible labels and alerts", () => {

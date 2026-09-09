@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { deleteJson } from "@/lib/client/api";
 import { useI18n } from "@/lib/i18n";
+import { formatTemplate } from "@/lib/i18n/format";
 import { useToast } from "@/lib/toast";
 
 import { AddExclusionDialog } from "./add-exclusion-dialog";
@@ -187,9 +188,9 @@ export function ExcludedAppsCard({
         confirmLabel={t.common.delete}
         description={
           deletingApp
-            ? t.settings.excludedAppsCard.deleteModalDesc(
-                deletingApp.displayName || deletingApp.processName,
-              )
+            ? formatTemplate(t.settings.excludedAppsCard.deleteModalDesc, {
+                name: deletingApp.displayName || deletingApp.processName,
+              })
             : ""
         }
         isSubmitting={isDeleting}
