@@ -55,6 +55,8 @@ enum ActivityType {
 model Company {
     id        String   @id @default(uuid())
     name      String
+    demoFixtureSet String?
+    demoFixtureVersion Int?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
@@ -75,6 +77,8 @@ model Company {
     integrationMappings  IntegrationMapping[]
     employeeLeaves       EmployeeLeave[]
     anomalies            Anomaly[]
+
+    @@index([demoFixtureSet])
 }
 
 model User {
@@ -522,4 +526,3 @@ model SystemSettings {
     createdAt                   DateTime @default(now())
     updatedAt                   DateTime @updatedAt
 }
-

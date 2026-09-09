@@ -202,6 +202,19 @@ export interface TranslationDictionary {
     invalidCredentials: string;
     rateLimited: string;
     logoutSuccess: string;
+    demo: {
+      title: string;
+      description: string;
+      signInAs: string;
+      seed: string;
+      reset: string;
+      resetTitle: string;
+      resetDescription: string;
+      seedComplete: string;
+      resetComplete: string;
+      seededSummary: string;
+      actionFailed: string;
+    };
   };
   status: {
     PLANNED: string;

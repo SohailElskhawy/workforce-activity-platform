@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WorkLens Web
 
 ## Getting Started
 
@@ -16,7 +16,14 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Client Demo Mode
+
+Use a dedicated demo database only. With migrations applied, set `DEMO_MODE=true`
+and run `npm run db:seed`. The login page will then show safe temporary
+one-click demo accounts for Super Admin, Manager, and Employee. Seed and reset
+replace only explicitly marked fixture companies, avoiding duplicate demo data.
+
+Set `DEMO_MODE=false` and redeploy to remove the demo controls and endpoints.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

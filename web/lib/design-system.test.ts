@@ -11,7 +11,7 @@ test("root layout loads Inter and the global theme is light blue", () => {
   assert.match(layout, /import \{ Inter \} from "next\/font\/google"/);
   assert.match(
     layout,
-    /const inter = Inter\(\{[^}]*variable: "--font-worklens-sans"/s,
+    /const inter = Inter\(\{[\s\S]*?variable: "--font-worklens-sans"/,
   );
   assert.match(
     layout,

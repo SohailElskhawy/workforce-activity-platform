@@ -2,6 +2,7 @@ import { BriefcaseBusiness } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { DemoLoginPanel } from "@/components/auth/demo-login-panel";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import {
   Card,
@@ -12,6 +13,11 @@ import {
 } from "@/components/ui/card";
 import { getAuthSession, getActiveLoginDestination } from "@/lib/auth";
 import { getServerDictionary } from "@/lib/i18n/server";
+import {
+  DEMO_ACCOUNTS,
+  DEMO_PASSWORD,
+  isDemoModeEnabled,
+} from "@/lib/demo/config";
 
 export default async function LoginPage() {
   const session = await getAuthSession();
@@ -35,6 +41,9 @@ export default async function LoginPage() {
         </CardHeader>
         <CardContent>
           <LoginForm />
+          {isDemoModeEnabled() ? (
+            <DemoLoginPanel accounts={DEMO_ACCOUNTS} password={DEMO_PASSWORD} />
+          ) : null}
         </CardContent>
       </Card>
     </main>

@@ -99,7 +99,26 @@ npm run db:bootstrap
 
 Once bootstrapped, navigate to `/login` to access the manager portal.
 
-*(Optional Demo Seed: For local evaluation only, `npm run db:seed` will populate sample projects and demo employees under "WorkLens Demo Engineering".)*
+### Client Demo Mode
+
+Client demo mode is temporary and must use a dedicated demo database only.
+Never enable it for a production client database. Set `DEMO_MODE=true`, apply
+migrations, then load the rich fixture set:
+
+```bash
+cd web
+npx prisma migrate deploy
+npm run db:seed
+```
+
+The login page then offers one-click access for `admin@worklens.demo`,
+`manager@worklens.demo`, and `employee@worklens.demo`; all use the documented
+demo password `Demo1234!`. The login panel can reseed or reset the shared
+baseline. Reset removes only companies carrying the internal demo-fixture
+marker, but it invalidates existing demo sessions.
+
+To remove client-demo access, set `DEMO_MODE=false` and redeploy. The demo
+panel and its seed/reset endpoints are unavailable while the flag is off.
 
 ---
 
