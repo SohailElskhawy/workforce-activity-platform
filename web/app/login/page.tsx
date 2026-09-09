@@ -25,7 +25,7 @@ export default async function LoginPage() {
       <div className="absolute right-4 top-4 sm:right-8 sm:top-8">
         <LanguageSwitcher />
       </div>
-      <Card className="w-full max-w-md shadow-lg shadow-black/5">
+      <Card className="w-full max-w-md border-slate-200 shadow-lg shadow-blue-950/5">
         <CardHeader className="gap-3 text-center">
           <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <BriefcaseBusiness className="size-5" />

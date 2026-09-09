@@ -10,6 +10,14 @@ import {
   Wifi,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { PriorityBadge } from "@/components/manager/priority-badge";
 import { StatusBadge } from "@/components/manager/status-badge";
@@ -71,11 +79,13 @@ type DashboardActivity = {
 };
 
 export function ManagerDashboard({
+  activityTrend,
   metrics,
   projects,
   recentActivities,
   tasks,
 }: {
+  activityTrend: Array<{ day: string; seconds: number }>;
   metrics: DashboardMetrics;
   projects: DashboardProject[];
   recentActivities: DashboardActivity[];
@@ -131,7 +141,7 @@ export function ManagerDashboard({
     <main className="flex-1 space-y-8 p-5 sm:p-7 lg:p-10">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
             {t.managerDashboard.companyOverview}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
@@ -149,7 +159,7 @@ export function ManagerDashboard({
             {t.managerDashboard.viewReports}
           </Link>
           <Link
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
             href="/projects"
           >
             {t.managerDashboard.openProjects} <ArrowRight className="size-4" />
@@ -180,6 +190,72 @@ export function ManagerDashboard({
             </CardContent>
           </Card>
         ))}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-12">
+        <Card className="border-slate-200 shadow-sm xl:col-span-8">
+          <CardHeader>
+            <CardTitle>{t.managerDashboard.sevenDayActivity}</CardTitle>
+            <CardDescription>
+              {t.managerDashboard.foregroundAppTime}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <figure aria-label={t.managerDashboard.sevenDayActivity}>
+              <div className="h-56 w-full">
+                <ResponsiveContainer height="100%" width="100%">
+                  <AreaChart data={activityTrend} margin={{ left: -20, right: 8 }}>
+                    <defs>
+                      <linearGradient id="activity-area" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22} />
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.01} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      axisLine={false}
+                      dataKey="day"
+                      tickFormatter={(day) => day.slice(5)}
+                      tickLine={false}
+                    />
+                    <YAxis axisLine={false} tickFormatter={(seconds) => `${Math.round(seconds / 3600)}h`} tickLine={false} />
+                    <Tooltip
+                      formatter={(seconds) => formatDurationFromSeconds(Number(seconds), locale)}
+                      labelFormatter={(day) => formatDate(new Date(`${day}T12:00:00`), locale)}
+                    />
+                    <Area
+                      dataKey="seconds"
+                      fill="url(#activity-area)"
+                      stroke="#2563eb"
+                      strokeWidth={2.5}
+                      type="monotone"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <figcaption className="mt-3 text-xs text-slate-500">
+                {t.managerDashboard.foregroundAppTime}
+              </figcaption>
+            </figure>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 bg-white shadow-sm xl:col-span-4">
+          <CardHeader>
+            <div className="mb-1 flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+              <Wifi className="size-5" />
+            </div>
+            <CardTitle>{t.managerDashboard.todaysSignal}</CardTitle>
+            <CardDescription>{t.managerDashboard.todaysSignalDesc}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Signal label={t.managerDashboard.active} value={formatDurationFromSeconds(metrics.activeSeconds, locale)} />
+            <Signal label={t.managerDashboard.idle} value={formatDurationFromSeconds(metrics.idleSeconds, locale)} />
+            <Signal label={t.employees.title} value={String(metrics.onlineDeviceCount)} />
+            <Link className="inline-flex items-center gap-2 pt-2 text-sm font-medium text-blue-700 hover:text-blue-800" href="/activities">
+              {t.managerDashboard.viewLiveActivity} <ArrowRight className="size-4" />
+            </Link>
+          </CardContent>
+        </Card>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
@@ -274,7 +350,7 @@ export function ManagerDashboard({
         </Card>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_18rem]">
+      <section>
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="flex-row items-center justify-between">
             <div>
@@ -336,37 +412,6 @@ export function ManagerDashboard({
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 bg-slate-950 text-white shadow-sm">
-          <CardHeader>
-            <div className="mb-1 flex size-10 items-center justify-center rounded-xl bg-emerald-400 text-slate-950">
-              <Wifi className="size-5" />
-            </div>
-            <CardTitle className="text-white">{t.managerDashboard.todaysSignal}</CardTitle>
-            <CardDescription className="text-slate-400">
-              {t.managerDashboard.todaysSignalDesc}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Signal
-              label={t.managerDashboard.active}
-              value={formatDurationFromSeconds(metrics.activeSeconds, locale)}
-            />
-            <Signal
-              label={t.managerDashboard.idle}
-              value={formatDurationFromSeconds(metrics.idleSeconds, locale)}
-            />
-            <Signal
-              label={t.employees.title}
-              value={String(metrics.onlineDeviceCount)}
-            />
-            <Link
-              className="inline-flex items-center gap-2 pt-2 text-sm font-medium text-emerald-300 hover:text-emerald-200"
-              href="/activities"
-            >
-              {t.managerDashboard.viewLiveActivity} <ArrowRight className="size-4" />
-            </Link>
-          </CardContent>
-        </Card>
       </section>
     </main>
   );
@@ -374,10 +419,9 @@ export function ManagerDashboard({
 
 function Signal({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-800 pb-3 last:border-0">
-      <span className="text-sm text-slate-400">{label}</span>
-      <span className="text-sm font-semibold text-white">{value}</span>
+    <div className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm font-semibold text-slate-900">{value}</span>
     </div>
   );
 }
-

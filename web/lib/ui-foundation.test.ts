@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
+import { Activity } from "lucide-react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -72,6 +74,23 @@ test("KpiCard and KpiGrid render metrics with semantic tones and icons", () => {
   assert.match(markup, /12/);
   assert.match(markup, /3 overdue/);
   assert.match(markup, /grid/);
+});
+
+test("KpiCard keeps a textual trend and renders the blue system tone", () => {
+  const markup = renderWithI18n(
+    createElement(KpiCard, {
+      label: "Tracked time",
+      value: "42h",
+      icon: Activity,
+      trend: { positive: true, value: "+8.4%" },
+      tone: "blue",
+    }),
+  );
+
+  assert.match(markup, /Tracked time/);
+  assert.match(markup, /42h/);
+  assert.match(markup, /\+8\.4%/);
+  assert.match(markup, /bg-blue-50/);
 });
 
 test("StatusBadge and PriorityBadge render accessible badges with indicators", () => {
@@ -183,4 +202,33 @@ test("Form helpers render accessible labels and alerts", () => {
   assert.match(fieldMarkup, /Name is required/);
   assert.match(alertMarkup, /role="alert"/);
   assert.match(alertMarkup, /Failed to save department/);
+});
+
+test("shared entry surfaces avoid retired dark styling", () => {
+  for (const path of [
+    "app/login/page.tsx",
+    "components/layout/app-shell.tsx",
+    "components/layout/language-switcher.tsx",
+  ]) {
+    const source = readFileSync(path, "utf8");
+    assert.doesNotMatch(source, /bg-slate-950|dark:|shadow-black/);
+  }
+});
+
+test("shared controls use the comfortable light-blue visual contract", () => {
+  const button = readFileSync("components/ui/button.tsx", "utf8");
+  const input = readFileSync("components/ui/input.tsx", "utf8");
+  const card = readFileSync("components/ui/card.tsx", "utf8");
+  const table = readFileSync("components/ui/table.tsx", "utf8");
+  const tabs = readFileSync("components/ui/tabs.tsx", "utf8");
+
+  assert.match(button, /h-10/);
+  assert.match(button, /hover:bg-blue-700/);
+  assert.doesNotMatch(button, /dark:/);
+  assert.match(input, /h-10/);
+  assert.match(input, /bg-white/);
+  assert.doesNotMatch(input, /dark:/);
+  assert.match(card, /border-slate-200\/80/);
+  assert.match(table, /bg-slate-50/);
+  assert.match(tabs, /data-active:bg-blue-600/);
 });

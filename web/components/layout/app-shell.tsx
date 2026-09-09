@@ -158,40 +158,40 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-slate-800 bg-slate-950 text-slate-100 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-200 bg-white text-slate-900 lg:flex">
         <Brand href={homeHref} tagline={t.common.brandTagline} />
-        <div className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <div className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
           {workspaceTitle}
         </div>
         <div className="flex-1 overflow-y-auto px-2 py-1 scrollbar-thin">
           <Navigation currentPath={pathname} groups={groups} label={navAriaLabel} />
         </div>
-        <div className="mt-auto space-y-4 border-t border-slate-800 p-5">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-emerald-300">
-              <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.12)]" />
+        <div className="mt-auto space-y-4 border-t border-slate-200 p-5">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-emerald-700">
+              <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.12)]" />
               {t.common.workspaceConnected}
             </div>
-            <p className="truncate text-sm font-medium text-white">
+            <p className="truncate text-sm font-medium text-slate-900">
               {safeEmail}
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">{accountLabel}</p>
+            <p className="mt-0.5 text-xs text-slate-500">{accountLabel}</p>
           </div>
-          <LogoutButton className="w-full justify-start border-slate-700 bg-transparent text-slate-200 hover:bg-slate-800 hover:text-white" />
+          <LogoutButton className="w-full justify-start border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900" />
         </div>
       </aside>
 
-      <div className="min-h-screen lg:pl-72">
+      <div className="min-h-screen lg:pl-64">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-10">
           <div className="lg:hidden">
             <details className="group relative">
               <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg text-sm font-semibold text-slate-900 marker:content-none">
-                <span className="flex size-9 items-center justify-center rounded-lg bg-slate-950 text-white">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-blue-600 text-white">
                   <Menu className="size-4" />
                 </span>
                 <span>WorkLens</span>
               </summary>
-              <div className="absolute left-0 top-12 max-h-[calc(100vh-4rem)] w-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/15">
+              <div className="absolute left-0 top-12 max-h-[calc(100vh-4rem)] w-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-900/10">
                 <Navigation
                   currentPath={pathname}
                   groups={groups}
@@ -227,7 +227,7 @@ export function AppShell({
               <span className="size-1.5 rounded-full bg-emerald-500" />
               {t.common.liveData}
             </div>
-            <div className="flex size-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+            <div className="flex size-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
               {safeEmail.charAt(0).toUpperCase()}
             </div>
           </div>
@@ -241,17 +241,17 @@ export function AppShell({
 function Brand({ href, tagline }: { href: string; tagline: string }) {
   return (
     <Link
-      className="flex h-20 items-center gap-3 border-b border-slate-800 px-6"
+      className="flex h-20 items-center gap-3 border-b border-slate-200 px-5"
       href={href}
     >
-      <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20">
+      <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10">
         <ShieldCheck className="size-5" />
       </span>
       <span>
-        <span className="block text-lg font-semibold tracking-tight text-white">
+        <span className="block text-lg font-semibold tracking-tight text-slate-950">
           WorkLens
         </span>
-        <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
+        <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
           {tagline}
         </span>
       </span>
@@ -287,7 +287,7 @@ function Navigation({
               className={
                 mobile
                   ? "px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
-                  : "px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500"
+                  : "px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
               }
             >
               {group.heading}
@@ -304,13 +304,13 @@ function Navigation({
                       ? "flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-950"
                       : "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
                     : active
-                      ? "flex items-center gap-3 rounded-xl bg-slate-800 px-3 py-2 text-sm font-semibold text-white shadow-sm"
-                      : "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-900/80 hover:text-slate-200"
+                      ? "flex items-center gap-3 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
+                      : "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
                 }
                 href={href}
                 key={href}
               >
-                <Icon className={active ? "size-4 text-emerald-400" : "size-4"} />
+                <Icon className={active ? "size-4 text-blue-600" : "size-4"} />
                 {itemLabel}
               </Link>
             );

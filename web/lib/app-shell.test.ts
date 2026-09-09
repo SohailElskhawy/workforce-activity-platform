@@ -45,3 +45,19 @@ test("employee shell exposes only the employee self-service workspace", () => {
   assert.doesNotMatch(markup, /href="\/employees"/);
   assert.match(markup, /Logout/);
 });
+
+test("shell uses the light blue selected navigation treatment without broadening employee access", () => {
+  const markup = renderToStaticMarkup(
+    createElement(
+      AppShell,
+      { email: "employee@worklens.demo", role: "EMPLOYEE" },
+      createElement("p", null, "Employee content"),
+    ),
+  );
+
+  assert.match(markup, /bg-blue-50/);
+  assert.match(markup, /text-blue-700/);
+  assert.doesNotMatch(markup, /bg-slate-950/);
+  assert.doesNotMatch(markup, /href="\/employees"/);
+  assert.doesNotMatch(markup, /href="\/admin"/);
+});

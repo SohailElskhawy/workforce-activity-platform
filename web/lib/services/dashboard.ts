@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { ActivityType, TaskStatus } from "@/src/generated/prisma/enums";
 
 import { getZonedDayBounds } from "@/lib/time/timezone";
+import { buildActivityTrend } from "@/lib/services/dashboard-trend";
 
 function startOfToday() {
   return getZonedDayBounds(new Date()).startAt;
@@ -71,6 +72,24 @@ export async function getManagerDashboardMetrics(context: AuthContext) {
     weekActiveSeconds: weekActiveTime._sum?.durationSeconds ?? 0,
     onlineDeviceCount,
   };
+}
+
+export async function getManagerActivityTrend(
+  context: AuthContext,
+  now: Date = new Date(),
+) {
+  const { endAt } = getZonedDayBounds(now);
+  const startAt = new Date(endAt);
+  startAt.setDate(startAt.getDate() - 7);
+  const rows = await prisma.activity.findMany({
+    where: tenantWhere(context.companyId, {
+      type: ActivityType.APPLICATION,
+      startAt: { gte: startAt, lt: endAt },
+    }),
+    select: { durationSeconds: true, startAt: true },
+  });
+
+  return buildActivityTrend(rows, now);
 }
 
 export async function listRecentCompanyActivity(

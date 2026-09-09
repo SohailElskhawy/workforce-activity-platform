@@ -1,6 +1,7 @@
 import { ManagerDashboard } from "@/components/manager/manager-dashboard";
 import { requireManager, toAuthContext } from "@/lib/auth";
 import {
+  getManagerActivityTrend,
   getManagerDashboardMetrics,
   listRecentCompanyActivity,
 } from "@/lib/services/dashboard";
@@ -10,11 +11,12 @@ import { listTasks } from "@/lib/services/tasks";
 export default async function DashboardPage() {
   const session = await requireManager();
   const context = toAuthContext(session);
-  const [metrics, projects, tasks, recentActivities] = await Promise.all([
+  const [metrics, projects, tasks, recentActivities, activityTrend] = await Promise.all([
     getManagerDashboardMetrics(context),
     listProjects(context),
     listTasks(context),
     listRecentCompanyActivity(context),
+    getManagerActivityTrend(context),
   ]);
 
   return (
@@ -42,6 +44,7 @@ export default async function DashboardPage() {
         projectCode: activity.project?.code ?? null,
         taskTitle: activity.task?.title ?? null,
       }))}
+      activityTrend={activityTrend}
       tasks={tasks
         .filter(
           ({ status }) => status !== "COMPLETED" && status !== "CANCELLED",

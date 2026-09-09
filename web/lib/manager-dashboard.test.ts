@@ -9,6 +9,15 @@ import { ManagerDashboard } from "@/components/manager/manager-dashboard";
 test("manager dashboard explains portfolio, priority work, and recent activity", () => {
   const markup = renderToStaticMarkup(
     createElement(ManagerDashboard, {
+      activityTrend: [
+        { day: "2026-09-03", seconds: 0 },
+        { day: "2026-09-04", seconds: 7_200 },
+        { day: "2026-09-05", seconds: 10_800 },
+        { day: "2026-09-06", seconds: 3_600 },
+        { day: "2026-09-07", seconds: 0 },
+        { day: "2026-09-08", seconds: 14_400 },
+        { day: "2026-09-09", seconds: 9_000 },
+      ],
       metrics: {
         activeSeconds: 3_600,
         employeeCount: 8,
@@ -71,5 +80,7 @@ test("manager dashboard explains portfolio, priority work, and recent activity",
   assert.match(markup, /ABC_A_Block\.dwg/);
   assert.match(markup, /href="\/projects\/project-1"/);
   assert.match(markup, /href="\/employees\/employee-1"/);
+  assert.match(markup, /aria-label="7-day activity"/);
+  assert.match(markup, /7-day activity/);
+  assert.doesNotMatch(markup, /bg-slate-950/);
 });
-
