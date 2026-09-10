@@ -650,6 +650,18 @@ export const tr: TranslationDictionary = {
       },
     },
   },
+  hr: {
+    leaveManagement: "İzin Yönetimi", leaveManagementDesc: "Bu şirketteki çalışan izin kayıtlarını yönetin.", myLeave: "İzinlerim", myLeaveDesc: "İzin bilgileriniz.",
+    addLeave: "İzin Ekle", addLeaveDesc: "Yöneticiler şirketlerindeki izin kayıtlarını oluşturur ve yönetir.", selectEmployee: "Çalışan seçin", leaveType: "İzin türü",
+    startDate: "Başlangıç tarihi", endDate: "Bitiş tarihi", status: "Durum", optionalNote: "İsteğe bağlı not",
+    companyLeaveRecords: "Şirket izin kayıtları", companyLeaveRecordsDesc: "Bu şirketteki tüm çalışan izin kayıtları.", noLeaveRecords: "Henüz izin kaydı yok.",
+    deleteLeaveConfirm: "Bu izin kaydı silinsin mi?", saveLeaveFailed: "İzin kaydedilemedi.", updateLeaveFailed: "İzin güncellenemedi.", deleteLeaveFailed: "İzin silinemedi.",
+    leaveInformation: "İzin bilgileri", recentLeaveRecords: "Bu çalışanın son izin kayıtları.", noEmployeeLeaveRecords: "İzin kaydı yok.",
+    positions: "Pozisyonlar", positionsDesc: "Çalışan ataması için kullanılabilen şirket pozisyonları.", positionName: "Pozisyon adı", add: "Ekle", noPositions: "Henüz pozisyon yok.",
+    createPositionFailed: "Pozisyon oluşturulamadı.", deletePositionFailed: "Pozisyon silinemedi.", deletePositionConfirm: "\"{name}\" pozisyonu silinsin mi?",
+    optional: "İsteğe bağlı", internalHrDescription: "Çalışan, departman, pozisyon, durum ve izin bilgileri içeride yönetilir. Harici API erişimi isteğe bağlıdır.", noCredentialsRequired: "Kolay İK kimlik bilgileri gerekli değildir. Bu entegrasyon bağlı değilken de dahili İK kayıtları çalışır.",
+    manageEmployees: "Çalışanları yönet", manageLeave: "İzinleri yönet",
+  },
   intelligence: {
     title: "Yapay Zeka & İş Gücü Analitiği",
     subtitle: "Otomatik yönetici brifingleri, iş yükü ve kapasite analizi, proje tamamlama tahminleri ve eyleme dönüştürülebilir yönetim önerileri.",

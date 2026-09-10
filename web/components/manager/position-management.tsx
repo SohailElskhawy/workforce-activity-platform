@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { deleteJson, postJson } from "@/lib/client/api";
+import { formatTemplate } from "@/lib/i18n/format";
+import { useI18n } from "@/lib/i18n";
 
 export type PositionOption = { id: string; name: string };
 
 export function PositionManagement({ positions }: { positions: PositionOption[] }) {
   const router = useRouter();
+  const { t, formatError } = useI18n();
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -26,21 +29,21 @@ export function PositionManagement({ positions }: { positions: PositionOption[] 
       setName("");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not create position.");
+      setError(cause instanceof Error ? formatError(cause) : t.hr.createPositionFailed);
     } finally {
       setBusy(false);
     }
   }
 
   async function deletePosition(position: PositionOption) {
-    if (!confirm(`Delete position "${position.name}"?`)) return;
+    if (!confirm(formatTemplate(t.hr.deletePositionConfirm, { name: position.name }))) return;
     setBusy(true);
     setError(null);
     try {
       await deleteJson(`/api/positions/${position.id}`);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not delete position.");
+      setError(cause instanceof Error ? formatError(cause) : t.hr.deletePositionFailed);
     } finally {
       setBusy(false);
     }
@@ -49,13 +52,13 @@ export function PositionManagement({ positions }: { positions: PositionOption[] 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Positions</CardTitle>
-        <CardDescription>Company positions available for employee assignment.</CardDescription>
+        <CardTitle>{t.hr.positions}</CardTitle>
+        <CardDescription>{t.hr.positionsDesc}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form className="flex gap-2" onSubmit={createPosition}>
-          <Input aria-label="Position name" onChange={(event) => setName(event.target.value)} placeholder="e.g. Electrical Engineer" value={name} />
-          <Button disabled={busy} type="submit"><Plus className="size-4" />Add</Button>
+          <Input aria-label={t.hr.positionName} onChange={(event) => setName(event.target.value)} placeholder={t.hr.positionName} value={name} />
+          <Button disabled={busy} type="submit"><Plus className="size-4" />{t.hr.add}</Button>
         </form>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         {positions.length ? (
@@ -67,7 +70,7 @@ export function PositionManagement({ positions }: { positions: PositionOption[] 
               </li>
             ))}
           </ul>
-        ) : <p className="text-sm text-muted-foreground">No positions yet.</p>}
+        ) : <p className="text-sm text-muted-foreground">{t.hr.noPositions}</p>}
       </CardContent>
     </Card>
   );

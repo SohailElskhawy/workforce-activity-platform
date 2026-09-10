@@ -648,6 +648,18 @@ export const en: TranslationDictionary = {
       },
     },
   },
+  hr: {
+    leaveManagement: "Leave management", leaveManagementDesc: "Manage employee leave records for this company.", myLeave: "My leave", myLeaveDesc: "Your leave information.",
+    addLeave: "Add leave", addLeaveDesc: "Managers create and manage leave records for their company.", selectEmployee: "Select employee", leaveType: "Leave type",
+    startDate: "Start date", endDate: "End date", status: "Status", optionalNote: "Optional note",
+    companyLeaveRecords: "Company leave records", companyLeaveRecordsDesc: "All employee leave records in this company.", noLeaveRecords: "No leave records yet.",
+    deleteLeaveConfirm: "Delete this leave record?", saveLeaveFailed: "Could not save leave.", updateLeaveFailed: "Could not update leave.", deleteLeaveFailed: "Could not delete leave.",
+    leaveInformation: "Leave information", recentLeaveRecords: "Recent leave records for this employee.", noEmployeeLeaveRecords: "No leave records.",
+    positions: "Positions", positionsDesc: "Company positions available for employee assignment.", positionName: "Position name", add: "Add", noPositions: "No positions yet.",
+    createPositionFailed: "Could not create position.", deletePositionFailed: "Could not delete position.", deletePositionConfirm: "Delete position \"{name}\"?",
+    optional: "Optional", internalHrDescription: "Employee, department, position, status, and leave information are managed internally. External API access is optional.", noCredentialsRequired: "No Kolay İK credentials are required. Internal HR records work when this integration is not connected.",
+    manageEmployees: "Manage employees", manageLeave: "Manage leave",
+  },
   intelligence: {
     title: "AI & Workforce Intelligence",
     subtitle: "Automated executive briefings, workload capacity analysis, project delivery predictions, and actionable management recommendations.",

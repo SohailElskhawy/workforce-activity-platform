@@ -604,6 +604,18 @@ export interface TranslationDictionary {
       kolayIk: { intro: string; steps: string[] };
     };
   };
+  hr: {
+    leaveManagement: string; leaveManagementDesc: string; myLeave: string; myLeaveDesc: string;
+    addLeave: string; addLeaveDesc: string; selectEmployee: string; leaveType: string;
+    startDate: string; endDate: string; status: string; optionalNote: string;
+    companyLeaveRecords: string; companyLeaveRecordsDesc: string; noLeaveRecords: string;
+    deleteLeaveConfirm: string; saveLeaveFailed: string; updateLeaveFailed: string; deleteLeaveFailed: string;
+    leaveInformation: string; recentLeaveRecords: string; noEmployeeLeaveRecords: string;
+    positions: string; positionsDesc: string; positionName: string; add: string; noPositions: string;
+    createPositionFailed: string; deletePositionFailed: string; deletePositionConfirm: string;
+    optional: string; internalHrDescription: string; noCredentialsRequired: string;
+    manageEmployees: string; manageLeave: string;
+  };
   intelligence: {
     title: string;
     subtitle: string;

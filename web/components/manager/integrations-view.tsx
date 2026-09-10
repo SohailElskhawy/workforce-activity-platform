@@ -490,29 +490,27 @@ export function IntegrationsView({
                   {t.integrationsSection.providerKolayIk}
                 </CardTitle>
                 <CardDescription>
-                  Employee, department, position, status, and leave information
-                  are managed internally. External API access is optional.
+                  {t.hr.internalHrDescription}
                 </CardDescription>
               </div>
               <Badge variant="outline" className="border-slate-300 text-slate-500">
-                Optional
+                {t.hr.optional}
               </Badge>
             </CardHeader>
 
             <CardContent className="space-y-3 pt-2 text-sm">
               <p className="rounded-md border border-sky-100 bg-sky-50 p-3 text-sm text-sky-900">
-                No Kolay İK credentials are required. Internal HR records work
-                when this integration is not connected.
+                {t.hr.noCredentialsRequired}
               </p>
             </CardContent>
           </div>
 
           <CardFooter className="flex flex-wrap gap-2 pt-4 border-t border-slate-100 bg-slate-50/50">
             <Button onClick={() => { window.location.href = "/employees"; }} size="sm" variant="outline">
-              Manage employees
+              {t.hr.manageEmployees}
             </Button>
             <Button onClick={() => { window.location.href = "/leaves"; }} size="sm" variant="outline">
-              Manage leave
+              {t.hr.manageLeave}
             </Button>
           </CardFooter>
         </Card>

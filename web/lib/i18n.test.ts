@@ -36,6 +36,10 @@ test("server dictionaries provide complete translations for both locales", async
   assert.equal(en.status.IN_PROGRESS, "In Progress");
   assert.equal(tr.priority.URGENT, "Acil");
   assert.equal(en.priority.URGENT, "Urgent");
+  assert.equal(tr.hr.leaveManagement, "İzin Yönetimi");
+  assert.equal(en.hr.leaveManagement, "Leave management");
+  assert.equal(tr.hr.positions, "Pozisyonlar");
+  assert.equal(en.hr.positions, "Positions");
 });
 
 test("server dictionaries are serializable for the client i18n provider", async () => {
