@@ -26,6 +26,7 @@ import {
   updateEmployeeSchema,
   type UpdateEmployeeInput,
 } from "@/lib/validation/employees";
+import type { PositionOption } from "@/components/manager/position-management";
 
 type UpdateEmployeeForm = z.input<typeof updateEmployeeSchema>;
 
@@ -35,7 +36,7 @@ export type EmployeeEditableProps = {
   lastName: string;
   email: string;
   phone: string | null;
-  position: string | null;
+  positionId: string | null;
   status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
   departmentId: string | null;
 };
@@ -45,9 +46,11 @@ type DepartmentOption = { id: string; name: string };
 export function EditEmployeeDialog({
   employee,
   departments,
+  positions,
 }: {
   employee: EmployeeEditableProps;
   departments: DepartmentOption[];
+  positions: PositionOption[];
 }) {
   const { formatError, t } = useI18n();
   const router = useRouter();
@@ -66,7 +69,7 @@ export function EditEmployeeDialog({
       lastName: employee.lastName,
       email: employee.email,
       phone: employee.phone ?? "",
-      position: employee.position ?? "",
+      positionId: employee.positionId ?? "",
       status: employee.status,
       departmentId: employee.departmentId ?? "",
     },
@@ -93,7 +96,7 @@ export function EditEmployeeDialog({
         lastName: employee.lastName,
         email: employee.email,
         phone: employee.phone ?? "",
-        position: employee.position ?? "",
+        positionId: employee.positionId ?? "",
         status: employee.status,
         departmentId: employee.departmentId ?? "",
       });
@@ -186,15 +189,13 @@ export function EditEmployeeDialog({
             </div>
             <div className="grid gap-2 min-w-0">
               <Label htmlFor="edit-emp-position">{t.employees.role}</Label>
-              <Input
-                id="edit-emp-position"
-                className="w-full min-w-0"
-                aria-invalid={Boolean(errors.position)}
-                {...register("position")}
-              />
-              {errors.position ? (
+              <select id="edit-emp-position" className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 text-sm" aria-invalid={Boolean(errors.positionId)} {...register("positionId")}>
+                <option value="">{t.tasks.unassigned}</option>
+                {positions.map((position) => <option key={position.id} value={position.id}>{position.name}</option>)}
+              </select>
+              {errors.positionId ? (
                 <p className="text-xs text-destructive">
-                  {errors.position.message}
+                  {errors.positionId.message}
                 </p>
               ) : null}
             </div>

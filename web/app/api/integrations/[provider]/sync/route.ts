@@ -1,10 +1,10 @@
 import { requireManagerContext } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit/log";
 import { handleRouteError, ok } from "@/lib/http/api-response";
+import { ApiError } from "@/lib/http/errors";
 import { assertSameOrigin, parseRequestBody } from "@/lib/http/request";
 import { syncClickUpInbound } from "@/lib/integrations/clickup/sync";
 import { importClockifyHistoricalTime } from "@/lib/integrations/clockify/import";
-import { syncKolayIkInbound } from "@/lib/integrations/kolayik/sync";
 import { prisma } from "@/lib/prisma";
 import type { AuthContext } from "@/lib/auth-context";
 import { recordIntegrationSyncStatusWithStore } from "@/lib/services/integrations";
@@ -32,6 +32,15 @@ export async function POST(
       provider.toUpperCase()
     );
 
+    if (validatedProvider === "KOLAY_IK") {
+      await parseRequestBody(request, emptySchema);
+      throw new ApiError(
+        "CONFLICT",
+        "Kolay İK synchronization is disabled. Manage HR data internally.",
+        409,
+      );
+    }
+
     await writeAudit(prisma, {
       companyId: context.companyId,
       actorUserId: context.userId,
@@ -58,10 +67,6 @@ export async function POST(
         startDate: body.startDate,
         endDate: body.endDate,
       });
-      syncSummary = result as unknown as Record<string, unknown>;
-    } else if (validatedProvider === "KOLAY_IK") {
-      await parseRequestBody(request, emptySchema);
-      const result = await syncKolayIkInbound(context);
       syncSummary = result as unknown as Record<string, unknown>;
     }
 

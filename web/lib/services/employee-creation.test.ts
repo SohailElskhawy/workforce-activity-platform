@@ -23,11 +23,14 @@ const input: CreateEmployeeInput = {
   email: "ada@example.test",
   firstName: "Ada",
   lastName: "Lovelace",
-  position: "Analyst",
+  positionId: "11111111-1111-4111-8111-111111111111",
   temporaryPassword: "Temporary1!",
 };
 
-function createStore(departmentCompanyId = "company-1") {
+function createStore(
+  departmentCompanyId = "company-1",
+  positionCompanyId = "company-1",
+) {
   const rows: {
     employee: Record<string, unknown> | null;
     user: Record<string, unknown> | null;
@@ -45,6 +48,11 @@ function createStore(departmentCompanyId = "company-1") {
     async findDepartmentById(id) {
       return id === "department-1" ? { companyId: departmentCompanyId } : null;
     },
+    async findPositionById(id) {
+      return id === input.positionId
+        ? { companyId: positionCompanyId, name: "Analyst" }
+        : null;
+    },
     async writeAudit(employee) {
       auditedEmployeeId = employee.id;
     },
@@ -60,6 +68,8 @@ test("createEmployee creates an active employee and linked hashed employee login
   assert.deepEqual(created, { email: "ada@example.test", id: "employee-1" });
   assert.equal(rows.employee?.companyId, "company-1");
   assert.equal(rows.employee?.status, "ACTIVE");
+  assert.equal(rows.employee?.positionId, input.positionId);
+  assert.equal(rows.employee?.position, "Analyst");
   assert.equal(rows.user?.companyId, "company-1");
   assert.equal(rows.user?.role, "EMPLOYEE");
   assert.equal(
@@ -74,6 +84,15 @@ test("createEmployee creates an active employee and linked hashed employee login
 
 test("createEmployee rejects a department from another company", async () => {
   const { store } = createStore("company-2");
+
+  await assert.rejects(
+    () => createEmployeeWithStore(manager, input, store),
+    (error) => error instanceof ApiError && error.status === 404,
+  );
+});
+
+test("createEmployee rejects a position from another company", async () => {
+  const { store } = createStore("company-1", "company-2");
 
   await assert.rejects(
     () => createEmployeeWithStore(manager, input, store),

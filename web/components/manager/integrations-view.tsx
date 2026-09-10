@@ -332,7 +332,6 @@ export function IntegrationsView({
   };
 
   const clickUp = getIntegration("CLICKUP");
-  const kolayIk = getIntegration("KOLAY_IK");
   const clockify = getIntegration("CLOCKIFY");
   const activeGuide = guideProvider
     ? getIntegrationSetupGuide(guideProvider, t.integrationsSection.setupGuides)
@@ -491,90 +490,30 @@ export function IntegrationsView({
                   {t.integrationsSection.providerKolayIk}
                 </CardTitle>
                 <CardDescription>
-                  {t.integrationsSection.providerKolayIkDesc}
+                  Employee, department, position, status, and leave information
+                  are managed internally. External API access is optional.
                 </CardDescription>
               </div>
-              {renderStatusBadge(kolayIk)}
+              <Badge variant="outline" className="border-slate-300 text-slate-500">
+                Optional
+              </Badge>
             </CardHeader>
 
             <CardContent className="space-y-3 pt-2 text-sm">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">
-                  {t.integrationsSection.lastSyncLabel}:
-                </span>
-                <span className="font-medium text-slate-800">
-                  {kolayIk.lastSyncAt
-                    ? new Date(kolayIk.lastSyncAt).toLocaleString()
-                    : t.integrationsSection.neverSynced}
-                </span>
-              </div>
-
-              {kolayIk.lastError ? (
-                <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-800 border border-amber-200">
-                  {kolayIk.lastError}
-                </div>
-              ) : null}
+              <p className="rounded-md border border-sky-100 bg-sky-50 p-3 text-sm text-sky-900">
+                No Kolay İK credentials are required. Internal HR records work
+                when this integration is not connected.
+              </p>
             </CardContent>
           </div>
 
           <CardFooter className="flex flex-wrap gap-2 pt-4 border-t border-slate-100 bg-slate-50/50">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setGuideProvider("KOLAY_IK")}
-            >
-              {t.integrationsSection.setupGuide}
+            <Button onClick={() => { window.location.href = "/employees"; }} size="sm" variant="outline">
+              Manage employees
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openConfigModal("KOLAY_IK")}
-            >
-              <Settings2 className="mr-1.5 h-4 w-4" />
-              {t.integrationsSection.configureButton}
+            <Button onClick={() => { window.location.href = "/leaves"; }} size="sm" variant="outline">
+              Manage leave
             </Button>
-
-            {kolayIk.isConfigured && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={Boolean(loadingProvider)}
-                  onClick={() => handleTestConnection("KOLAY_IK")}
-                >
-                  {loadingProvider === "test-KOLAY_IK" ? (
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-1.5 h-4 w-4" />
-                  )}
-                  {t.integrationsSection.testButton}
-                </Button>
-
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={Boolean(loadingProvider)}
-                  onClick={() => handleSync("KOLAY_IK")}
-                >
-                  {loadingProvider === "sync-KOLAY_IK" ? (
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Play className="mr-1.5 h-4 w-4" />
-                  )}
-                  {t.integrationsSection.syncButton}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  disabled={Boolean(loadingProvider)}
-                  onClick={() => handleDisconnect("KOLAY_IK")}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
-            )}
           </CardFooter>
         </Card>
 

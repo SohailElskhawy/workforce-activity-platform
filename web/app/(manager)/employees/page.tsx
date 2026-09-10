@@ -4,6 +4,7 @@ import { ActivityPoller } from "@/components/activity/activity-poller";
 import { CreateEmployeeDialog } from "@/components/manager/create-employee-dialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
+import { PositionManagement } from "@/components/manager/position-management";
 import { EmptyState } from "@/components/states/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import {
 import { requireManager, toAuthContext } from "@/lib/auth";
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { listDepartments, listEmployees } from "@/lib/services/employees";
+import { listPositionsWithStore } from "@/lib/services/positions";
 
 export default async function EmployeesPage() {
   const [session, locale] = await Promise.all([
@@ -26,9 +28,10 @@ export default async function EmployeesPage() {
     getServerLocale(),
   ]);
   const context = toAuthContext(session);
-  const [departments, employees, t] = await Promise.all([
+  const [departments, employees, positions, t] = await Promise.all([
     listDepartments(context),
     listEmployees(context),
+    listPositionsWithStore(context),
     getServerDictionary(locale),
   ]);
 
@@ -36,10 +39,11 @@ export default async function EmployeesPage() {
     <main className="flex-1 space-y-6 p-6 md:p-10">
       <ActivityPoller />
       <PageHeader
-        action={<CreateEmployeeDialog departments={departments} />}
+        action={<CreateEmployeeDialog departments={departments} positions={positions} />}
         description={t.employees.subtitle}
         title={t.employees.title}
       />
+      <PositionManagement positions={positions} />
       <DataTableCard>
         {employees.length ? (
             <Table>

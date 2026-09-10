@@ -6,6 +6,7 @@ import { HistoricalDateFilter } from "@/components/activity/historical-date-filt
 import { EditEmployeeDialog } from "@/components/manager/edit-employee-dialog";
 import { EmployeeDevicesCard } from "@/components/manager/employee-devices-card";
 import { EmployeeManualTimeCard } from "@/components/manager/employee-manual-time-card";
+import { EmployeeLeavesCard } from "@/components/manager/employee-leaves-card";
 import { PageHeading } from "@/components/manager/page-heading";
 import { RegisterAgentDeviceDialog } from "@/components/manager/register-agent-device-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,8 @@ import {
 import { getServerDictionary, getServerLocale } from "@/lib/i18n/server";
 import { getEmployeeDaySummary } from "@/lib/services/activity-reports";
 import { listDepartments } from "@/lib/services/employees";
+import { listPositionsWithStore } from "@/lib/services/positions";
+import { listEmployeeLeavesWithStore } from "@/lib/services/leaves";
 import { formatDayString, parseSafeDate } from "@/lib/services/dwg-reports";
 
 export default async function EmployeeDetailPage({
@@ -45,9 +48,11 @@ export default async function EmployeeDetailPage({
     getServerLocale(),
   ]);
   const authContext = toAuthContext(session);
-  const [summary, departments, t] = await Promise.all([
+  const [summary, departments, positions, leaves, t] = await Promise.all([
     getEmployeeDaySummary(authContext, id, selectedDate),
     listDepartments(authContext),
+    listPositionsWithStore(authContext),
+    listEmployeeLeavesWithStore(authContext, undefined, id),
     getServerDictionary(locale),
   ]);
   const difference = formatActivityDifference(summary.differenceMinutes, locale);
@@ -72,11 +77,12 @@ export default async function EmployeeDetailPage({
                 lastName: summary.employee.lastName,
                 email: summary.employee.email,
                 phone: summary.employee.phone,
-                position: summary.employee.position,
+                positionId: summary.employee.positionId,
                 status: summary.employee.status,
                 departmentId: summary.employee.departmentId,
               }}
               departments={departments}
+              positions={positions}
             />
             <HistoricalDateFilter selectedDate={dayString} />
             <RegisterAgentDeviceDialog
@@ -154,6 +160,7 @@ export default async function EmployeeDetailPage({
         entries={summary.manualTimeEntries}
         selectedDate={summary.selectedDate}
       />
+      <EmployeeLeavesCard leaves={leaves} />
       <EmployeeDevicesCard devices={summary.employee.devices} />
       <ActivityTimeline activities={summary.timeline} />
     </main>

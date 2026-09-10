@@ -25,14 +25,17 @@ import {
   type CreateEmployeeInput,
   createEmployeeSchema,
 } from "@/lib/validation/employees";
+import type { PositionOption } from "@/components/manager/position-management";
 
 type CreateEmployeeForm = z.input<typeof createEmployeeSchema>;
 type DepartmentOption = { id: string; name: string };
 
 export function CreateEmployeeDialog({
   departments,
+  positions,
 }: {
   departments: DepartmentOption[];
+  positions: PositionOption[];
 }) {
   const { formatError, t } = useI18n();
   const router = useRouter();
@@ -50,7 +53,7 @@ export function CreateEmployeeDialog({
       email: "",
       firstName: "",
       lastName: "",
-      position: "",
+      positionId: null,
       temporaryPassword: "",
     },
     resolver: zodResolver(createEmployeeSchema),
@@ -169,11 +172,14 @@ export function CreateEmployeeDialog({
                   </select>
                 </Field>
                 <Field
-                  error={errors.position?.message}
+                  error={errors.positionId?.message}
                   label={t.employees.role}
                   name="employee-position"
                 >
-                  <Input id="employee-position" className="w-full min-w-0" {...register("position")} />
+                  <select id="employee-position" className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm" {...register("positionId")}>
+                    <option value="">—</option>
+                    {positions.map((position) => <option key={position.id} value={position.id}>{position.name}</option>)}
+                  </select>
                 </Field>
               </div>
               <Field
@@ -223,4 +229,3 @@ function Field({
     </div>
   );
 }
-

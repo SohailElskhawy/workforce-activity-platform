@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   BarChart3,
   Bell,
+  CalendarDays,
   BriefcaseBusiness,
   Building2,
   Clock3,
@@ -65,6 +66,7 @@ export function AppShell({
       items: [
         { href: "/employees", icon: Users, label: t.common.navigation.employees },
         { href: "/departments", icon: Building2, label: t.common.navigation.departments },
+        { href: "/leaves", icon: CalendarDays, label: "Leave" },
         { href: "/devices", icon: Laptop, label: t.common.navigation.devices },
       ],
     },
@@ -106,6 +108,7 @@ export function AppShell({
         { href: "/my-tasks", icon: ListChecks, label: t.common.navigation.myTasks },
         { href: "/my-projects", icon: BriefcaseBusiness, label: t.common.navigation.myProjects },
         { href: "/my-time", icon: Clock3, label: t.common.navigation.manualTime },
+        { href: "/my-leave", icon: CalendarDays, label: "My leave" },
         { href: "/my-activity", icon: Activity, label: t.common.navigation.myActivity },
       ],
     },

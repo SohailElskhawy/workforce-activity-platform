@@ -250,6 +250,11 @@ export async function createAdminUser(
                 where: { id },
                 select: { companyId: true },
               }),
+            findPositionById: (id) =>
+              tx.position.findUnique({
+                where: { id },
+                select: { companyId: true, name: true },
+              }),
             createEmployeeWithLogin: (data) =>
               tx.employee.create({
                 data: { ...data.employee, user: { create: data.user } },

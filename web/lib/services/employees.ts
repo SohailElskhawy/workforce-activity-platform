@@ -46,6 +46,12 @@ export async function createEmployee(
             select: { companyId: true },
           });
         },
+        async findPositionById(id) {
+          return transaction.position.findUnique({
+            where: { id },
+            select: { companyId: true, name: true },
+          });
+        },
         async writeAudit(employee) {
           await writeAudit(transaction, {
             action: "EMPLOYEE_CREATED",
@@ -79,6 +85,7 @@ export async function listEmployees(context: AuthContext) {
       lastName: true,
       email: true,
       position: true,
+      positionId: true,
       status: true,
       department: { select: { name: true } },
       devices: {
@@ -111,6 +118,7 @@ export async function getEmployee(context: AuthContext, employeeId: string) {
       email: true,
       phone: true,
       position: true,
+      positionId: true,
       status: true,
       departmentId: true,
       managerId: true,
@@ -166,6 +174,22 @@ export async function updateEmployee(
         });
         if (!manager) {
           throw new ApiError("NOT_FOUND", "Manager employee not found.", 404);
+        }
+      }
+
+      let positionName: string | null | undefined;
+      if (input.positionId !== undefined) {
+        if (input.positionId) {
+          const position = await transaction.position.findFirst({
+            where: tenantWhere(context.companyId, { id: input.positionId }),
+            select: { name: true },
+          });
+          if (!position) {
+            throw new ApiError("NOT_FOUND", "Position not found.", 404);
+          }
+          positionName = position.name;
+        } else {
+          positionName = null;
         }
       }
 
@@ -230,7 +254,9 @@ export async function updateEmployee(
           email: input.email,
           phone: input.phone,
           departmentId: input.departmentId,
-          position: input.position,
+          ...(input.positionId !== undefined
+            ? { position: positionName ?? null, positionId: input.positionId }
+            : {}),
           managerId: input.managerId,
           status: input.status,
         },
@@ -241,6 +267,7 @@ export async function updateEmployee(
           email: true,
           phone: true,
           position: true,
+          positionId: true,
           status: true,
           departmentId: true,
           managerId: true,
@@ -286,4 +313,3 @@ export async function updateEmployee(
     throw error;
   }
 }
-

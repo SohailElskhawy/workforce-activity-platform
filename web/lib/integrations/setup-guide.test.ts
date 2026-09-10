@@ -10,15 +10,15 @@ import {
 const copy: IntegrationGuideCopy = {
   clickUp: {
     intro: "Use a ClickUp account that can access the workspace you want to connect.",
-    steps: ["Sign in", "Open Apps", "Create and copy an API token"],
+    steps: ["Sign in to your ClickUp account", "Open Apps", "Create and copy an API token"],
   },
   clockify: {
     intro: "Use the Clockify account that owns the workspace you want to import.",
-    steps: ["Sign in", "Open Profile settings", "Copy your API key"],
+    steps: ["Sign in to your Clockify account", "Open Profile settings", "Copy your API key"],
   },
   kolayIk: {
     intro: "Ask your HR administrator to create a token with employee and department access.",
-    steps: ["Sign in", "Open Developer settings", "Create and copy an API token"],
+    steps: ["Sign in to the Kolay İK account", "Open Developer settings", "Create and copy an API token"],
   },
 };
 

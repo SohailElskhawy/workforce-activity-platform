@@ -20,13 +20,13 @@ test("createEmployeeSchema normalizes a work email and accepts optional fields",
     email: " ADA@EXAMPLE.TEST ",
     firstName: " Ada ",
     lastName: " Lovelace ",
-    position: " Analyst ",
+    positionId: "11111111-1111-4111-8111-111111111111",
     temporaryPassword: "Temporary1!",
   });
 
   assert.equal(result.success, true);
   if (result.success) {
     assert.equal(result.data.email, "ada@example.test");
-    assert.equal(result.data.position, "Analyst");
+    assert.equal(result.data.positionId, "11111111-1111-4111-8111-111111111111");
   }
 });

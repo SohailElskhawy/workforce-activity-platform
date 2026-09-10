@@ -10,7 +10,8 @@ type NewEmployee = {
   email: string;
   firstName: string;
   lastName: string;
-  position: string | undefined;
+  position: string | null;
+  positionId: string | null;
   status: "ACTIVE";
 };
 
@@ -23,6 +24,7 @@ type NewEmployeeLogin = {
 
 export type EmployeeCreationStore = {
   findDepartmentById(id: string): Promise<{ companyId: string } | null>;
+  findPositionById(id: string): Promise<{ companyId: string; name: string } | null>;
   createEmployeeWithLogin(data: {
     employee: NewEmployee;
     user: NewEmployeeLogin;
@@ -42,6 +44,13 @@ export async function createEmployeeWithStore(
     }
   }
 
+  const position = input.positionId
+    ? await store.findPositionById(input.positionId)
+    : null;
+  if (input.positionId && (!position || position.companyId !== context.companyId)) {
+    throw new ApiError("NOT_FOUND", "Position not found.", 404);
+  }
+
   const passwordHash = await bcrypt.hash(input.temporaryPassword, 12);
   const employee = await store.createEmployeeWithLogin({
     employee: {
@@ -50,7 +59,8 @@ export async function createEmployeeWithStore(
       email: input.email,
       firstName: input.firstName,
       lastName: input.lastName,
-      position: input.position,
+      position: position?.name ?? null,
+      positionId: input.positionId,
       status: "ACTIVE",
     },
     user: {

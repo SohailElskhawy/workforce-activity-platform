@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { optionalPositionId } from "@/lib/validation/positions";
+
 const optionalText = (maxLength: number) =>
   z.preprocess(
     (value) =>
@@ -22,7 +24,7 @@ export const createEmployeeSchema = z
       .nullable()
       .optional()
       .transform((value) => value ?? null),
-    position: optionalText(160),
+    positionId: optionalPositionId,
     temporaryPassword: z.string().min(8).max(128),
   })
   .strict();
@@ -49,7 +51,7 @@ export const updateEmployeeSchema = z
       .optional(),
     phone: optionalText(40),
     departmentId: optionalUuid,
-    position: optionalText(160),
+    positionId: optionalPositionId.optional(),
     managerId: optionalUuid,
     status: employeeStatusSchema.optional(),
   })

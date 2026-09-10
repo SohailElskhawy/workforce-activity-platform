@@ -76,6 +76,7 @@ model Company {
     integrations         Integration[]
     integrationMappings  IntegrationMapping[]
     employeeLeaves       EmployeeLeave[]
+    positions            Position[]
     anomalies            Anomaly[]
 
     @@index([demoFixtureSet])
@@ -129,6 +130,7 @@ model Employee {
     phone        String?
     departmentId String?
     position     String?
+    positionId   String?
     managerId    String?
     status       EmployeeStatus @default(ACTIVE)
     hireDate     DateTime?
@@ -137,6 +139,7 @@ model Employee {
 
     company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
     department Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id], onDelete: SetNull)
+    positionDefinition Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
 
     manager Employee?  @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
     reports Employee[] @relation("EmployeeManager")
@@ -154,7 +157,22 @@ model Employee {
     @@unique([companyId, email])
     @@index([companyId])
     @@index([departmentId])
+    @@index([positionId])
     @@index([managerId])
+}
+
+model Position {
+    id        String   @id @default(uuid())
+    companyId String
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    employees Employee[]
+
+    @@unique([companyId, name])
+    @@index([companyId])
 }
 
 model Project {
