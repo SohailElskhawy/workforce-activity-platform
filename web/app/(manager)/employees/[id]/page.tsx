@@ -18,6 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { notFound } from "next/navigation";
+import { ApiError } from "@/lib/http/errors";
 import { requireManager, toAuthContext } from "@/lib/auth";
 import {
   formatActivityDifference,
@@ -48,13 +50,25 @@ export default async function EmployeeDetailPage({
     getServerLocale(),
   ]);
   const authContext = toAuthContext(session);
-  const [summary, departments, positions, leaves, t] = await Promise.all([
-    getEmployeeDaySummary(authContext, id, selectedDate),
-    listDepartments(authContext),
-    listPositionsWithStore(authContext),
-    listEmployeeLeavesWithStore(authContext, undefined, id),
-    getServerDictionary(locale),
-  ]);
+  let summary;
+  let departments;
+  let positions;
+  let leaves;
+  let t;
+
+  try {
+    [summary, departments, positions, leaves, t] = await Promise.all([
+      getEmployeeDaySummary(authContext, id, selectedDate),
+      listDepartments(authContext),
+      listPositionsWithStore(authContext),
+      listEmployeeLeavesWithStore(authContext, undefined, id),
+      getServerDictionary(locale),
+    ]);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "NOT_FOUND") notFound();
+    throw error;
+  }
+
   const difference = formatActivityDifference(summary.differenceMinutes, locale);
 
 

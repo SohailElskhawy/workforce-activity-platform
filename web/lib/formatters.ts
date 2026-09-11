@@ -1,15 +1,21 @@
 import type { Locale } from "./i18n/config";
 
-export function formatDate(date: Date | null | undefined, locale: Locale = "en") {
+export function formatDate(
+  date: Date | string | null | undefined,
+  locale: Locale = "en",
+) {
   if (!date) return "—";
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
 
   const intlLocale = locale === "tr" ? "tr-TR" : "en-US";
   return new Intl.DateTimeFormat(intlLocale, {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(date);
+  }).format(d);
 }
+
 
 export function formatDurationFromSeconds(
   seconds: number | null | undefined,
