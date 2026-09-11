@@ -30,3 +30,21 @@ test("createEmployeeSchema normalizes a work email and accepts optional fields",
     assert.equal(result.data.positionId, "11111111-1111-4111-8111-111111111111");
   }
 });
+
+test("createEmployeeSchema accepts empty string for departmentId and positionId and transforms them to null", () => {
+  const result = createEmployeeSchema.safeParse({
+    departmentId: "",
+    email: "ada@example.test",
+    firstName: "Ada",
+    lastName: "Lovelace",
+    positionId: "",
+    temporaryPassword: "Temporary1!",
+  });
+
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.departmentId, null);
+    assert.equal(result.data.positionId, null);
+  }
+});
+

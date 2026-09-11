@@ -9,6 +9,12 @@ const optionalText = (maxLength: number) =>
     z.string().trim().max(maxLength).optional(),
   );
 
+const optionalUuid = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() === "" ? null : (value ?? null),
+  z.string().uuid().nullable().optional(),
+);
+
 export const createEmployeeSchema = z
   .object({
     firstName: z.string().trim().min(1).max(80),
@@ -18,12 +24,7 @@ export const createEmployeeSchema = z
       .trim()
       .toLowerCase()
       .email("Enter a valid email address."),
-    departmentId: z
-      .string()
-      .uuid()
-      .nullable()
-      .optional()
-      .transform((value) => value ?? null),
+    departmentId: optionalUuid.transform((value) => value ?? null),
     positionId: optionalPositionId,
     temporaryPassword: z.string().min(8).max(128),
   })
@@ -31,11 +32,6 @@ export const createEmployeeSchema = z
 
 export type CreateEmployeeInput = z.output<typeof createEmployeeSchema>;
 
-const optionalUuid = z.preprocess(
-  (value) =>
-    typeof value === "string" && value.trim() === "" ? null : (value ?? null),
-  z.string().uuid().nullable().optional(),
-);
 
 export const employeeStatusSchema = z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]);
 

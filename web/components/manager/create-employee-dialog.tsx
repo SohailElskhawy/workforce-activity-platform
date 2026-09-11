@@ -176,7 +176,13 @@ export function CreateEmployeeDialog({
                   label={t.employees.role}
                   name="employee-position"
                 >
-                  <select id="employee-position" className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm" {...register("positionId")}>
+                  <select
+                    id="employee-position"
+                    className="h-8 w-full min-w-0 max-w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                    {...register("positionId", {
+                      setValueAs: (value) => value || null,
+                    })}
+                  >
                     <option value="">—</option>
                     {positions.map((position) => <option key={position.id} value={position.id}>{position.name}</option>)}
                   </select>
