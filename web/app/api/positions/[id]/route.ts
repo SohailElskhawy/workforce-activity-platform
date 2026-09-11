@@ -1,12 +1,10 @@
-import { z } from "zod";
-
 import { requireManagerContext } from "@/lib/auth";
 import { handleRouteError, ok } from "@/lib/http/api-response";
 import { ApiError } from "@/lib/http/errors";
 import { assertSameOrigin } from "@/lib/http/request";
 import { deletePositionWithStore } from "@/lib/services/positions";
+import { positionIdSchema } from "@/lib/validation/positions";
 
-const positionIdSchema = z.uuid("Position ID is invalid.");
 
 export async function DELETE(
   request: Request,

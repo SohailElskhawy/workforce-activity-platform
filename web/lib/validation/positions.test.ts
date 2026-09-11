@@ -25,7 +25,14 @@ test("employee position validation accepts an unassigned value and rejects inval
     "11111111-1111-4111-8111-111111111111",
   );
   assert.equal(
+    employeePositionIdSchema.parse({
+      positionId: "legacy-position-a5dd5b4c51465a99567d2e545310ab33",
+    }).positionId,
+    "legacy-position-a5dd5b4c51465a99567d2e545310ab33",
+  );
+  assert.equal(
     employeePositionIdSchema.safeParse({ positionId: "foreign-position" }).success,
     false,
   );
 });
+

@@ -48,3 +48,23 @@ test("createEmployeeSchema accepts empty string for departmentId and positionId 
   }
 });
 
+test("createEmployeeSchema accepts legacy position ID", () => {
+  const result = createEmployeeSchema.safeParse({
+    departmentId: null,
+    email: "ada@example.test",
+    firstName: "Ada",
+    lastName: "Lovelace",
+    positionId: "legacy-position-a5dd5b4c51465a99567d2e545310ab33",
+    temporaryPassword: "Temporary1!",
+  });
+
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(
+      result.data.positionId,
+      "legacy-position-a5dd5b4c51465a99567d2e545310ab33",
+    );
+  }
+});
+
+
