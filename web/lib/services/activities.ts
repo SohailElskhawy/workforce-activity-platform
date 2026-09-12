@@ -27,6 +27,7 @@ export type AgentActivityStore = {
     normalizedFileName: string,
   ): Promise<{ projectId: string; taskId: string | null } | null>;
   createActivity(data: ActivityCreateInput): Promise<"created" | "duplicate">;
+  createActivities?(data: ActivityCreateInput[]): Promise<{ created: number }>;
   findCandidateProjects?(companyId: string): Promise<ProjectCandidate[]>;
   createAutoFileMapping?(data: {
     companyId: string;
@@ -106,15 +107,29 @@ async function ingestWithStore(
   store: AgentActivityStore,
 ) {
   let candidatesCache: ProjectCandidate[] | null = null;
+  const activityRows: ActivityCreateInput[] = [];
+  const mappingCache = new Map<
+    string,
+    { projectId: string; taskId: string | null } | null
+  >();
 
   for (const event of activities) {
     const durationSeconds = validateDuration(event.startAt, event.endAt);
     const normalizedFileName = event.fileName
       ? normalizeFileName(event.fileName)
       : null;
-    let mapping = normalizedFileName
-      ? await store.findFileMapping(device.companyId, normalizedFileName)
-      : null;
+    let mapping: { projectId: string; taskId: string | null } | null = null;
+    if (normalizedFileName) {
+      if (mappingCache.has(normalizedFileName)) {
+        mapping = mappingCache.get(normalizedFileName) ?? null;
+      } else {
+        mapping = await store.findFileMapping(
+          device.companyId,
+          normalizedFileName,
+        );
+        mappingCache.set(normalizedFileName, mapping);
+      }
+    }
 
     // Requirement 8: Ingestion-time matching for safe exact unique match (confidence >= 0.95)
     if (
@@ -138,6 +153,7 @@ async function ingestWithStore(
           projectId: match.matchedProject.id,
           taskId: match.matchedTask?.id ?? null,
         };
+        mappingCache.set(normalizedFileName, mapping);
         await store.createAutoFileMapping({
           companyId: device.companyId,
           normalizedFileName,
@@ -149,7 +165,7 @@ async function ingestWithStore(
       }
     }
 
-    await store.createActivity({
+    activityRows.push({
       applicationName: event.applicationName ?? null,
       companyId: device.companyId,
       deviceId: device.databaseId,
@@ -167,6 +183,12 @@ async function ingestWithStore(
     });
   }
 
+  if (store.createActivities) {
+    await store.createActivities(activityRows);
+  } else {
+    for (const row of activityRows) await store.createActivity(row);
+  }
+
   return { accepted: activities.length };
 }
 
@@ -180,6 +202,13 @@ export function createConflictSafeActivityStore(
         skipDuplicates: true,
       });
       return result.count === 0 ? "duplicate" : "created";
+    },
+    async createActivities(data) {
+      const result = await client.activity.createMany({
+        data,
+        skipDuplicates: true,
+      });
+      return { created: result.count };
     },
     async findFileMapping(companyId, normalizedFileName) {
       return client.fileMapping.findUnique({
@@ -217,27 +246,14 @@ export function createConflictSafeActivityStore(
   };
 }
 
-async function createPrismaStore(): Promise<{
-  run<T>(operation: (store: AgentActivityStore) => Promise<T>): Promise<T>;
-}> {
+async function createPrismaStore(): Promise<AgentActivityStore> {
   const { prisma } = await import("@/lib/prisma");
-
-  return {
-    async run<T>(operation: (store: AgentActivityStore) => Promise<T>) {
-      return prisma.$transaction(async (transaction) =>
-        operation(
-          createConflictSafeActivityStore({
-            activity:
-              transaction.activity as unknown as ActivityPrismaClient["activity"],
-            fileMapping:
-              transaction.fileMapping as unknown as ActivityPrismaClient["fileMapping"],
-            project:
-              transaction.project as unknown as ActivityPrismaClient["project"],
-          }),
-        ),
-      );
-    },
-  };
+  return createConflictSafeActivityStore({
+    activity: prisma.activity as unknown as ActivityPrismaClient["activity"],
+    fileMapping:
+      prisma.fileMapping as unknown as ActivityPrismaClient["fileMapping"],
+    project: prisma.project as unknown as ActivityPrismaClient["project"],
+  });
 }
 
 export async function ingestActivityBatch(
@@ -248,7 +264,5 @@ export async function ingestActivityBatch(
   if (store) return ingestWithStore(device, activities, store);
 
   const prismaStore = await createPrismaStore();
-  return prismaStore.run((transactionStore) =>
-    ingestWithStore(device, activities, transactionStore),
-  );
+  return ingestWithStore(device, activities, prismaStore);
 }

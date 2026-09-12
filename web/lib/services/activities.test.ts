@@ -99,6 +99,61 @@ test("retrying an event ID does not create a second activity", async () => {
   assert.equal(rows.length, 1);
 });
 
+test("ingestion persists a queued backlog with one bulk activity write", async () => {
+  let individualWrites = 0;
+  const bulkWrites: Array<Array<Record<string, unknown>>> = [];
+  const backlog = Array.from({ length: 100 }, (_, index) => ({
+    ...mappedEvent,
+    eventId: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    fileName: null,
+  }));
+  const store = {
+    async createActivity() {
+      individualWrites += 1;
+      return "created" as const;
+    },
+    async createActivities(data: Array<Record<string, unknown>>) {
+      bulkWrites.push(data);
+      return { created: data.length };
+    },
+    async findFileMapping() {
+      return null;
+    },
+  };
+
+  const result = await ingestActivityBatch(device, backlog, store);
+
+  assert.deepEqual(result, { accepted: 100 });
+  assert.equal(individualWrites, 0);
+  assert.equal(bulkWrites.length, 1);
+  assert.equal(bulkWrites[0]?.length, 100);
+});
+
+test("ingestion looks up a repeated drawing mapping once per batch", async () => {
+  let mappingLookups = 0;
+  const rows: Array<Record<string, unknown>> = [];
+  const repeatedDrawing = Array.from({ length: 100 }, (_, index) => ({
+    ...mappedEvent,
+    eventId: `00000000-0000-4000-8001-${String(index + 1).padStart(12, "0")}`,
+  }));
+  const store = {
+    async createActivity(data: Record<string, unknown>) {
+      rows.push(data);
+      return "created" as const;
+    },
+    async findFileMapping() {
+      mappingLookups += 1;
+      return { projectId: "project-1", taskId: "task-1" };
+    },
+  };
+
+  await ingestActivityBatch(device, repeatedDrawing, store);
+
+  assert.equal(mappingLookups, 1);
+  assert.equal(rows.length, 100);
+  assert.equal(rows[99]?.projectId, "project-1");
+});
+
 test("the Prisma adapter treats duplicate event IDs as a conflict-safe no-op", async () => {
   const capture: {
     request: { data: unknown[]; skipDuplicates: boolean } | null;
