@@ -33,6 +33,7 @@ import type {
   getAdminCompany,
   adminOverview,
 } from "@/lib/admin/service";
+import { CompanyFilter } from "./company-filter";
 
 type Company = Awaited<ReturnType<typeof listAdminCompanies>>["items"][number];
 type User = Awaited<ReturnType<typeof listAdminUsers>>["items"][number];
@@ -569,17 +570,10 @@ export function AdminUsers({ companyId = "" }: { companyId?: string }) {
             ))}
           </select>
         </Field>
-        <details className="w-full sm:w-96">
-          <summary className="cursor-pointer text-sm">
-            {t.admin.filterCompany}
-            {filters.companyId ? ` · ${filters.companyId.slice(0, 8)}` : ""}
-          </summary>
-          <CompanyPicker
-            optional
-            value={filters.companyId}
-            onChange={(id) => filter("companyId", id)}
-          />
-        </details>
+        <CompanyFilter
+          value={filters.companyId}
+          onChange={(id) => filter("companyId", id)}
+        />
         <Button
           variant="ghost"
           onClick={() => {
@@ -698,17 +692,10 @@ export function AdminLogs() {
             </Field>
           ),
         )}
-        <details className="w-full sm:w-96">
-          <summary className="cursor-pointer text-sm">
-            {t.admin.filterCompany}
-            {filters.companyId ? ` · ${filters.companyId.slice(0, 8)}` : ""}
-          </summary>
-          <CompanyPicker
-            optional
-            value={filters.companyId}
-            onChange={(id) => filter("companyId", id)}
-          />
-        </details>
+        <CompanyFilter
+          value={filters.companyId}
+          onChange={(id) => filter("companyId", id)}
+        />
         <Button
           variant="ghost"
           onClick={() => {

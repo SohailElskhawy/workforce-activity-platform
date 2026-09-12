@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -30,4 +32,24 @@ test("CompanyFilter renders trigger with selected company name and quick-clear b
 
   assert.match(markup, /Acme Architecture/);
   assert.match(markup, /aria-label="Clear company filter"/);
+});
+
+test("admin-ui.tsx imports CompanyFilter and does not contain details disclosure filter wrappers", () => {
+  const adminUiSource = readFileSync(
+    join(process.cwd(), "components/admin/admin-ui.tsx"),
+    "utf8",
+  );
+
+  // Check import
+  assert.match(
+    adminUiSource,
+    /import\s+\{\s*CompanyFilter\s*\}\s+from\s+["']\.\/company-filter["']/,
+  );
+
+  // Check usage of CompanyFilter in AdminUsers and AdminLogs
+  const matches = adminUiSource.match(/<CompanyFilter/g);
+  assert.equal(matches?.length, 2);
+
+  // Ensure details wrapper inside filter bars is gone
+  assert.doesNotMatch(adminUiSource, /<details[^>]*sm:w-96/);
 });
